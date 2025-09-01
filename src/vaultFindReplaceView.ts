@@ -2,11 +2,19 @@ import { ItemView, WorkspaceLeaf, TFile, MarkdownView, type App, Notice, Modal }
 
 export const VIEW_TYPE_FIND_REPLACE = 'find-replace-view';
 
+// export interface SearchResult {
+//     file: TFile;
+//     line: number;
+//     content: string;
+//     matchText: string;
+// }
+
 export interface SearchResult {
     file: TFile;
-    line: number;
-    content: string;
-    matchText: string;
+    line: number;       // 0-based line
+    content: string;    // full line text
+    matchText: string;  // exact matched text
+    col?: number | undefined;       // 0-based column (start of this match in the line)
 }
 
 export class FindReplaceView extends ItemView {
@@ -171,23 +179,93 @@ export class FindReplaceView extends ItemView {
 
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i];
-                let match: RegExpMatchArray | null;
+
+
+
+
+
+                // let match: RegExpMatchArray | null;
+
+                // if (useRegex) {
+                //     const regex = new RegExp(query, matchCase ? 'g' : 'gi');
+                //     match = line.match(regex);
+                //     if (match) match.forEach(m => results.push({ file, line: i, content: line, matchText: m }));
+                // } else {
+                //     const searchLine = matchCase ? line : line.toLowerCase();
+                //     const searchQuery = matchCase ? query : query.toLowerCase();
+
+                //     if (wholeWord) {
+                //         const pattern = new RegExp(`\\b${searchQuery}\\b`);
+                //         if (pattern.test(searchLine)) results.push({ file, line: i, content: line, matchText: query });
+                //     } else if (searchLine.includes(searchQuery)) {
+                //         results.push({ file, line: i, content: line, matchText: query });
+                //     }
+                // }
+
+
+
+
 
                 if (useRegex) {
-                    const regex = new RegExp(query, matchCase ? 'g' : 'gi');
-                    match = line.match(regex);
-                    if (match) match.forEach(m => results.push({ file, line: i, content: line, matchText: m }));
+                    // REGEX: collect every match with its position
+                    const flags = matchCase ? 'g' : 'gi';
+                    const regex = new RegExp(query, flags);
+                    let m: RegExpExecArray | null;
+                    while ((m = regex.exec(line)) !== null) {
+                        results.push({
+                            file,
+                            line: i,
+                            content: line,
+                            matchText: m[0],
+                            col: m.index
+                        });
+                        // Prevent zero-width infinite loop
+                        if (regex.lastIndex === m.index) regex.lastIndex++;
+                    }
                 } else {
-                    const searchLine = matchCase ? line : line.toLowerCase();
-                    const searchQuery = matchCase ? query : query.toLowerCase();
-
+                    // PLAIN TEXT (with optional whole-word): collect every occurrence
+                    const haystack = matchCase ? line : line.toLowerCase();
+                    const needle = matchCase ? query : query.toLowerCase();
+                    if (!needle) continue; // (defensive) already guarded above
                     if (wholeWord) {
-                        const pattern = new RegExp(`\\b${searchQuery}\\b`);
-                        if (pattern.test(searchLine)) results.push({ file, line: i, content: line, matchText: query });
-                    } else if (searchLine.includes(searchQuery)) {
-                        results.push({ file, line: i, content: line, matchText: query });
+                        // Build a global word-boundary regex on the normalized haystack
+                        const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                        const wordRe = new RegExp(`\\b${escaped}\\b`, 'g');
+                        let m: RegExpExecArray | null;
+                        while ((m = wordRe.exec(haystack)) !== null) {
+                            const col = m.index;
+                            results.push({
+                                file,
+                                line: i,
+                                content: line,
+                                matchText: line.substr(col, needle.length), // preserve original casing
+                                col
+                            });
+                            if (wordRe.lastIndex === col) wordRe.lastIndex++;
+                        }
+                    } else {
+                        // Repeated indexOf scan to get all occurrences
+                        let start = 0;
+                        while (true) {
+                            const idx = haystack.indexOf(needle, start);
+                            if (idx === -1) break;
+                            results.push({
+                                file,
+                                line: i,
+                                content: line,
+                                matchText: line.substr(idx, needle.length), // original casing
+                                col: idx
+                            });
+                            start = idx + Math.max(needle.length, 1);
+                        }
                     }
                 }
+
+
+
+
+
+
             }
         }
         this.results = results;
@@ -201,6 +279,17 @@ export class FindReplaceView extends ItemView {
             this.replaceAllVaultBtn.removeAttribute('disabled');
         }
 
+        results.sort((a, b) => {
+            // First: file path (alphabetical)
+            if (a.file.path < b.file.path) return -1;
+            if (a.file.path > b.file.path) return 1;
+            // Then: line number
+            if (a.line !== b.line) return a.line - b.line;
+            // Then: column (fallback to 0 if missing)
+            const colA = typeof a.col === "number" ? a.col : 0;
+            const colB = typeof b.col === "number" ? b.col : 0;
+            return colA - colB;
+        });
         this.renderResults();
 
         this.selectedIndices.clear();
@@ -250,10 +339,44 @@ export class FindReplaceView extends ItemView {
                 lineDiv.addClass('line-result');
 
                 const span = lineDiv.createEl('span');
-                this.highlightMatchText(span, res.content, res.matchText);
-                this.registerDomEvent(span, 'click', async () => {
-                    console.log(res);
-                    this.openFileAtLine(res.file, res.line, res.matchText)
+
+                // this.highlightMatchText(span, res.content, res.matchText);
+                this.highlightMatchText(span, res.content, res.matchText, res.col);
+
+
+
+                const tags = lineDiv.createEl('span');
+                if (typeof res.col === "number" && res.col >= 0) {
+                    tags.setText(`${res.file.path} (line ${res.line + 1}, col ${res.col + 1})`);
+                } else {
+                    tags.setText(`${res.file.path} (line ${res.line + 1})`);
+                }
+
+
+
+                // this.registerDomEvent(span, 'click', async () => {
+                //     console.log(res);
+                //     this.openFileAtLine(res.file, res.line, res.matchText)
+                // });
+
+                // Make whole result clickable
+                // div.addClass("search-result-item");
+                // lineDiv.onclick = async () => {
+                this.registerDomEvent(lineDiv, 'click', async () => {
+                    // const leaf = this.app.workspace.getLeaf(true);
+                    // await leaf.openFile(res.file);
+                    // const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+                    // if (view) {
+                    //     const editor = view.editor;
+                    //     const pos = {
+                    //         line: res.line,
+                    //         ch: res.col ?? 0
+                    //     };
+                    //     editor.setCursor(pos);
+                    //     editor.scrollIntoView({ from: pos, to: pos }, true);
+                    // }
+                    this.openFileAtLine(res.file, res.line, res.col, res.matchText);
+                    // };
                 });
 
                 const replaceBtn = lineDiv.createEl('button', { text: 'Replace' });
@@ -275,31 +398,75 @@ export class FindReplaceView extends ItemView {
         this.setupKeyboardNavigation();
     }
 
-    private highlightMatchText(container: HTMLElement, lineText: string, matchText: string) {
+    // private highlightMatchText(container: HTMLElement, lineText: string, matchText: string) {
+    private highlightMatchText(container: HTMLElement, lineText: string, matchText: string, col?: number) {
         container.empty(); // remove previous content
 
+
+
+
+
+        // let lastIndex = 0;
+        // const regex = new RegExp(matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        // let match: RegExpExecArray | null;
+
+        // while ((match = regex.exec(lineText)) !== null) {
+        //     // Append text before match
+        //     if (match.index > lastIndex) {
+        //         container.appendChild(document.createTextNode(lineText.slice(lastIndex, match.index)));
+        //     }
+
+        //     // Append highlighted match
+        //     const mark = document.createElement('mark');
+        //     mark.textContent = match[0];
+        //     container.appendChild(mark);
+
+        //     lastIndex = match.index + match[0].length;
+        // }
+
+        // // Append remaining text
+        // if (lastIndex < lineText.length) {
+        //     container.appendChild(document.createTextNode(lineText.slice(lastIndex)));
+        // }
+
+
+
+        // If we have an exact column, highlight just that one occurrence.
+        if (typeof col === 'number' && col >= 0) {
+            const before = lineText.slice(0, col);
+            const mid = lineText.slice(col, col + matchText.length);
+            const after = lineText.slice(col + matchText.length);
+            if (before) container.appendChild(document.createTextNode(before));
+            const mark = document.createElement('mark');
+            mark.textContent = mid;
+            container.appendChild(mark);
+            if (after) container.appendChild(document.createTextNode(after));
+            return;
+        }
+        // Fallback: highlight ALL matches of the same text (previous behavior)
         let lastIndex = 0;
         const regex = new RegExp(matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-        let match: RegExpExecArray | null;
-
-        while ((match = regex.exec(lineText)) !== null) {
-            // Append text before match
-            if (match.index > lastIndex) {
-                container.appendChild(document.createTextNode(lineText.slice(lastIndex, match.index)));
+        let m: RegExpExecArray | null;
+        while ((m = regex.exec(lineText)) !== null) {
+            if (m.index > lastIndex) {
+                container.appendChild(document.createTextNode(lineText.slice(lastIndex, m.index)));
             }
-
-            // Append highlighted match
             const mark = document.createElement('mark');
-            mark.textContent = match[0];
+            mark.textContent = m[0];
             container.appendChild(mark);
-
-            lastIndex = match.index + match[0].length;
+            lastIndex = m.index + m[0].length;
+            if (regex.lastIndex === m.index) regex.lastIndex++;
         }
-
-        // Append remaining text
         if (lastIndex < lineText.length) {
             container.appendChild(document.createTextNode(lineText.slice(lastIndex)));
         }
+
+
+
+
+
+
+
     }
 
     private async replaceResult(res: SearchResult, replaceAll: boolean = false) {
@@ -311,15 +478,43 @@ export class FindReplaceView extends ItemView {
             updated = content.replace(new RegExp(res.matchText, flags), this.replaceInput.value);
         } else {
             const lines = content.split('\n');
-            let flags = 'g'; // always global
-            if (!(this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked) flags += 'i'; // add ignore-case if needed
-            const escaped = res.matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape special regex chars
-            const regex = new RegExp(escaped, flags);
-            lines[res.line] = lines[res.line].replace(regex, this.replaceInput.value);
+
+
+            // let flags = 'g'; // always global
+            // if (!(this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked) flags += 'i'; // add ignore-case if needed
+            // const escaped = res.matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape special regex chars
+            // const regex = new RegExp(escaped, flags);
+            // lines[res.line] = lines[res.line].replace(regex, this.replaceInput.value);
+
+
+
+            const lineText = lines[res.line] ?? '';
+            if (typeof res.col === 'number' && res.col >= 0) {
+                // Replace exactly the matched span
+                lines[res.line] =
+                    lineText.slice(0, res.col) +
+                    this.replaceInput.value +
+                    lineText.slice(res.col + res.matchText.length);
+            } else {
+                // Fallback: first occurrence (keeps previous behavior)
+                const idx = lineText.indexOf(res.matchText);
+                if (idx !== -1) {
+                    lines[res.line] =
+                        lineText.slice(0, idx) +
+                        this.replaceInput.value +
+                        lineText.slice(idx + res.matchText.length);
+                }
+            }
+
+
+
             updated = lines.join('\n');
         }
         await this.app.vault.modify(res.file, updated);
     }
+
+
+
 
     async replaceAllInVault() {
         if (!this.results || this.results.length === 0) {
@@ -415,11 +610,12 @@ export class FindReplaceView extends ItemView {
         }
     }
 
-    private async openFileAtLine(file: TFile, line: number, matchText?: string) {
+    private async openFileAtLine(file: TFile, line: number, col: number | undefined, matchText?: string) {
+console.log('⚡️ '+col);
         // Find or open leaf
         const existingLeaves = this.app.workspace.getLeavesOfType('markdown');
         let leaf = existingLeaves.find(l => (l.view as MarkdownView).file?.path === file.path);
-
+console.log('⚡️ '+col);
         if (!leaf) {
             leaf = this.app.workspace.getLeaf(true);
             await leaf.openFile(file);
@@ -427,25 +623,46 @@ export class FindReplaceView extends ItemView {
         } else {
             this.app.workspace.revealLeaf(leaf);
         }
-
+console.log('⚡️ '+col);
         const mdView = leaf.view as MarkdownView;
         if (!mdView?.editor) return;
 
         const editor = mdView.editor;
-
+console.log('⚡️ '+col);
         // Determine start and end of match
         const lineContent = editor.getLine(line);
-        let chStart = 0;
+        let chStart = col ?? 0;
         let chEnd = 0;
+console.log('⚡️ '+col);
         if (matchText) {
             // https://stackoverflow.com/questions/1126227/indexof-case-sensitive
-            chStart = lineContent.toLowerCase().indexOf(matchText.toLowerCase());
-            if (chStart !== -1) chEnd = chStart + matchText.length;
+            // chStart = lineContent.toLowerCase().indexOf(matchText.toLowerCase());
+            // if (chStart !== -1) chEnd = chStart + matchText.length;
+            if (chStart !== -1) chEnd = col! + matchText.length;
         }
+console.log('⚡️ '+col);
+        console.log('chStart');
+        console.log(chStart);
+        console.log('chEnd');
+        console.log(chEnd);
 
         // Set selection and focus
         editor.setSelection({ line, ch: chStart }, { line, ch: chEnd });
         editor.focus();
+
+        // const posStart = {
+        //     line: line,
+        //     ch: col ?? 0
+        // };
+        // const posEnd = {
+        //     line: line,
+        //     ch: col ?? 0
+        // };
+        // editor.setSelection(pos);
+
+
+
+
 
         // CM6 internal EditorView hack for centering (TS-safe)
         const cmView = (editor as any).cm; // cmView is any
