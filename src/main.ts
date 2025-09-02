@@ -2,18 +2,18 @@ import { Plugin, WorkspaceLeaf } from 'obsidian';
 import { FindReplaceView, VIEW_TYPE_FIND_REPLACE } from './vaultFindReplaceView';
 
 export default class VaultFindReplacePlugin extends Plugin {
-    async onload() {
-        this.registerView(
-            VIEW_TYPE_FIND_REPLACE,
-            (leaf: WorkspaceLeaf) => new FindReplaceView(leaf, this.app)
-        );
+	async onload() {
+		this.registerView(
+			VIEW_TYPE_FIND_REPLACE,
+			(leaf: WorkspaceLeaf) => new FindReplaceView(leaf, this.app)
+		);
 
-        this.addRibbonIcon('search', 'Vault Find & Replace', () => {
-            this.activateView();
-        });
-    }
+		this.addRibbonIcon('text-search', 'Vault Find & Replace', () => {
+			this.activateView();
+		});
+	}
 
-    onunload() {}
+	onunload() { }
 
 	async activateView() {
 		const { workspace } = this.app;
@@ -35,5 +35,4 @@ export default class VaultFindReplacePlugin extends Plugin {
 			workspace.getLeavesOfType(VIEW_TYPE_FIND_REPLACE).first()!
 		);
 	}
-
 }
