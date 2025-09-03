@@ -1,20 +1,13 @@
-import { ItemView, WorkspaceLeaf, TFile, MarkdownView, type App, Notice, Modal } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, MarkdownView, type App, Notice, Modal, setIcon } from 'obsidian';
 
 export const VIEW_TYPE_FIND_REPLACE = 'find-replace-view';
 
-// export interface SearchResult {
-//     file: TFile;
-//     line: number;
-//     content: string;
-//     matchText: string;
-// }
-
 export interface SearchResult {
     file: TFile;
-    line: number;       // 0-based line
-    content: string;    // full line text
-    matchText: string;  // exact matched text
-    col?: number | undefined;       // 0-based column (start of this match in the line)
+    line: number;
+    content: string;
+    matchText: string;
+    col?: number | undefined;
 }
 
 export class FindReplaceView extends ItemView {
@@ -28,9 +21,10 @@ export class FindReplaceView extends ItemView {
     selectedCountEl: HTMLElement;
     replaceSelectedBtn: HTMLButtonElement;
     replaceAllVaultBtn: HTMLButtonElement;
+    toolbarBtn: HTMLButtonElement;
+    resultsToolbar: HTMLElement;
 
     results: SearchResult[] = [];
-    focusedIndex: number = -1;
     selectedIndices: Set<number> = new Set();
     lineElements: HTMLDivElement[] = [];
     private resultsCountEl: HTMLElement;
@@ -42,43 +36,77 @@ export class FindReplaceView extends ItemView {
 
     getViewType(): string { return VIEW_TYPE_FIND_REPLACE; }
     getDisplayText(): string { return 'Vault Find & Replace'; }
-    getIcon(): string { return 'search'; }
+    getIcon(): string { return 'text-search'; }
 
     private renderUI() {
         this.containerEl.empty();
         this.containerEl.addClass('find-replace-container');
 
         // Search input
-        this.searchInput = this.containerEl.createEl('input', { type: 'text' }) as HTMLInputElement;
-        this.searchInput.addClass('find-replace-input');
-        this.searchInput.placeholder = 'Find';
+        let findInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
+        this.searchInput = findInputWrapper.createEl('input', { type: 'text', cls: 'find-replace-input', placeholder: 'Find' }) as HTMLInputElement;
+        let findClearBtn = findInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
+        setIcon(findClearBtn, 'circle-x');
+        setTimeout(async () => {
+            this.searchInput.focus();
+        }, 100);
 
         // Replace input
-        this.replaceInput = this.containerEl.createEl('input', { type: 'text' }) as HTMLInputElement;
-        this.replaceInput.addClass('find-replace-input');
-        this.replaceInput.placeholder = 'Replace';
+        let replaceInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
+        this.replaceInput = replaceInputWrapper.createEl('input', { type: 'text', cls: 'find-replace-input', placeholder: 'Replace' }) as HTMLInputElement;
+        let replaceClearBtn = replaceInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
+        setIcon(replaceClearBtn, 'circle-x');
+
+        // Clear input button listeners
+        const clearBtns = this.containerEl.querySelectorAll<HTMLButtonElement>(".clear-btn");
+        clearBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const input = btn.previousElementSibling as HTMLInputElement;
+                input.value = "";
+                input.dispatchEvent(new Event("input")); // notify listeners
+                input.focus();
+            });
+        });
 
         // Options
-        const optionsDiv = this.containerEl.createEl('div');
-        optionsDiv.addClass('find-replace-options');
-
+        const optionsDiv = this.containerEl.createDiv('find-replace-options');
         this.matchCaseCheckbox = this.createOption(optionsDiv, 'Match Case', 'match-case');
         this.wholeWordCheckbox = this.createOption(optionsDiv, 'Whole Word', 'whole-word');
         this.regexCheckbox = this.createOption(optionsDiv, 'Regex', 'regex');
 
-        this.resultsCountEl = this.containerEl.createDiv({ cls: 'find-replace-results-count' });
-        this.resultsCountEl.textContent = '0 results';
+        // Results toolbar
+        this.resultsToolbar = this.containerEl.createDiv('find-replace-results-toolbar');
+        this.resultsToolbar.classList.add('hidden');
+
+        // Count display
+        this.resultsCountEl = this.resultsToolbar.createDiv({ cls: 'find-replace-results-count', text: '0 results' });
+
+        // Expand/collapse all
+        this.toolbarBtn = this.resultsToolbar.createEl('button', { cls: 'collapse-toggle clickable-icon hidden', attr: { 'aria-label': 'Collapse all' } });
+        setIcon(this.toolbarBtn!, 'copy-minus');
+
+        let collapsed = false;
+
+        this.toolbarBtn?.addEventListener("click", () => {
+            collapsed = !collapsed;
+            this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
+                if (collapsed) {
+                    group.classList.add("collapsed");
+                    if (this.toolbarBtn) setIcon(this.toolbarBtn!, 'copy-plus');
+                    this.toolbarBtn.setAttr('aria-label', "Expand all");
+                } else {
+                    group.classList.remove("collapsed");
+                    if (this.toolbarBtn) setIcon(this.toolbarBtn!, 'copy-minus');
+                    this.toolbarBtn.setAttr('aria-label', 'Collapse all');
+                }
+            });
+        });
 
         // Results container
-        this.resultsContainer = this.containerEl.createEl('div');
-        this.resultsContainer.addClass('find-replace-results');
+        this.resultsContainer = this.containerEl.createDiv('find-replace-results');
 
         // Replace selected controls
-        const selectedContainer = this.containerEl.createEl('div');
-        selectedContainer.style.marginTop = '4px';
-        selectedContainer.style.display = 'flex';
-        selectedContainer.style.alignItems = 'center';
-        selectedContainer.style.gap = '8px';
+        const selectedContainer = this.containerEl.createDiv('find-replace-selected-all');
 
         this.selectedCountEl = selectedContainer.createEl('span', { text: '0 selected' });
         this.replaceSelectedBtn = selectedContainer.createEl('button', { text: 'Replace selected', attr: { 'disabled': true } });
@@ -92,39 +120,25 @@ export class FindReplaceView extends ItemView {
             await this.replaceAllInVault();
         });
 
-
         this.containerEl.appendChild(selectedContainer);
 
         // Keyboard search on Enter
-        this.searchInput.addEventListener('keydown', async (evt) => {
-            if (evt.key === 'Enter') {
-                this.performSearch();
-            }
-        });
-        this.replaceInput.addEventListener('keydown', async (evt) => {
-            if (evt.key === 'Enter') {
-                this.performSearch();
-            }
-        });
-        (this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement).addEventListener('keydown', async (evt) => {
-            if (evt.key === 'Enter') {
-                this.performSearch();
-            }
-        });
-        (this.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox') as HTMLInputElement)!.addEventListener('keydown', async (evt) => {
-            if (evt.key === 'Enter') {
-                this.performSearch();
-            }
-        });
-        (this.regexCheckbox.querySelector('#toggle-regex-checkbox') as HTMLInputElement)!.addEventListener('keydown', async (evt) => {
-            if (evt.key === 'Enter') {
-                this.performSearch();
-            }
+        const elements = [
+            this.searchInput,
+            this.replaceInput,
+            this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox'),
+            this.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox'),
+            this.regexCheckbox.querySelector('#toggle-regex-checkbox'),
+        ].filter((el): el is HTMLInputElement => el instanceof HTMLInputElement);
+
+        elements.forEach(el => {
+            el.addEventListener('keydown', async (evt) => {
+                if (evt.key === 'Enter') this.performSearch();
+            });
         });
     }
 
     private createOption(parent: HTMLElement, label: string, id: string): HTMLElement {
-
         const toggleContainer = parent.createDiv('toggle-container');
         toggleContainer.createEl(
             'label',
@@ -152,19 +166,19 @@ export class FindReplaceView extends ItemView {
         });
 
         return toggleContainer;
-
-        // const container = parent.createEl('label');
-        // const input = container.createEl('input', { type: 'checkbox' }) as HTMLInputElement;
-        // container.appendText(' ' + label);
-        // return input;
     }
 
     async performSearch() {
+
         this.selectedCountEl.textContent = '0 selected';
+        this.replaceAllVaultBtn.setAttr('disabled', true);
         const query = this.searchInput.value;
-        if (!query) {
+        const trimmedQuery = this.searchInput.value.trim();
+        if (!trimmedQuery) {
             this.resultsContainer.empty();
             this.resultsCountEl.textContent = '0 results';
+            // this.toolbarBtn.classList.add('hidden');
+            this.resultsToolbar.classList.add('hidden');
             return;
         }
         const matchCase = (this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked;
@@ -179,33 +193,6 @@ export class FindReplaceView extends ItemView {
 
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i];
-
-
-
-
-
-                // let match: RegExpMatchArray | null;
-
-                // if (useRegex) {
-                //     const regex = new RegExp(query, matchCase ? 'g' : 'gi');
-                //     match = line.match(regex);
-                //     if (match) match.forEach(m => results.push({ file, line: i, content: line, matchText: m }));
-                // } else {
-                //     const searchLine = matchCase ? line : line.toLowerCase();
-                //     const searchQuery = matchCase ? query : query.toLowerCase();
-
-                //     if (wholeWord) {
-                //         const pattern = new RegExp(`\\b${searchQuery}\\b`);
-                //         if (pattern.test(searchLine)) results.push({ file, line: i, content: line, matchText: query });
-                //     } else if (searchLine.includes(searchQuery)) {
-                //         results.push({ file, line: i, content: line, matchText: query });
-                //     }
-                // }
-
-
-
-
-
                 if (useRegex) {
                     // REGEX: collect every match with its position
                     const flags = matchCase ? 'g' : 'gi';
@@ -260,25 +247,10 @@ export class FindReplaceView extends ItemView {
                         }
                     }
                 }
-
-
-
-
-
-
             }
         }
+
         this.results = results;
-
-        // Update count display
-        if (this.results.length === 0) {
-            this.resultsCountEl.textContent = '0 results';
-            this.replaceAllVaultBtn.setAttr('disabled', true);
-        } else {
-            this.resultsCountEl.textContent = `${this.results.length} result${this.results.length !== 1 ? 's' : ''}`;
-            this.replaceAllVaultBtn.removeAttribute('disabled');
-        }
-
         results.sort((a, b) => {
             // First: file path (alphabetical)
             if (a.file.path < b.file.path) return -1;
@@ -299,7 +271,24 @@ export class FindReplaceView extends ItemView {
     private renderResults() {
         this.resultsContainer.empty();
         this.lineElements = [];
-        this.focusedIndex = -1;
+
+        if (this.toolbarBtn) this.toolbarBtn.setAttr('aria-label', 'Collapse all');
+        if (this.toolbarBtn) setIcon(this.toolbarBtn!, 'copy-minus');
+        if (this.toolbarBtn) this.toolbarBtn.classList.remove('hidden');
+
+        this.resultsToolbar.classList.remove('hidden');
+
+        this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
+            group.classList.add("collapsed");
+        });
+
+        if (this.results.length === 0) {
+            this.replaceAllVaultBtn.setAttr('disabled', true);
+            this.toolbarBtn.classList.add('hidden');
+        } else {
+            this.resultsCountEl.textContent = `${this.results.length} result${this.results.length !== 1 ? 's' : ''}`;
+            this.replaceAllVaultBtn.removeAttribute('disabled');
+        }
 
         const resultsByFile: Record<string, SearchResult[]> = {};
         this.results.forEach(r => {
@@ -308,18 +297,18 @@ export class FindReplaceView extends ItemView {
             resultsByFile[path].push(r);
         });
 
+        const fileGroupsContainer = this.resultsContainer.createDiv('file-groups-container');
         Object.entries(resultsByFile).forEach(([filePath, fileResults]) => {
-            const fileDiv = this.resultsContainer.createEl('div');
+            const fileDiv = fileGroupsContainer.createEl('div');
             fileDiv.addClass('file-group');
 
             const header = fileDiv.createEl('div');
             header.addClass('file-group-header');
-            header.createEl('strong', { text: filePath });
-            const countEl = header.createEl('span', { text: ` (${fileResults.length} match${fileResults.length > 1 ? 'es' : ''})` });
-            countEl.style.marginLeft = '4px';
-            countEl.style.color = 'var(--text-muted)';
+            header.createDiv({ cls: 'file-group-heading', text: filePath.replace('.md', '') });
+            header.createSpan({ cls: 'file-results-count', text: ` (${fileResults.length})` });
 
-            const replaceAllFileBtn = header.createEl('button', { text: 'Replace all in file' });
+            const replaceAllFileBtn = header.createEl('button', { text: 'Replace all in file', cls: 'clickable-icon', attr: { 'aria-label': `Replace all in ${filePath.replace('.md', '')}`, 'data-tooltip-position': 'top' } });
+            setIcon(replaceAllFileBtn, 'replace-all');
             this.registerDomEvent(replaceAllFileBtn, 'click', async () => {
                 const confirmMessage = this.replaceInput.value === ''
                     ? `Replace all matches in "${filePath}" with an empty value? This action cannot be undone.`
@@ -335,15 +324,10 @@ export class FindReplaceView extends ItemView {
             });
 
             fileResults.forEach((res, idx) => {
-                const lineDiv = fileDiv.createEl('div');
-                lineDiv.addClass('line-result');
+                const lineDiv = fileDiv.createDiv({ cls: 'line-result', attr: { 'tabindex': 0 } });
 
                 const span = lineDiv.createEl('span');
-
-                // this.highlightMatchText(span, res.content, res.matchText);
-                this.highlightMatchText(span, res.content, res.matchText, res.col);
-
-
+                this.highlightMatchText(span, res.file, res.content, res.matchText, res.line, res.col);
 
                 const tags = lineDiv.createEl('span');
                 if (typeof res.col === "number" && res.col >= 0) {
@@ -352,34 +336,8 @@ export class FindReplaceView extends ItemView {
                     tags.setText(`${res.file.path} (line ${res.line + 1})`);
                 }
 
-
-
-                // this.registerDomEvent(span, 'click', async () => {
-                //     console.log(res);
-                //     this.openFileAtLine(res.file, res.line, res.matchText)
-                // });
-
-                // Make whole result clickable
-                // div.addClass("search-result-item");
-                // lineDiv.onclick = async () => {
-                this.registerDomEvent(lineDiv, 'click', async () => {
-                    // const leaf = this.app.workspace.getLeaf(true);
-                    // await leaf.openFile(res.file);
-                    // const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-                    // if (view) {
-                    //     const editor = view.editor;
-                    //     const pos = {
-                    //         line: res.line,
-                    //         ch: res.col ?? 0
-                    //     };
-                    //     editor.setCursor(pos);
-                    //     editor.scrollIntoView({ from: pos, to: pos }, true);
-                    // }
-                    this.openFileAtLine(res.file, res.line, res.col, res.matchText);
-                    // };
-                });
-
-                const replaceBtn = lineDiv.createEl('button', { text: 'Replace' });
+                const replaceBtn = lineDiv.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': 'Replace this match', 'data-tooltip-position': 'top' } });
+                setIcon(replaceBtn, 'replace');
                 this.registerDomEvent(replaceBtn, 'click', async () => {
                     if (!this.replaceInput || this.replaceInput.value === '') {
                         const confirmed = await this.confirmReplaceEmpty('Replace match with empty content? This cannot be undone.');
@@ -395,41 +353,18 @@ export class FindReplaceView extends ItemView {
             });
         });
 
+        this.containerEl.querySelectorAll('.file-group-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const group = header.closest('.file-group');
+                if (group) group.classList.toggle('collapsed');
+            });
+        });
+
         this.setupKeyboardNavigation();
     }
 
-    // private highlightMatchText(container: HTMLElement, lineText: string, matchText: string) {
-    private highlightMatchText(container: HTMLElement, lineText: string, matchText: string, col?: number) {
+    private highlightMatchText(container: HTMLElement, file: TFile, lineText: string, matchText: string, line: number, col?: number) {
         container.empty(); // remove previous content
-
-
-
-
-
-        // let lastIndex = 0;
-        // const regex = new RegExp(matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-        // let match: RegExpExecArray | null;
-
-        // while ((match = regex.exec(lineText)) !== null) {
-        //     // Append text before match
-        //     if (match.index > lastIndex) {
-        //         container.appendChild(document.createTextNode(lineText.slice(lastIndex, match.index)));
-        //     }
-
-        //     // Append highlighted match
-        //     const mark = document.createElement('mark');
-        //     mark.textContent = match[0];
-        //     container.appendChild(mark);
-
-        //     lastIndex = match.index + match[0].length;
-        // }
-
-        // // Append remaining text
-        // if (lastIndex < lineText.length) {
-        //     container.appendChild(document.createTextNode(lineText.slice(lastIndex)));
-        // }
-
-
 
         // If we have an exact column, highlight just that one occurrence.
         if (typeof col === 'number' && col >= 0) {
@@ -440,6 +375,9 @@ export class FindReplaceView extends ItemView {
             const mark = document.createElement('mark');
             mark.textContent = mid;
             container.appendChild(mark);
+            this.registerDomEvent(mark, 'click', async () => {
+                this.openFileAtLine(file, line, col, matchText);
+            });
             if (after) container.appendChild(document.createTextNode(after));
             return;
         }
@@ -460,13 +398,6 @@ export class FindReplaceView extends ItemView {
         if (lastIndex < lineText.length) {
             container.appendChild(document.createTextNode(lineText.slice(lastIndex)));
         }
-
-
-
-
-
-
-
     }
 
     private async replaceResult(res: SearchResult, replaceAll: boolean = false) {
@@ -478,16 +409,6 @@ export class FindReplaceView extends ItemView {
             updated = content.replace(new RegExp(res.matchText, flags), this.replaceInput.value);
         } else {
             const lines = content.split('\n');
-
-
-            // let flags = 'g'; // always global
-            // if (!(this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked) flags += 'i'; // add ignore-case if needed
-            // const escaped = res.matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // escape special regex chars
-            // const regex = new RegExp(escaped, flags);
-            // lines[res.line] = lines[res.line].replace(regex, this.replaceInput.value);
-
-
-
             const lineText = lines[res.line] ?? '';
             if (typeof res.col === 'number' && res.col >= 0) {
                 // Replace exactly the matched span
@@ -505,16 +426,10 @@ export class FindReplaceView extends ItemView {
                         lineText.slice(idx + res.matchText.length);
                 }
             }
-
-
-
             updated = lines.join('\n');
         }
         await this.app.vault.modify(res.file, updated);
     }
-
-
-
 
     async replaceAllInVault() {
         if (!this.results || this.results.length === 0) {
@@ -534,39 +449,6 @@ export class FindReplaceView extends ItemView {
 
         this.performSearch();
     }
-
-    /*
-    private async replaceInFile(file: TFile, results: SearchResult[]): Promise<number> {
-        if (results.length === 0) return 0;
-
-        const content = await this.app.vault.read(file);
-        const lines = content.split('\n');
-        let replacedCount = 0;
-
-        for (const res of results) {
-            // Build regex from the found match
-            let flags = 'g';
-            if (!this.matchCaseCheckbox.checked) flags += 'i';
-
-            const escaped = res.matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const regex = new RegExp(escaped, flags);
-
-            const before = lines[res.line];
-            const after = before.replace(regex, this.replaceInput.value);
-
-            if (before !== after) {
-                lines[res.line] = after;
-                replacedCount++;
-            }
-        }
-
-        if (replacedCount > 0) {
-            await this.app.vault.modify(file, lines.join('\n'));
-        }
-
-        return replacedCount;
-    }
-    */
 
     private async replaceSelectedMatches() {
         if (!this.selectedIndices.size) return; // none selected
@@ -593,6 +475,46 @@ export class FindReplaceView extends ItemView {
                 }
             });
         });
+
+        // Make results keyboard navigable
+        const items = Array.from(this.containerEl.querySelectorAll<HTMLElement>(".line-result"));
+
+        let activeIndex = 0;
+        if (items.length > 0) {
+            items[0].classList.add("active");
+            items[0].focus();
+        }
+
+        this.containerEl.onkeydown = (evt: KeyboardEvent) => {
+            if (!items.length) return;
+
+            if (evt.key === "ArrowDown") {
+                evt.preventDefault();
+                items[activeIndex].classList.remove("active");
+                activeIndex = (activeIndex + 1) % items.length;
+                items[activeIndex].classList.add("active");
+                items[activeIndex].focus();
+            } else if (evt.key === "ArrowUp") {
+                evt.preventDefault();
+                items[activeIndex].classList.remove("active");
+                activeIndex = (activeIndex - 1 + items.length) % items.length;
+                items[activeIndex].classList.add("active");
+                items[activeIndex].focus();
+            } else if (evt.key === "Enter") {
+                if (evt.metaKey || evt.ctrlKey) {
+                    evt.preventDefault();
+                    items[activeIndex].querySelector('mark')!.click();
+                }
+                if (evt.shiftKey) {
+                    console.log('⌥⌥');
+                    evt.preventDefault();
+                    console.log(items[activeIndex]);
+                    if (this.selectedIndices.has(activeIndex)) this.selectedIndices.delete(activeIndex);
+                    else this.selectedIndices.add(activeIndex);
+                    this.updateSelectionStyles();
+                }
+            }
+        };
     }
 
     private updateSelectionStyles() {
@@ -602,20 +524,16 @@ export class FindReplaceView extends ItemView {
         });
         if (this.selectedCountEl) this.selectedCountEl.textContent = `${this.selectedIndices.size} selected`;
         if (this.selectedIndices.size < 1) {
-            console.log('a: ' + this.selectedIndices.size);
             this.replaceSelectedBtn.setAttr('disabled', true);
         } else {
             this.replaceSelectedBtn.removeAttribute('disabled');
-            console.log('b: ' + this.selectedIndices.size);
         }
     }
 
     private async openFileAtLine(file: TFile, line: number, col: number | undefined, matchText?: string) {
-console.log('⚡️ '+col);
         // Find or open leaf
         const existingLeaves = this.app.workspace.getLeavesOfType('markdown');
         let leaf = existingLeaves.find(l => (l.view as MarkdownView).file?.path === file.path);
-console.log('⚡️ '+col);
         if (!leaf) {
             leaf = this.app.workspace.getLeaf(true);
             await leaf.openFile(file);
@@ -623,46 +541,20 @@ console.log('⚡️ '+col);
         } else {
             this.app.workspace.revealLeaf(leaf);
         }
-console.log('⚡️ '+col);
         const mdView = leaf.view as MarkdownView;
         if (!mdView?.editor) return;
 
         const editor = mdView.editor;
-console.log('⚡️ '+col);
         // Determine start and end of match
         const lineContent = editor.getLine(line);
         let chStart = col ?? 0;
         let chEnd = 0;
-console.log('⚡️ '+col);
         if (matchText) {
-            // https://stackoverflow.com/questions/1126227/indexof-case-sensitive
-            // chStart = lineContent.toLowerCase().indexOf(matchText.toLowerCase());
-            // if (chStart !== -1) chEnd = chStart + matchText.length;
             if (chStart !== -1) chEnd = col! + matchText.length;
         }
-console.log('⚡️ '+col);
-        console.log('chStart');
-        console.log(chStart);
-        console.log('chEnd');
-        console.log(chEnd);
-
-        // Set selection and focus
+        // Set selection and focus editor
         editor.setSelection({ line, ch: chStart }, { line, ch: chEnd });
         editor.focus();
-
-        // const posStart = {
-        //     line: line,
-        //     ch: col ?? 0
-        // };
-        // const posEnd = {
-        //     line: line,
-        //     ch: col ?? 0
-        // };
-        // editor.setSelection(pos);
-
-
-
-
 
         // CM6 internal EditorView hack for centering (TS-safe)
         const cmView = (editor as any).cm; // cmView is any
