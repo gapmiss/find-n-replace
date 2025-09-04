@@ -390,12 +390,12 @@
     margin-left: 12px;
     white-space: nowrap;
 } */
-.line-result span:last-child {
-    /* color: var(--text-muted); */
+/* .line-result span:last-child {
+    color: var(--text-muted);
     font-size: 11px;
     margin-left: 8px;
     flex-shrink: 0;
-}
+} */
 
 /* Replace icon per line */
 .line-result .clickable-icon {
@@ -414,6 +414,19 @@
 .line-result .clickable-icon:focus-visible {
     opacity: 1;
 }
+
+
+
+
+/* 
+.custom-search-highlight {
+    background-color: var(--interactive-accent);
+    border-radius: 3px;
+    transition: background-color 0.5s ease;
+} */
+
+
+
 
 
 

@@ -1,20 +1,6 @@
 import { ItemView, WorkspaceLeaf, TFile, MarkdownView, type App, Notice, setIcon } from 'obsidian';
-// import { EditorView, Decoration, DecorationSet } from "@codemirror/view";
-// import { RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
 import { ConfirmModal } from "./modals";
 import VaultFindReplacePlugin from "./main";
-
-interface VaultConfig {
-    defaultViewMode: string;
-    livePreview: boolean;
-}
-
-declare module 'obsidian' {
-    interface Vault {
-        getConfig<T extends keyof VaultConfig>(config: T): VaultConfig[T];
-        setConfig<T extends keyof VaultConfig>(config: T, value: VaultConfig[T]): void;
-    }
-}
 
 export const VIEW_TYPE_FIND_REPLACE = 'find-replace-view';
 
@@ -25,40 +11,6 @@ export interface SearchResult {
     matchText: string;
     col?: number | undefined;
 }
-
-enum ViewMode {
-    Source = 0,
-    Preview = 1,
-    Live = 2,
-}
-
-// --- Highlight machinery (outside class, define once) ---
-// const addHighlight = StateEffect.define<{ from: number; to: number }>();
-// const clearHighlights = StateEffect.define<null>();
-
-// const highlightMark = Decoration.mark({
-//     class: "fr-source-highlight"
-// });
-
-// const highlightField = StateField.define({
-//     create() {
-//         return Decoration.none;
-//     },
-//     update(deco, tr) {
-//         deco = deco.map(tr.changes);
-//         for (let e of tr.effects) {
-//             if (e.is(addHighlight)) {
-//                 deco = deco.update({
-//                     add: [highlightMark.range(e.value.from, e.value.to)]
-//                 });
-//             } else if (e.is(clearHighlights)) {
-//                 deco = Decoration.none;
-//             }
-//         }
-//         return deco;
-//     },
-//     provide: f => EditorView.decorations.from(f)
-// });
 
 export class FindReplaceView extends ItemView {
     containerEl: HTMLElement;
@@ -229,7 +181,6 @@ export class FindReplaceView extends ItemView {
         if (!trimmedQuery) {
             this.resultsContainer.empty();
             this.resultsCountEl.textContent = '0 results';
-            // this.toolbarBtn.classList.add('hidden');
             this.resultsToolbar.classList.add('hidden');
             return;
         }
@@ -380,14 +331,16 @@ export class FindReplaceView extends ItemView {
             fileResults.forEach((res, idx) => {
                 const lineDiv = fileDiv.createDiv({ cls: 'line-result', attr: { 'tabindex': 0 } });
 
-                const span = lineDiv.createEl('span');
+                const span = lineDiv.createSpan('snippet');
                 this.highlightMatchText(span, res.file, res.content, res.matchText, res.line, res.col);
 
                 const tags = lineDiv.createEl('span');
                 if (typeof res.col === "number" && res.col >= 0) {
-                    tags.setText(`${res.file.path} (line ${res.line + 1}, col ${res.col + 1})`);
+                    // tags.setText(`${res.file.path} (line ${res.line + 1}, col ${res.col + 1})`);
+                    // tags.setText(`(line ${res.line + 1}, col ${res.col + 1})`);
                 } else {
-                    tags.setText(`${res.file.path} (line ${res.line + 1})`);
+                    // tags.setText(`${res.file.path} (line ${res.line + 1})`);
+                    // tags.setText(`(line ${res.line + 1})`);
                 }
 
                 const replaceBtn = lineDiv.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': 'Replace this match', 'data-tooltip-position': 'top' } });
@@ -417,9 +370,173 @@ export class FindReplaceView extends ItemView {
         this.setupKeyboardNavigation();
     }
 
-    private highlightMatchText(container: HTMLElement, file: TFile, lineText: string, matchText: string, line: number, col?: number) {
+    private highlightMatchText(
+        container: HTMLElement,
+        file: TFile,
+        lineText: string,
+        matchText: string,
+        line: number,
+        col?: number
+    ) {
         container.empty(); // remove previous content
 
+        // Find the match more robustly
+        const matchIndex = lineText.toLowerCase().indexOf(
+            matchText.toLowerCase(),
+            col ?? 0
+        );
+
+        if (matchIndex === -1) {
+            // fallback: show whole line without highlight
+            container.appendChild(document.createTextNode(lineText));
+            return;
+        }
+
+        const matchLen = matchText.length;
+
+        // How much context to show around the match
+        const context = 30;
+
+        const start = Math.max(0, matchIndex - context);
+        const end = Math.min(lineText.length, matchIndex + matchLen + context);
+
+        let before = lineText.slice(start, matchIndex);
+        const mid = lineText.slice(matchIndex, matchIndex + matchLen);
+        let after = lineText.slice(matchIndex + matchLen, end);
+
+        // Add ellipses if trimmed
+        if (start > 0) before = "… " + before;
+        if (end < lineText.length) after = after + " …";
+
+        // Render DOM
+        if (before) container.appendChild(document.createTextNode(before));
+
+        const mark = document.createElement("mark");
+        mark.textContent = mid;
+        container.appendChild(mark);
+
+        this.registerDomEvent(mark, "click", async () => {
+            this.openFileAtLine(file, line, matchIndex, matchText);
+        });
+
+        if (after) container.appendChild(document.createTextNode(after));
+    }
+
+    /*/
+    private highlightMatchText(
+        container: HTMLElement,
+        file: TFile,
+        lineText: string,
+        matchText: string,
+        line: number,
+        col?: number
+    ) {
+        container.empty(); // remove previous content
+
+        if (typeof col === "number" && col >= 0) {
+            const matchLen = matchText.length;
+
+            // Split into words with indices
+            const words = lineText.split(/\s+/);
+            let charIndex = 0;
+            let matchWordIndex = -1;
+
+            // Find which word contains our match position
+            for (let i = 0; i < words.length; i++) {
+                const word = words[i];
+                if (col >= charIndex && col < charIndex + word.length) {
+                    matchWordIndex = i;
+                    break;
+                }
+                charIndex += word.length + 1; // +1 for space
+            }
+
+            if (matchWordIndex === -1) {
+                // fallback: just show whole line if something went wrong
+                container.appendChild(document.createTextNode(lineText));
+                return;
+            }
+
+            // How many words of context to keep around the match
+            const contextWords = 5;
+            const startWord = Math.max(0, matchWordIndex - contextWords);
+            const endWord = Math.min(words.length, matchWordIndex + contextWords + 1);
+
+            const beforeWords = words.slice(startWord, matchWordIndex).join(" ");
+            const matchWord = words[matchWordIndex];
+            const afterWords = words.slice(matchWordIndex + 1, endWord).join(" ");
+
+            // Add ellipses if trimmed
+            const before = (startWord > 0 ? "… " : "") + beforeWords + (beforeWords ? " " : "");
+            const after = (afterWords ? " " : "") + afterWords + (endWord < words.length ? " …" : "");
+
+            // Render
+            if (before.trim()) container.appendChild(document.createTextNode(before));
+
+            const mark = document.createElement("mark");
+            // Ensure the highlight text matches even if casing differs
+            mark.textContent = matchWord;
+            container.appendChild(mark);
+
+            this.registerDomEvent(mark, "click", async () => {
+                this.openFileAtLine(file, line, col, matchText);
+            });
+
+            if (after.trim()) container.appendChild(document.createTextNode(after));
+        }
+    }
+    /**/
+
+    /*/
+    private highlightMatchText(
+        container: HTMLElement,
+        file: TFile,
+        lineText: string,
+        matchText: string,
+        line: number,
+        col?: number
+    ) {
+        container.empty(); // remove previous content
+
+        // If we have an exact column, highlight just that one occurrence.
+        if (typeof col === "number" && col >= 0) {
+            const matchLen = matchText.length;
+
+            // Define how much context to show around the match (characters, not words).
+            const beforeContext = 10;
+            const afterContext = 10;
+
+            const start = Math.max(0, col - beforeContext);
+            const end = Math.min(lineText.length, col + matchLen + afterContext);
+
+            let before = lineText.slice(start, col);
+            const mid = lineText.slice(col, col + matchLen);
+            let after = lineText.slice(col + matchLen, end);
+
+            // Add ellipses if we trimmed the start/end
+            if (start > 0) before = "… " + before;
+            if (end < lineText.length) after = after + " …";
+
+            // Build the DOM
+            if (before) container.appendChild(document.createTextNode(before));
+
+            const mark = document.createElement("mark");
+            mark.textContent = mid;
+            container.appendChild(mark);
+
+            this.registerDomEvent(mark, "click", async () => {
+                this.openFileAtLine(file, line, col, matchText);
+            });
+
+            if (after) container.appendChild(document.createTextNode(after));
+            return;
+        }
+    }
+    /**/
+
+    /*/
+    private highlightMatchText(container: HTMLElement, file: TFile, lineText: string, matchText: string, line: number, col?: number) {
+        container.empty(); // remove previous content
         // If we have an exact column, highlight just that one occurrence.
         if (typeof col === 'number' && col >= 0) {
             const before = lineText.slice(0, col);
@@ -435,25 +552,8 @@ export class FindReplaceView extends ItemView {
             if (after) container.appendChild(document.createTextNode(after));
             return;
         }
-
-        // Fallback: highlight ALL matches of the same text (previous behavior)
-        // let lastIndex = 0;
-        // const regex = new RegExp(matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-        // let m: RegExpExecArray | null;
-        // while ((m = regex.exec(lineText)) !== null) {
-        //     if (m.index > lastIndex) {
-        //         container.appendChild(document.createTextNode(lineText.slice(lastIndex, m.index)));
-        //     }
-        //     const mark = document.createElement('mark');
-        //     mark.textContent = m[0];
-        //     container.appendChild(mark);
-        //     lastIndex = m.index + m[0].length;
-        //     if (regex.lastIndex === m.index) regex.lastIndex++;
-        // }
-        // if (lastIndex < lineText.length) {
-        //     container.appendChild(document.createTextNode(lineText.slice(lastIndex)));
-        // }
     }
+    /**/
 
     private async replaceResult(res: SearchResult, replaceAll: boolean = false) {
         const content = await this.app.vault.read(res.file);
@@ -585,12 +685,9 @@ export class FindReplaceView extends ItemView {
         }
     }
 
-
-
     private async openFileAtLine(file: TFile, line: number, col: number | undefined, matchText?: string) {
         // Find or open leaf
         const existingLeaves = this.app.workspace.getLeavesOfType('markdown');
-        // let leaf = existingLeaves.find(l => (l.view as MarkdownView).file?.path === file.path);
         let leaf = existingLeaves.find(l => l.view instanceof MarkdownView && l.view.file?.path === file.path);
         if (!leaf) {
             leaf = this.app.workspace.getLeaf(true);
@@ -600,28 +697,10 @@ export class FindReplaceView extends ItemView {
             this.app.workspace.revealLeaf(leaf);
         }
 
-
         const mdView = leaf.view as MarkdownView;
-        // console.log(mdView);
         let viewState = leaf.getViewState();
-        // console.log(viewState);
-
-        // console.log(this.app.vault.getConfig('defaultViewMode'));
-
-        // console.log('mdView.previewMode');
-        // console.log(mdView.previewMode);
-
-        // If in reading (preview) mode, toggle to source/live preview
-
+        // If in reading (preview) mode, change mode to source
         if (viewState.state!.mode === 'preview') {
-        /**/
-        // if (mdView instanceof MarkdownView && mdView.previewMode) {
-            // Get the user's preferred default view mode
-
-            // const mode: "source" | "preview" = prefersLivePreview ? "preview" : "source";
-            // const prefersLivePreview = this.app.vault.getConfig('livePreview');
-            // console.log(defaultMode);
-            // Re-open the file in the user's preferred mode
             await leaf.setViewState({
                 type: 'markdown',
                 state: {
@@ -630,27 +709,7 @@ export class FindReplaceView extends ItemView {
                     mode: 'source'
                 },
             })
-        
-        } 
-        // else  {
-        //             const livePreview = this.app.vault.getConfig("livePreview");
-        //             console.log(livePreview);
-        //     const state = mdView.getState();
-        //     state.mode = livePreview ? "preview" : "source";
-        //     mdView.setState(state, { history: true });
-        //     // mdView.editor?.refresh();
-        // }
-        /**/
-        /*
-        const prefersLivePreview = this.app.vault.getConfig('livePreview');
-        if (mdView instanceof MarkdownView) {
-            const livePreview = this.app.vault.getConfig("livePreview");
-            const state = mdView.getState();
-            state.mode = livePreview ? "preview" : "source";
-            mdView.setState(state, { history: true });
-            mdView.editor?.refresh();
         }
-        */
 
         if (!mdView?.editor) return;
 
