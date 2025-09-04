@@ -1,5 +1,21 @@
 import { ItemView, WorkspaceLeaf, TFile, MarkdownView, type App, Notice, setIcon } from 'obsidian';
+// import { EditorView, Decoration, DecorationSet } from "@codemirror/view";
+// import { RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
 import { ConfirmModal } from "./modals";
+import VaultFindReplacePlugin from "./main";
+
+interface VaultConfig {
+    defaultViewMode: string;
+    livePreview: boolean;
+}
+
+declare module 'obsidian' {
+    interface Vault {
+        getConfig<T extends keyof VaultConfig>(config: T): VaultConfig[T];
+        setConfig<T extends keyof VaultConfig>(config: T, value: VaultConfig[T]): void;
+    }
+}
+
 export const VIEW_TYPE_FIND_REPLACE = 'find-replace-view';
 
 export interface SearchResult {
@@ -9,6 +25,40 @@ export interface SearchResult {
     matchText: string;
     col?: number | undefined;
 }
+
+enum ViewMode {
+    Source = 0,
+    Preview = 1,
+    Live = 2,
+}
+
+// --- Highlight machinery (outside class, define once) ---
+// const addHighlight = StateEffect.define<{ from: number; to: number }>();
+// const clearHighlights = StateEffect.define<null>();
+
+// const highlightMark = Decoration.mark({
+//     class: "fr-source-highlight"
+// });
+
+// const highlightField = StateField.define({
+//     create() {
+//         return Decoration.none;
+//     },
+//     update(deco, tr) {
+//         deco = deco.map(tr.changes);
+//         for (let e of tr.effects) {
+//             if (e.is(addHighlight)) {
+//                 deco = deco.update({
+//                     add: [highlightMark.range(e.value.from, e.value.to)]
+//                 });
+//             } else if (e.is(clearHighlights)) {
+//                 deco = Decoration.none;
+//             }
+//         }
+//         return deco;
+//     },
+//     provide: f => EditorView.decorations.from(f)
+// });
 
 export class FindReplaceView extends ItemView {
     containerEl: HTMLElement;
@@ -28,10 +78,12 @@ export class FindReplaceView extends ItemView {
     selectedIndices: Set<number> = new Set();
     lineElements: HTMLDivElement[] = [];
     private resultsCountEl: HTMLElement;
+    plugin: VaultFindReplacePlugin;
 
-    constructor(leaf: WorkspaceLeaf, app: App) {
+    constructor(leaf: WorkspaceLeaf, app: App, plugin: VaultFindReplacePlugin) {
         super(leaf);
         this.renderUI();
+        this.plugin = plugin;
     }
 
     getViewType(): string { return VIEW_TYPE_FIND_REPLACE; }
@@ -272,9 +324,11 @@ export class FindReplaceView extends ItemView {
         this.resultsContainer.empty();
         this.lineElements = [];
 
-        if (this.toolbarBtn) this.toolbarBtn.setAttr('aria-label', 'Collapse all');
-        if (this.toolbarBtn) setIcon(this.toolbarBtn!, 'copy-minus');
-        if (this.toolbarBtn) this.toolbarBtn.classList.remove('hidden');
+        if (this.toolbarBtn) {
+            this.toolbarBtn.setAttr('aria-label', 'Collapse all');
+            setIcon(this.toolbarBtn!, 'copy-minus');
+            this.toolbarBtn.classList.remove('hidden');
+        }
 
         this.resultsToolbar.classList.remove('hidden');
 
@@ -381,23 +435,24 @@ export class FindReplaceView extends ItemView {
             if (after) container.appendChild(document.createTextNode(after));
             return;
         }
+
         // Fallback: highlight ALL matches of the same text (previous behavior)
-        let lastIndex = 0;
-        const regex = new RegExp(matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-        let m: RegExpExecArray | null;
-        while ((m = regex.exec(lineText)) !== null) {
-            if (m.index > lastIndex) {
-                container.appendChild(document.createTextNode(lineText.slice(lastIndex, m.index)));
-            }
-            const mark = document.createElement('mark');
-            mark.textContent = m[0];
-            container.appendChild(mark);
-            lastIndex = m.index + m[0].length;
-            if (regex.lastIndex === m.index) regex.lastIndex++;
-        }
-        if (lastIndex < lineText.length) {
-            container.appendChild(document.createTextNode(lineText.slice(lastIndex)));
-        }
+        // let lastIndex = 0;
+        // const regex = new RegExp(matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        // let m: RegExpExecArray | null;
+        // while ((m = regex.exec(lineText)) !== null) {
+        //     if (m.index > lastIndex) {
+        //         container.appendChild(document.createTextNode(lineText.slice(lastIndex, m.index)));
+        //     }
+        //     const mark = document.createElement('mark');
+        //     mark.textContent = m[0];
+        //     container.appendChild(mark);
+        //     lastIndex = m.index + m[0].length;
+        //     if (regex.lastIndex === m.index) regex.lastIndex++;
+        // }
+        // if (lastIndex < lineText.length) {
+        //     container.appendChild(document.createTextNode(lineText.slice(lastIndex)));
+        // }
     }
 
     private async replaceResult(res: SearchResult, replaceAll: boolean = false) {
@@ -530,10 +585,13 @@ export class FindReplaceView extends ItemView {
         }
     }
 
+
+
     private async openFileAtLine(file: TFile, line: number, col: number | undefined, matchText?: string) {
         // Find or open leaf
         const existingLeaves = this.app.workspace.getLeavesOfType('markdown');
-        let leaf = existingLeaves.find(l => (l.view as MarkdownView).file?.path === file.path);
+        // let leaf = existingLeaves.find(l => (l.view as MarkdownView).file?.path === file.path);
+        let leaf = existingLeaves.find(l => l.view instanceof MarkdownView && l.view.file?.path === file.path);
         if (!leaf) {
             leaf = this.app.workspace.getLeaf(true);
             await leaf.openFile(file);
@@ -541,7 +599,59 @@ export class FindReplaceView extends ItemView {
         } else {
             this.app.workspace.revealLeaf(leaf);
         }
+
+
         const mdView = leaf.view as MarkdownView;
+        // console.log(mdView);
+        let viewState = leaf.getViewState();
+        // console.log(viewState);
+
+        // console.log(this.app.vault.getConfig('defaultViewMode'));
+
+        // console.log('mdView.previewMode');
+        // console.log(mdView.previewMode);
+
+        // If in reading (preview) mode, toggle to source/live preview
+
+        if (viewState.state!.mode === 'preview') {
+        /**/
+        // if (mdView instanceof MarkdownView && mdView.previewMode) {
+            // Get the user's preferred default view mode
+
+            // const mode: "source" | "preview" = prefersLivePreview ? "preview" : "source";
+            // const prefersLivePreview = this.app.vault.getConfig('livePreview');
+            // console.log(defaultMode);
+            // Re-open the file in the user's preferred mode
+            await leaf.setViewState({
+                type: 'markdown',
+                state: {
+                    file: file.path,
+                    // mode: 'source'
+                    mode: 'source'
+                },
+            })
+        
+        } 
+        // else  {
+        //             const livePreview = this.app.vault.getConfig("livePreview");
+        //             console.log(livePreview);
+        //     const state = mdView.getState();
+        //     state.mode = livePreview ? "preview" : "source";
+        //     mdView.setState(state, { history: true });
+        //     // mdView.editor?.refresh();
+        // }
+        /**/
+        /*
+        const prefersLivePreview = this.app.vault.getConfig('livePreview');
+        if (mdView instanceof MarkdownView) {
+            const livePreview = this.app.vault.getConfig("livePreview");
+            const state = mdView.getState();
+            state.mode = livePreview ? "preview" : "source";
+            mdView.setState(state, { history: true });
+            mdView.editor?.refresh();
+        }
+        */
+
         if (!mdView?.editor) return;
 
         const editor = mdView.editor;
@@ -582,4 +692,5 @@ export class FindReplaceView extends ItemView {
 
         return modal.result; // true = confirmed, false = cancelled
     }
+
 }
