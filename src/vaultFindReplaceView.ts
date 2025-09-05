@@ -62,7 +62,7 @@ export class FindReplaceView extends ItemView {
         let replaceInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
         this.replaceInput = replaceInputWrapper.createEl('input', { type: 'text', cls: 'find-replace-input', placeholder: 'Replace' }) as HTMLInputElement;
         let replaceClearBtn = replaceInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
-        // setIcon(replaceClearBtn, 'circle-x');
+        // setIcon(replaceClearBtn, 'circle-x');key
 
         // Clear input button listeners
         const clearBtns = this.containerEl.querySelectorAll<HTMLButtonElement>(".clear-btn");
@@ -314,13 +314,30 @@ export class FindReplaceView extends ItemView {
             const header = fileDiv.createEl('div');
             header.addClass('file-group-header');
             const fileGroupHeading = header.createSpan({ cls: 'file-group-heading', text: filePath.replace('.md', '') });
+            fileGroupHeading.setAttr('tabindex', 0);
+            fileGroupHeading.setAttr('role', 'button');
             fileGroupHeading.addEventListener('click', () => {
                 const group = fileGroupHeading.closest('.file-group');
                 if (group) group.classList.toggle('collapsed');
             });
+            fileGroupHeading.addEventListener('keydown', (e: KeyboardEvent) => {
+                    const target = e.target as HTMLElement | null;
+                    if (
+                        target?.getAttribute('role') === 'button' &&
+                        target.tagName === 'SPAN'
+                    ) {
+                        const key = e.key;
+                        const isEnter = key === 'Enter';
+                        const isSpace = key === ' ' || key === 'Spacebar';
+                        if (isEnter || isSpace) {
+                            e.preventDefault();
+                            target.click();
+                        }
+                    }
+                });
             header.createSpan({ cls: 'file-results-count', text: ` (${fileResults.length})` });
 
-            const replaceAllFileBtn = header.createEl('button', { text: 'Replace all in file', cls: 'clickable-icon', attr: { 'aria-label': `Replace all in ${filePath.replace('.md', '')}`, 'data-tooltip-position': 'top' } });
+            const replaceAllFileBtn = header.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': `Replace all in "${filePath.replace('.md', '')}"`, 'data-tooltip-position': 'top' } });
             setIcon(replaceAllFileBtn, 'replace-all');
             this.registerDomEvent(replaceAllFileBtn, 'click', async () => {
                 const confirmMessage = this.replaceInput.value === ''
@@ -337,15 +354,49 @@ export class FindReplaceView extends ItemView {
             });
 
             fileResults.forEach((res, idx) => {
-                const lineDiv = fileDiv.createDiv({ cls: 'line-result', attr: { 'tabindex': 0 } });
+                // const lineDiv = fileDiv.createDiv({ cls: 'line-result', attr: { 'tabindex': 0 } });
+                const lineDiv = fileDiv.createDiv({ cls: 'line-result' });
+                if (typeof res.col === "number" && res.col >= 0) {
+                    lineDiv.setAttr('aria-label', `line ${res.line + 1}, col ${res.col + 1}`);
+                } else {
+                    lineDiv.setAttr('aria-label', `line ${res.line + 1}`);
+                }
+                lineDiv.setAttr('data-tooltip-position', 'top');
 
                 const span = lineDiv.createSpan('snippet');
-                this.registerDomEvent(span, "click", async () => {
+                span.setAttr('tabindex', 0);
+                span.setAttr('role', 'button');
+                // this.registerDomEvent(span, "keydown", async (e) => {
+                //     if (e.key === 'enter') {
+                //         const matchIndex = res.content.toLowerCase().indexOf(
+                //             res.matchText.toLowerCase(),
+                //             res.col ?? 0
+                //         );
+                //         this.openFileAtLine(res.file, res.line, matchIndex, res.matchText, span);
+                //     }
+                // });
+                span.addEventListener('keydown', (e: KeyboardEvent) => {
+                    const target = e.target as HTMLElement | null;
+                    if (
+                        target?.getAttribute('role') === 'button' &&
+                        target.tagName === 'SPAN'
+                    ) {
+                        const key = e.key;
+                        const isEnter = key === 'Enter' || e.keyCode === 13;
+                        const isSpace = key === ' ' || key === 'Spacebar' || e.keyCode === 32;
+                        if (isEnter || isSpace) {
+                            e.preventDefault();
+                            target.click();
+                        }
+                    }
+                });
+                this.registerDomEvent(span, "click", async (e) => {
+                    if (e.metaKey || e.ctrlKey) return;
                     const matchIndex = res.content.toLowerCase().indexOf(
                         res.matchText.toLowerCase(),
                         res.col ?? 0
                     );
-                    this.openFileAtLine(res.file, res.line, matchIndex, res.matchText);
+                    this.openFileAtLine(res.file, res.line, matchIndex, res.matchText, span);
                 });
                 this.highlightMatchText(span, res.file, res.content, res.matchText, res.line, res.col);
 
@@ -669,11 +720,13 @@ export class FindReplaceView extends ItemView {
                     if (this.selectedIndices.has(idx)) this.selectedIndices.delete(idx);
                     else this.selectedIndices.add(idx);
                     this.updateSelectionStyles();
+                    // e.preventDefault();
                 }
             });
         });
 
         // Make results keyboard navigable
+        /*/
         const items = Array.from(this.containerEl.querySelectorAll<HTMLElement>(".line-result"));
 
         let activeIndex = 0;
@@ -712,6 +765,7 @@ export class FindReplaceView extends ItemView {
                 }
             }
         };
+        /**/
     }
 
     private updateSelectionStyles() {
@@ -727,7 +781,7 @@ export class FindReplaceView extends ItemView {
         }
     }
 
-    private async openFileAtLine(file: TFile, line: number, col: number | undefined, matchText?: string) {
+    private async openFileAtLine(file: TFile, line: number, col: number | undefined, matchText: string, snippet: HTMLSpanElement) {
         // Find or open leaf
         const existingLeaves = this.app.workspace.getLeavesOfType('markdown');
         let leaf = existingLeaves.find(l => l.view instanceof MarkdownView && l.view.file?.path === file.path);
@@ -766,6 +820,11 @@ export class FindReplaceView extends ItemView {
         // Set selection and focus editor
         editor.setSelection({ line, ch: chStart }, { line, ch: chEnd });
         editor.focus();
+        setTimeout(async () => {
+            // await this.plugin.saveSettings();
+            console.log(snippet);
+            snippet.focus();
+        }, 100);
 
         // CM6 internal EditorView hack for centering (TS-safe)
         const cmView = (editor as any).cm; // cmView is any
