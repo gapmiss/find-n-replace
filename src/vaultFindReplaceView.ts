@@ -23,8 +23,9 @@ export class FindReplaceView extends ItemView {
     selectedCountEl: HTMLElement;
     replaceSelectedBtn: HTMLButtonElement;
     replaceAllVaultBtn: HTMLButtonElement;
-    toolbarBtn: HTMLButtonElement;
     resultsToolbar: HTMLElement;
+    toolbarBtn: HTMLButtonElement;
+    isCollapsed: boolean;
 
     results: SearchResult[] = [];
     selectedIndices: Set<number> = new Set();
@@ -34,7 +35,7 @@ export class FindReplaceView extends ItemView {
 
     constructor(leaf: WorkspaceLeaf, app: App, plugin: VaultFindReplacePlugin) {
         super(leaf);
-        this.renderUI();
+        // this.renderUI();
         this.plugin = plugin;
     }
 
@@ -42,15 +43,17 @@ export class FindReplaceView extends ItemView {
     getDisplayText(): string { return 'Vault Find & Replace'; }
     getIcon(): string { return 'text-search'; }
 
-    private renderUI() {
+    // private renderUI() {
+    async onOpen(): Promise<void> {
         this.containerEl.empty();
         this.containerEl.addClass('find-replace-container');
+        this.isCollapsed = false;
 
         // Search input
         let findInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
         this.searchInput = findInputWrapper.createEl('input', { type: 'text', cls: 'find-replace-input', placeholder: 'Find' }) as HTMLInputElement;
         let findClearBtn = findInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
-        setIcon(findClearBtn, 'circle-x');
+        // setIcon(findClearBtn, 'circle-x');
         setTimeout(async () => {
             this.searchInput.focus();
         }, 100);
@@ -59,7 +62,7 @@ export class FindReplaceView extends ItemView {
         let replaceInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
         this.replaceInput = replaceInputWrapper.createEl('input', { type: 'text', cls: 'find-replace-input', placeholder: 'Replace' }) as HTMLInputElement;
         let replaceClearBtn = replaceInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
-        setIcon(replaceClearBtn, 'circle-x');
+        // setIcon(replaceClearBtn, 'circle-x');
 
         // Clear input button listeners
         const clearBtns = this.containerEl.querySelectorAll<HTMLButtonElement>(".clear-btn");
@@ -88,13 +91,11 @@ export class FindReplaceView extends ItemView {
         // Expand/collapse all
         this.toolbarBtn = this.resultsToolbar.createEl('button', { cls: 'collapse-toggle clickable-icon hidden', attr: { 'aria-label': 'Collapse all' } });
         setIcon(this.toolbarBtn!, 'copy-minus');
-
-        let collapsed = false;
-
         this.toolbarBtn?.addEventListener("click", () => {
-            collapsed = !collapsed;
+            // console.log('this.isCollapsed');
+            // console.log(this.isCollapsed);
             this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
-                if (collapsed) {
+                if (!this.isCollapsed) {
                     group.classList.add("collapsed");
                     if (this.toolbarBtn) setIcon(this.toolbarBtn!, 'copy-plus');
                     this.toolbarBtn.setAttr('aria-label', "Expand all");
@@ -104,6 +105,7 @@ export class FindReplaceView extends ItemView {
                     this.toolbarBtn.setAttr('aria-label', 'Collapse all');
                 }
             });
+            this.isCollapsed = !this.isCollapsed;
         });
 
         // Results container
@@ -180,8 +182,9 @@ export class FindReplaceView extends ItemView {
         const trimmedQuery = this.searchInput.value.trim();
         if (!trimmedQuery) {
             this.resultsContainer.empty();
-            this.resultsCountEl.textContent = '0 results';
-            this.resultsToolbar.classList.add('hidden');
+            // this.resultsCountEl.textContent = '0 results';
+            // this.resultsToolbar.classList.add('hidden');
+            this.updateResultsToolbar(0);
             return;
         }
         const matchCase = (this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked;
@@ -275,25 +278,26 @@ export class FindReplaceView extends ItemView {
         this.resultsContainer.empty();
         this.lineElements = [];
 
-        if (this.toolbarBtn) {
-            this.toolbarBtn.setAttr('aria-label', 'Collapse all');
-            setIcon(this.toolbarBtn!, 'copy-minus');
-            this.toolbarBtn.classList.remove('hidden');
-        }
+        // if (this.toolbarBtn) {
+        //     this.toolbarBtn.setAttr('aria-label', 'Collapse all');
+        //     setIcon(this.toolbarBtn!, 'copy-minus');
+        //     this.toolbarBtn.classList.remove('hidden');
+        // }
+        // this.resultsToolbar.classList.remove('hidden');
 
-        this.resultsToolbar.classList.remove('hidden');
+        this.updateResultsToolbar(this.results.length);
 
         this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
             group.classList.add("collapsed");
         });
 
-        if (this.results.length === 0) {
-            this.replaceAllVaultBtn.setAttr('disabled', true);
-            this.toolbarBtn.classList.add('hidden');
-        } else {
-            this.resultsCountEl.textContent = `${this.results.length} result${this.results.length !== 1 ? 's' : ''}`;
-            this.replaceAllVaultBtn.removeAttribute('disabled');
-        }
+        // if (this.results.length === 0) {
+        //     this.replaceAllVaultBtn.setAttr('disabled', true);
+        //     this.toolbarBtn.classList.add('hidden');
+        // } else {
+        //     this.resultsCountEl.textContent = `${this.results.length} result${this.results.length !== 1 ? 's' : ''}`;
+        //     this.replaceAllVaultBtn.removeAttribute('disabled');
+        // }
 
         const resultsByFile: Record<string, SearchResult[]> = {};
         this.results.forEach(r => {
@@ -309,7 +313,11 @@ export class FindReplaceView extends ItemView {
 
             const header = fileDiv.createEl('div');
             header.addClass('file-group-header');
-            header.createDiv({ cls: 'file-group-heading', text: filePath.replace('.md', '') });
+            const fileGroupHeading = header.createSpan({ cls: 'file-group-heading', text: filePath.replace('.md', '') });
+            fileGroupHeading.addEventListener('click', () => {
+                const group = fileGroupHeading.closest('.file-group');
+                if (group) group.classList.toggle('collapsed');
+            });
             header.createSpan({ cls: 'file-results-count', text: ` (${fileResults.length})` });
 
             const replaceAllFileBtn = header.createEl('button', { text: 'Replace all in file', cls: 'clickable-icon', attr: { 'aria-label': `Replace all in ${filePath.replace('.md', '')}`, 'data-tooltip-position': 'top' } });
@@ -332,9 +340,16 @@ export class FindReplaceView extends ItemView {
                 const lineDiv = fileDiv.createDiv({ cls: 'line-result', attr: { 'tabindex': 0 } });
 
                 const span = lineDiv.createSpan('snippet');
+                this.registerDomEvent(span, "click", async () => {
+                    const matchIndex = res.content.toLowerCase().indexOf(
+                        res.matchText.toLowerCase(),
+                        res.col ?? 0
+                    );
+                    this.openFileAtLine(res.file, res.line, matchIndex, res.matchText);
+                });
                 this.highlightMatchText(span, res.file, res.content, res.matchText, res.line, res.col);
 
-                const tags = lineDiv.createEl('span');
+                // const tags = lineDiv.createEl('span');
                 if (typeof res.col === "number" && res.col >= 0) {
                     // tags.setText(`${res.file.path} (line ${res.line + 1}, col ${res.col + 1})`);
                     // tags.setText(`(line ${res.line + 1}, col ${res.col + 1})`);
@@ -360,14 +375,44 @@ export class FindReplaceView extends ItemView {
             });
         });
 
-        this.containerEl.querySelectorAll('.file-group-header').forEach(header => {
-            header.addEventListener('click', () => {
-                const group = header.closest('.file-group');
-                if (group) group.classList.toggle('collapsed');
-            });
-        });
+        // this.containerEl.querySelectorAll('.file-group-heading').forEach(header => {
+        //     header.addEventListener('click', () => {
+        //         const group = header.closest('.file-group');
+        //         if (group) group.classList.toggle('collapsed');
+        //     });
+        // });
 
         this.setupKeyboardNavigation();
+    }
+
+    private updateResultsToolbar(resultCount: Number) {
+        console.log('resultCount');
+        console.log(resultCount);
+        if (resultCount === 0) {
+            this.replaceAllVaultBtn.setAttr('disabled', true);
+            this.toolbarBtn.classList.add('hidden');
+            setIcon(this.toolbarBtn!, 'copy-plus');
+            this.toolbarBtn.setAttr('aria-label', "Expand all");
+            this.replaceAllVaultBtn.setAttr('disabled', true);
+            this.resultsCountEl.textContent = '0 results';
+            // this.resultsToolbar.classList.remove('hidden');
+            this.isCollapsed = true;
+            this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
+                group.classList.remove("collapsed");
+            });
+        } else {
+            this.resultsCountEl.textContent = `${this.results.length} result${this.results.length !== 1 ? 's' : ''}`;
+            this.toolbarBtn.setAttr('aria-label', 'Collapse all');
+            setIcon(this.toolbarBtn!, 'copy-minus');
+            this.toolbarBtn.classList.remove('hidden');
+            this.toolbarBtn.setAttr('aria-label', "Collapse all");
+            this.replaceAllVaultBtn.removeAttribute('disabled');
+            this.resultsToolbar.classList.remove('hidden');
+            this.isCollapsed = false;
+            this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
+                group.classList.add("collapsed");
+            });
+        }
     }
 
     private highlightMatchText(
@@ -395,10 +440,11 @@ export class FindReplaceView extends ItemView {
         const matchLen = matchText.length;
 
         // How much context to show around the match
-        const context = 30;
+        const beforeContext = 10;
+        const afterContext = 50;
 
-        const start = Math.max(0, matchIndex - context);
-        const end = Math.min(lineText.length, matchIndex + matchLen + context);
+        const start = Math.max(0, matchIndex - beforeContext);
+        const end = Math.min(lineText.length, matchIndex + matchLen + afterContext);
 
         let before = lineText.slice(start, matchIndex);
         const mid = lineText.slice(matchIndex, matchIndex + matchLen);
@@ -414,10 +460,6 @@ export class FindReplaceView extends ItemView {
         const mark = document.createElement("mark");
         mark.textContent = mid;
         container.appendChild(mark);
-
-        this.registerDomEvent(mark, "click", async () => {
-            this.openFileAtLine(file, line, matchIndex, matchText);
-        });
 
         if (after) container.appendChild(document.createTextNode(after));
     }
