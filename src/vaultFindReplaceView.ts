@@ -10,6 +10,7 @@ export interface SearchResult {
     content: string;
     matchText: string;
     col?: number | undefined;
+    pattern: string;
 }
 
 export class FindReplaceView extends ItemView {
@@ -35,7 +36,6 @@ export class FindReplaceView extends ItemView {
 
     constructor(leaf: WorkspaceLeaf, app: App, plugin: VaultFindReplacePlugin) {
         super(leaf);
-        // this.renderUI();
         this.plugin = plugin;
     }
 
@@ -53,7 +53,6 @@ export class FindReplaceView extends ItemView {
         let findInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
         this.searchInput = findInputWrapper.createEl('input', { type: 'text', cls: 'find-replace-input', placeholder: 'Find' }) as HTMLInputElement;
         let findClearBtn = findInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
-        // setIcon(findClearBtn, 'circle-x');
         setTimeout(async () => {
             this.searchInput.focus();
         }, 100);
@@ -62,7 +61,6 @@ export class FindReplaceView extends ItemView {
         let replaceInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
         this.replaceInput = replaceInputWrapper.createEl('input', { type: 'text', cls: 'find-replace-input', placeholder: 'Replace' }) as HTMLInputElement;
         let replaceClearBtn = replaceInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
-        // setIcon(replaceClearBtn, 'circle-x');key
 
         // Clear input button listeners
         const clearBtns = this.containerEl.querySelectorAll<HTMLButtonElement>(".clear-btn");
@@ -92,8 +90,6 @@ export class FindReplaceView extends ItemView {
         this.toolbarBtn = this.resultsToolbar.createEl('button', { cls: 'collapse-toggle clickable-icon hidden', attr: { 'aria-label': 'Collapse all' } });
         setIcon(this.toolbarBtn!, 'copy-minus');
         this.toolbarBtn?.addEventListener("click", () => {
-            // console.log('this.isCollapsed');
-            // console.log(this.isCollapsed);
             this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
                 if (!this.isCollapsed) {
                     group.classList.add("collapsed");
@@ -182,9 +178,9 @@ export class FindReplaceView extends ItemView {
         const trimmedQuery = this.searchInput.value.trim();
         if (!trimmedQuery) {
             this.resultsContainer.empty();
-            // this.resultsCountEl.textContent = '0 results';
-            // this.resultsToolbar.classList.add('hidden');
-            this.updateResultsToolbar(0);
+            // this.updateResultsToolbar(0);
+            this.results = [];
+            this.updateResultsUI();
             return;
         }
         const matchCase = (this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked;
@@ -192,7 +188,6 @@ export class FindReplaceView extends ItemView {
         const useRegex = (this.regexCheckbox.querySelector('#toggle-regex-checkbox') as HTMLInputElement)!.checked;
 
         const results: SearchResult[] = [];
-
         for (const file of this.app.vault.getMarkdownFiles()) {
             const content = await this.app.vault.read(file);
             const lines = content.split('\n');
@@ -210,7 +205,8 @@ export class FindReplaceView extends ItemView {
                             line: i,
                             content: line,
                             matchText: m[0],
-                            col: m.index
+                            col: m.index,
+                            pattern: this.searchInput.value
                         });
                         // Prevent zero-width infinite loop
                         if (regex.lastIndex === m.index) regex.lastIndex++;
@@ -232,7 +228,8 @@ export class FindReplaceView extends ItemView {
                                 line: i,
                                 content: line,
                                 matchText: line.substr(col, needle.length), // preserve original casing
-                                col
+                                col,
+                                pattern: this.searchInput.value
                             });
                             if (wordRe.lastIndex === col) wordRe.lastIndex++;
                         }
@@ -247,7 +244,8 @@ export class FindReplaceView extends ItemView {
                                 line: i,
                                 content: line,
                                 matchText: line.substr(idx, needle.length), // original casing
-                                col: idx
+                                col: idx,
+                                pattern: this.searchInput.value
                             });
                             start = idx + Math.max(needle.length, 1);
                         }
@@ -278,26 +276,12 @@ export class FindReplaceView extends ItemView {
         this.resultsContainer.empty();
         this.lineElements = [];
 
-        // if (this.toolbarBtn) {
-        //     this.toolbarBtn.setAttr('aria-label', 'Collapse all');
-        //     setIcon(this.toolbarBtn!, 'copy-minus');
-        //     this.toolbarBtn.classList.remove('hidden');
-        // }
-        // this.resultsToolbar.classList.remove('hidden');
-
-        this.updateResultsToolbar(this.results.length);
+        // this.updateResultsToolbar(this.results.length);
+        this.updateResultsUI();
 
         this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
             group.classList.add("collapsed");
         });
-
-        // if (this.results.length === 0) {
-        //     this.replaceAllVaultBtn.setAttr('disabled', true);
-        //     this.toolbarBtn.classList.add('hidden');
-        // } else {
-        //     this.resultsCountEl.textContent = `${this.results.length} result${this.results.length !== 1 ? 's' : ''}`;
-        //     this.replaceAllVaultBtn.removeAttribute('disabled');
-        // }
 
         const resultsByFile: Record<string, SearchResult[]> = {};
         this.results.forEach(r => {
@@ -321,20 +305,20 @@ export class FindReplaceView extends ItemView {
                 if (group) group.classList.toggle('collapsed');
             });
             fileGroupHeading.addEventListener('keydown', (e: KeyboardEvent) => {
-                    const target = e.target as HTMLElement | null;
-                    if (
-                        target?.getAttribute('role') === 'button' &&
-                        target.tagName === 'SPAN'
-                    ) {
-                        const key = e.key;
-                        const isEnter = key === 'Enter';
-                        const isSpace = key === ' ' || key === 'Spacebar';
-                        if (isEnter || isSpace) {
-                            e.preventDefault();
-                            target.click();
-                        }
+                const target = e.target as HTMLElement | null;
+                if (
+                    target?.getAttribute('role') === 'button' &&
+                    target.tagName === 'SPAN'
+                ) {
+                    const key = e.key;
+                    const isEnter = key === 'Enter';
+                    const isSpace = key === ' ' || key === 'Spacebar';
+                    if (isEnter || isSpace) {
+                        e.preventDefault();
+                        target.click();
                     }
-                });
+                }
+            });
             header.createSpan({ cls: 'file-results-count', text: ` (${fileResults.length})` });
 
             const replaceAllFileBtn = header.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': `Replace all in "${filePath.replace('.md', '')}"`, 'data-tooltip-position': 'top' } });
@@ -347,14 +331,21 @@ export class FindReplaceView extends ItemView {
                 const confirmed = await this.confirmReplaceEmpty(confirmMessage);
                 if (!confirmed) return;
 
-                for (const res of fileResults) await this.replaceResult(res, true);
+                // for (const res of fileResults) await this.replaceResult(res, true);
+                // NEW (call once per file)
+                const seen = new Set<string>();
+                for (const res of fileResults) {
+                    if (seen.has(res.file.path)) continue;
+                    seen.add(res.file.path);
+                    await this.replaceResult(res, true);
+                }
+
                 new Notice(`All replacements done in ${filePath}`);
 
                 this.performSearch();
             });
 
             fileResults.forEach((res, idx) => {
-                // const lineDiv = fileDiv.createDiv({ cls: 'line-result', attr: { 'tabindex': 0 } });
                 const lineDiv = fileDiv.createDiv({ cls: 'line-result' });
                 if (typeof res.col === "number" && res.col >= 0) {
                     lineDiv.setAttr('aria-label', `line ${res.line + 1}, col ${res.col + 1}`);
@@ -366,15 +357,6 @@ export class FindReplaceView extends ItemView {
                 const span = lineDiv.createSpan('snippet');
                 span.setAttr('tabindex', 0);
                 span.setAttr('role', 'button');
-                // this.registerDomEvent(span, "keydown", async (e) => {
-                //     if (e.key === 'enter') {
-                //         const matchIndex = res.content.toLowerCase().indexOf(
-                //             res.matchText.toLowerCase(),
-                //             res.col ?? 0
-                //         );
-                //         this.openFileAtLine(res.file, res.line, matchIndex, res.matchText, span);
-                //     }
-                // });
                 span.addEventListener('keydown', (e: KeyboardEvent) => {
                     const target = e.target as HTMLElement | null;
                     if (
@@ -390,7 +372,7 @@ export class FindReplaceView extends ItemView {
                         }
                     }
                 });
-                this.registerDomEvent(span, "click", async (e) => {
+                span.addEventListener('click', async (e) => {
                     if (e.metaKey || e.ctrlKey) return;
                     const matchIndex = res.content.toLowerCase().indexOf(
                         res.matchText.toLowerCase(),
@@ -399,15 +381,6 @@ export class FindReplaceView extends ItemView {
                     this.openFileAtLine(res.file, res.line, matchIndex, res.matchText, span);
                 });
                 this.highlightMatchText(span, res.file, res.content, res.matchText, res.line, res.col);
-
-                // const tags = lineDiv.createEl('span');
-                if (typeof res.col === "number" && res.col >= 0) {
-                    // tags.setText(`${res.file.path} (line ${res.line + 1}, col ${res.col + 1})`);
-                    // tags.setText(`(line ${res.line + 1}, col ${res.col + 1})`);
-                } else {
-                    // tags.setText(`${res.file.path} (line ${res.line + 1})`);
-                    // tags.setText(`(line ${res.line + 1})`);
-                }
 
                 const replaceBtn = lineDiv.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': 'Replace this match', 'data-tooltip-position': 'top' } });
                 setIcon(replaceBtn, 'replace');
@@ -426,44 +399,75 @@ export class FindReplaceView extends ItemView {
             });
         });
 
-        // this.containerEl.querySelectorAll('.file-group-heading').forEach(header => {
-        //     header.addEventListener('click', () => {
-        //         const group = header.closest('.file-group');
-        //         if (group) group.classList.toggle('collapsed');
-        //     });
-        // });
-
         this.setupKeyboardNavigation();
     }
 
-    private updateResultsToolbar(resultCount: Number) {
-        console.log('resultCount');
-        console.log(resultCount);
-        if (resultCount === 0) {
-            this.replaceAllVaultBtn.setAttr('disabled', true);
-            this.toolbarBtn.classList.add('hidden');
-            setIcon(this.toolbarBtn!, 'copy-plus');
-            this.toolbarBtn.setAttr('aria-label', "Expand all");
-            this.replaceAllVaultBtn.setAttr('disabled', true);
-            this.resultsCountEl.textContent = '0 results';
-            // this.resultsToolbar.classList.remove('hidden');
-            this.isCollapsed = true;
-            this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
-                group.classList.remove("collapsed");
-            });
-        } else {
-            this.resultsCountEl.textContent = `${this.results.length} result${this.results.length !== 1 ? 's' : ''}`;
-            this.toolbarBtn.setAttr('aria-label', 'Collapse all');
-            setIcon(this.toolbarBtn!, 'copy-minus');
-            this.toolbarBtn.classList.remove('hidden');
-            this.toolbarBtn.setAttr('aria-label', "Collapse all");
-            this.replaceAllVaultBtn.removeAttribute('disabled');
-            this.resultsToolbar.classList.remove('hidden');
-            this.isCollapsed = false;
-            this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
-                group.classList.add("collapsed");
-            });
+    // private updateResultsToolbar(resultCount: Number) {
+    //     if (resultCount === 0) {
+    //         this.replaceAllVaultBtn.setAttr('disabled', true);
+    //         this.toolbarBtn.classList.add('hidden');
+    //         setIcon(this.toolbarBtn!, 'copy-plus');
+    //         this.toolbarBtn.setAttr('aria-label', "Expand all");
+    //         this.replaceAllVaultBtn.setAttr('disabled', true);
+    //         this.resultsCountEl.textContent = '0 results';
+    //         this.isCollapsed = true;
+    //         this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
+    //             group.classList.remove("collapsed");
+    //         });
+    //     } else {
+    //         this.resultsCountEl.textContent = `${this.results.length} result${this.results.length !== 1 ? 's' : ''}`;
+    //         this.toolbarBtn.setAttr('aria-label', 'Collapse all');
+    //         setIcon(this.toolbarBtn!, 'copy-minus');
+    //         this.toolbarBtn.classList.remove('hidden');
+    //         this.toolbarBtn.setAttr('aria-label', "Collapse all");
+    //         this.replaceAllVaultBtn.removeAttribute('disabled');
+    //         this.resultsToolbar.classList.remove('hidden');
+    //         this.isCollapsed = false;
+    //         this.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
+    //             group.classList.add("collapsed");
+    //         });
+    //     }
+    // }
+
+    /**
+     * Updates the results UI including toolbar, counts, and file group collapse state
+     */
+    private updateResultsUI() {
+        const resultCount = this.results.length;
+        const hasResults = resultCount > 0;
+        const resultText = hasResults
+            ? `${resultCount} result${resultCount !== 1 ? 's' : ''}`
+            : '0 results';
+
+        // Update results count
+        this.resultsCountEl?.setText(resultText);
+
+        // Configure toolbar button with null safety
+        if (this.toolbarBtn) {
+            this.toolbarBtn.classList.toggle('hidden', !hasResults);
+
+            if (hasResults) {
+                setIcon(this.toolbarBtn, 'copy-minus');
+                this.toolbarBtn.setAttr('aria-label', 'Collapse all');
+            } else {
+                setIcon(this.toolbarBtn, 'copy-plus');
+                this.toolbarBtn.setAttr('aria-label', 'Expand all');
+            }
         }
+
+        // Configure replace button with null safety
+        this.replaceAllVaultBtn?.toggleAttribute('disabled', !hasResults);
+
+        // Show/hide results toolbar
+        this.resultsToolbar?.classList.toggle('hidden', !hasResults);
+
+        // Update collapse state
+        this.isCollapsed = !hasResults;
+
+        // Update file groups - single DOM query with optimized toggle
+        this.resultsContainer?.querySelectorAll('.file-group').forEach(group => {
+            group.classList.toggle('collapsed', hasResults);
+        });
     }
 
     private highlightMatchText(
@@ -515,169 +519,279 @@ export class FindReplaceView extends ItemView {
         if (after) container.appendChild(document.createTextNode(after));
     }
 
-    /*/
-    private highlightMatchText(
-        container: HTMLElement,
-        file: TFile,
-        lineText: string,
-        matchText: string,
-        line: number,
-        col?: number
-    ) {
-        container.empty(); // remove previous content
+    // private async replaceResult(res: SearchResult, replaceAll: boolean = false) {
+    //     const content = await this.app.vault.read(res.file);
+    //     let updated: string;
+    //     if (replaceAll) {
+    //         let flags = 'g'; // always global
+    //         if (!(this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked) flags += 'i'; // add ignore-case if needed
+    //         updated = content.replace(new RegExp(res.matchText, flags), this.replaceInput.value);
+    //     } else {
+    //         const lines = content.split('\n');
+    //         const lineText = lines[res.line] ?? '';
+    //         if (typeof res.col === 'number' && res.col >= 0) {
+    //             // Replace exactly the matched span
+    //             lines[res.line] =
+    //                 lineText.slice(0, res.col) +
+    //                 this.replaceInput.value +
+    //                 lineText.slice(res.col + res.matchText.length);
+    //         } else {
+    //             // Fallback: first occurrence (keeps previous behavior)
+    //             const idx = lineText.indexOf(res.matchText);
+    //             if (idx !== -1) {
+    //                 lines[res.line] =
+    //                     lineText.slice(0, idx) +
+    //                     this.replaceInput.value +
+    //                     lineText.slice(idx + res.matchText.length);
+    //             }
+    //         }
+    //         updated = lines.join('\n');
+    //     }
+    //     await this.app.vault.modify(res.file, updated);
+    // }
 
-        if (typeof col === "number" && col >= 0) {
-            const matchLen = matchText.length;
+    // private async replaceResult(res: SearchResult, replaceAll: boolean = false) {
+    //     const content = await this.app.vault.read(res.file);
 
-            // Split into words with indices
-            const words = lineText.split(/\s+/);
-            let charIndex = 0;
-            let matchWordIndex = -1;
+    //     // Always build regex from the original search pattern
+    //     const searchPattern = res.pattern;
+    //     let flags = replaceAll ? "g" : "";
+    //     const isMatchCase = (this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked;
+    //     if (!isMatchCase) flags += "i";
 
-            // Find which word contains our match position
-            for (let i = 0; i < words.length; i++) {
-                const word = words[i];
-                if (col >= charIndex && col < charIndex + word.length) {
-                    matchWordIndex = i;
-                    break;
-                }
-                charIndex += word.length + 1; // +1 for space
-            }
+    //     const regex = new RegExp(searchPattern, flags);
+    //     const replacementRaw = this.replaceInput.value;
 
-            if (matchWordIndex === -1) {
-                // fallback: just show whole line if something went wrong
-                container.appendChild(document.createTextNode(lineText));
-                return;
-            }
+    //     const expand = (match: string, groups: string[], offset: number, input: string) => {
+    //         let out = replacementRaw;
 
-            // How many words of context to keep around the match
-            const contextWords = 5;
-            const startWord = Math.max(0, matchWordIndex - contextWords);
-            const endWord = Math.min(words.length, matchWordIndex + contextWords + 1);
+    //         // numbered groups
+    //         out = out.replace(/\$(\d+)/g, (_, n) => groups[Number(n) - 1] ?? "");
 
-            const beforeWords = words.slice(startWord, matchWordIndex).join(" ");
-            const matchWord = words[matchWordIndex];
-            const afterWords = words.slice(matchWordIndex + 1, endWord).join(" ");
+    //         // special tokens
+    //         out = out
+    //             .replace(/\$\$/g, "$")
+    //             .replace(/\$&/g, match)
+    //             .replace(/\$`/g, input.slice(0, offset))
+    //             .replace(/\$'/g, input.slice(offset + match.length));
 
-            // Add ellipses if trimmed
-            const before = (startWord > 0 ? "… " : "") + beforeWords + (beforeWords ? " " : "");
-            const after = (afterWords ? " " : "") + afterWords + (endWord < words.length ? " …" : "");
+    //         // escaped whitespace
+    //         out = out.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
 
-            // Render
-            if (before.trim()) container.appendChild(document.createTextNode(before));
+    //         return out;
+    //     };
 
-            const mark = document.createElement("mark");
-            // Ensure the highlight text matches even if casing differs
-            mark.textContent = matchWord;
-            container.appendChild(mark);
+    //     let updated: string;
 
-            this.registerDomEvent(mark, "click", async () => {
-                this.openFileAtLine(file, line, col, matchText);
-            });
+    //     if (replaceAll) {
+    //         updated = content.replace(regex, (match, ...rest: any[]) => {
+    //             const offset = rest[rest.length - 2] as number;
+    //             const input = rest[rest.length - 1] as string;
+    //             const groups = rest.slice(0, -2) as string[];
+    //             return expand(match, groups, offset, input);
+    //         });
+    //     } else {
+    //         const lines = content.split("\n");
+    //         const lineText = lines[res.line] ?? "";
+    //         let replacedLine = lineText;
 
-            if (after.trim()) container.appendChild(document.createTextNode(after));
-        }
-    }
-    /**/
+    //         const lineRegex = new RegExp(searchPattern, flags.includes("g") ? flags : flags + "g");
+    //         let m: RegExpExecArray | null;
+    //         while ((m = lineRegex.exec(lineText))) {
+    //             const start = m.index;
+    //             const match = m[0];
+    //             if ((typeof res.col === "number" && start === res.col) || typeof res.col !== "number") {
+    //                 const before = lineText.slice(0, start);
+    //                 const after = lineText.slice(start + match.length);
+    //                 const groups = Array.from(m).slice(1);
+    //                 const repl = expand(match, groups, start, lineText);
+    //                 replacedLine = before + repl + after;
+    //                 break;
+    //             }
+    //         }
 
-    /*/
-    private highlightMatchText(
-        container: HTMLElement,
-        file: TFile,
-        lineText: string,
-        matchText: string,
-        line: number,
-        col?: number
-    ) {
-        container.empty(); // remove previous content
+    //         lines[res.line] = replacedLine;
+    //         updated = lines.join("\n");
+    //     }
 
-        // If we have an exact column, highlight just that one occurrence.
-        if (typeof col === "number" && col >= 0) {
-            const matchLen = matchText.length;
+    //     await this.app.vault.modify(res.file, updated);
+    // }
 
-            // Define how much context to show around the match (characters, not words).
-            const beforeContext = 10;
-            const afterContext = 10;
-
-            const start = Math.max(0, col - beforeContext);
-            const end = Math.min(lineText.length, col + matchLen + afterContext);
-
-            let before = lineText.slice(start, col);
-            const mid = lineText.slice(col, col + matchLen);
-            let after = lineText.slice(col + matchLen, end);
-
-            // Add ellipses if we trimmed the start/end
-            if (start > 0) before = "… " + before;
-            if (end < lineText.length) after = after + " …";
-
-            // Build the DOM
-            if (before) container.appendChild(document.createTextNode(before));
-
-            const mark = document.createElement("mark");
-            mark.textContent = mid;
-            container.appendChild(mark);
-
-            this.registerDomEvent(mark, "click", async () => {
-                this.openFileAtLine(file, line, col, matchText);
-            });
-
-            if (after) container.appendChild(document.createTextNode(after));
-            return;
-        }
-    }
-    /**/
-
-    /*/
-    private highlightMatchText(container: HTMLElement, file: TFile, lineText: string, matchText: string, line: number, col?: number) {
-        container.empty(); // remove previous content
-        // If we have an exact column, highlight just that one occurrence.
-        if (typeof col === 'number' && col >= 0) {
-            const before = lineText.slice(0, col);
-            const mid = lineText.slice(col, col + matchText.length);
-            const after = lineText.slice(col + matchText.length);
-            if (before) container.appendChild(document.createTextNode(before));
-            const mark = document.createElement('mark');
-            mark.textContent = mid;
-            container.appendChild(mark);
-            this.registerDomEvent(mark, 'click', async () => {
-                this.openFileAtLine(file, line, col, matchText);
-            });
-            if (after) container.appendChild(document.createTextNode(after));
-            return;
-        }
-    }
-    /**/
 
     private async replaceResult(res: SearchResult, replaceAll: boolean = false) {
         const content = await this.app.vault.read(res.file);
+
+        // Pull the raw search string from the input (not res.matchText!)
+        let searchPattern = this.searchInput.value;
+
+        // Toggles
+        const isRegex = (this.regexCheckbox as HTMLInputElement)!.checked;
+        const isWholeWord = (this.wholeWordCheckbox as HTMLInputElement)!.checked;
+        const isMatchCase = (this.matchCaseCheckbox as HTMLInputElement)!.checked;
+
+        // Escape regex if regex toggle is off
+        if (!isRegex) {
+            searchPattern = searchPattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        }
+
+        // Add whole-word boundaries
+        if (isWholeWord) {
+            searchPattern = `\\b${searchPattern}\\b`;
+        }
+
+        // Build flags
+        let flags = replaceAll ? "g" : "";
+        if (!isMatchCase) flags += "i";
+
+        const regex = new RegExp(searchPattern, flags);
+        const replacementRaw = this.replaceInput.value;
+
+        const expand = (match: string, groups: string[], offset: number, input: string) => {
+            // If regex mode is off, just return the raw replacement literally
+            if (!isRegex) return replacementRaw;
+
+            let out = replacementRaw;
+
+            // numbered groups ($1, $2, …)
+            out = out.replace(/\$(\d+)/g, (_, n) => groups[Number(n) - 1] ?? "");
+
+            // special tokens
+            out = out
+                .replace(/\$\$/g, "$")
+                .replace(/\$&/g, match)
+                .replace(/\$`/g, input.slice(0, offset))
+                .replace(/\$'/g, input.slice(offset + match.length));
+
+            // escaped whitespace
+            out = out.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+
+            return out;
+        };
+
         let updated: string;
+
         if (replaceAll) {
-            let flags = 'g'; // always global
-            if (!(this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked) flags += 'i'; // add ignore-case if needed
-            updated = content.replace(new RegExp(res.matchText, flags), this.replaceInput.value);
+            // Replace all matches in the entire file
+            updated = content.replace(regex, (match, ...rest: any[]) => {
+                const offset = rest[rest.length - 2] as number;
+                const input = rest[rest.length - 1] as string;
+                const groups = rest.slice(0, -2) as string[];
+                return expand(match, groups, offset, input);
+            });
         } else {
-            const lines = content.split('\n');
-            const lineText = lines[res.line] ?? '';
-            if (typeof res.col === 'number' && res.col >= 0) {
-                // Replace exactly the matched span
-                lines[res.line] =
-                    lineText.slice(0, res.col) +
-                    this.replaceInput.value +
-                    lineText.slice(res.col + res.matchText.length);
-            } else {
-                // Fallback: first occurrence (keeps previous behavior)
-                const idx = lineText.indexOf(res.matchText);
-                if (idx !== -1) {
-                    lines[res.line] =
-                        lineText.slice(0, idx) +
-                        this.replaceInput.value +
-                        lineText.slice(idx + res.matchText.length);
+            // Replace only the targeted match
+            const lines = content.split("\n");
+            const lineText = lines[res.line] ?? "";
+            let replacedLine = lineText;
+
+            const lineRegex = new RegExp(searchPattern, flags.includes("g") ? flags : flags + "g");
+            let m: RegExpExecArray | null;
+            while ((m = lineRegex.exec(lineText))) {
+                const start = m.index;
+                const match = m[0];
+                if ((typeof res.col === "number" && start === res.col) || typeof res.col !== "number") {
+                    const before = lineText.slice(0, start);
+                    const after = lineText.slice(start + match.length);
+                    const groups = Array.from(m).slice(1);
+                    const repl = expand(match, groups, start, lineText);
+                    replacedLine = before + repl + after;
+                    break;
                 }
             }
-            updated = lines.join('\n');
+
+            lines[res.line] = replacedLine;
+            updated = lines.join("\n");
         }
+
         await this.app.vault.modify(res.file, updated);
     }
+
+
+
+    // private async replaceResult(res: SearchResult, replaceAll: boolean = false) {
+    //     const content = await this.app.vault.read(res.file);
+
+    //     // Decide search pattern
+    //     let searchPattern = res.pattern;
+    //     const isRegex = (this.regexCheckbox as HTMLInputElement)!.checked;
+    //     const isWholeWord = (this.wholeWordCheckbox as HTMLInputElement)!.checked;
+
+    //     if (!isRegex) {
+    //         // Escape regex metacharacters when regex mode is OFF
+    //         searchPattern = searchPattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    //     }
+
+    //     if (isWholeWord) {
+    //         // Wrap with \b boundaries, but only if not already
+    //         searchPattern = `\\b${searchPattern}\\b`;
+    //     }
+
+    //     // Flags
+    //     let flags = replaceAll ? "g" : "";
+    //     const isMatchCase = (this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked;
+    //     if (!isMatchCase) flags += "i";
+
+    //     const regex = new RegExp(searchPattern, flags);
+    //     const replacementRaw = this.replaceInput.value;
+
+    //     const expand = (match: string, groups: string[], offset: number, input: string) => {
+    //         // If regex mode is off → treat replacement literally
+    //         if (!isRegex) return replacementRaw;
+
+    //         let out = replacementRaw;
+
+    //         // numbered groups
+    //         out = out.replace(/\$(\d+)/g, (_, n) => groups[Number(n) - 1] ?? "");
+
+    //         // special tokens
+    //         out = out
+    //             .replace(/\$\$/g, "$")
+    //             .replace(/\$&/g, match)
+    //             .replace(/\$`/g, input.slice(0, offset))
+    //             .replace(/\$'/g, input.slice(offset + match.length));
+
+    //         // escaped whitespace
+    //         out = out.replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+
+    //         return out;
+    //     };
+
+    //     let updated: string;
+
+    //     if (replaceAll) {
+    //         updated = content.replace(regex, (match, ...rest: any[]) => {
+    //             const offset = rest[rest.length - 2] as number;
+    //             const input = rest[rest.length - 1] as string;
+    //             const groups = rest.slice(0, -2) as string[];
+    //             return expand(match, groups, offset, input);
+    //         });
+    //     } else {
+    //         const lines = content.split("\n");
+    //         const lineText = lines[res.line] ?? "";
+    //         let replacedLine = lineText;
+
+    //         const lineRegex = new RegExp(searchPattern, flags.includes("g") ? flags : flags + "g");
+    //         let m: RegExpExecArray | null;
+    //         while ((m = lineRegex.exec(lineText))) {
+    //             const start = m.index;
+    //             const match = m[0];
+    //             if ((typeof res.col === "number" && start === res.col) || typeof res.col !== "number") {
+    //                 const before = lineText.slice(0, start);
+    //                 const after = lineText.slice(start + match.length);
+    //                 const groups = Array.from(m).slice(1);
+    //                 const repl = expand(match, groups, start, lineText);
+    //                 replacedLine = before + repl + after;
+    //                 break;
+    //             }
+    //         }
+
+    //         lines[res.line] = replacedLine;
+    //         updated = lines.join("\n");
+    //     }
+
+    //     await this.app.vault.modify(res.file, updated);
+    // }
+
 
     async replaceAllInVault() {
         if (!this.results || this.results.length === 0) {
@@ -692,7 +806,17 @@ export class FindReplaceView extends ItemView {
         const confirmed = await this.confirmReplaceEmpty(confirmMessage);
         if (!confirmed) return;
 
-        for (const res of this.results) await this.replaceResult(res, true);
+        // for (const res of this.results) await this.replaceResult(res, true);
+        // NEW (call once per file)
+        // console.log('this.results');
+        // console.log(this.results);
+        // return;
+        const seen = new Set<string>();
+        for (const res of this.results) {
+            if (seen.has(res.file.path)) continue;
+            seen.add(res.file.path);
+            await this.replaceResult(res, true);
+        }
         new Notice('All replacements done in vault!');
 
         this.performSearch();
@@ -705,7 +829,16 @@ export class FindReplaceView extends ItemView {
             if (!confirmed) return; // user cancelled
         }
         const toReplace = Array.from(this.selectedIndices).map(i => this.results[i]);
+        // console.log('toReplace');
+        // console.log(toReplace);
+        // return;
         for (const res of toReplace) await this.replaceResult(res, false);
+        // const seen = new Set<string>();
+        // for (const res of this.results) {
+        //     if (seen.has(res.file.path)) continue;
+        //     seen.add(res.file.path);
+        //     await this.replaceResult(res, true);
+        // }
         new Notice(`${toReplace.length} replacement(s) done.`);
         this.selectedIndices.clear();
 
@@ -724,48 +857,6 @@ export class FindReplaceView extends ItemView {
                 }
             });
         });
-
-        // Make results keyboard navigable
-        /*/
-        const items = Array.from(this.containerEl.querySelectorAll<HTMLElement>(".line-result"));
-
-        let activeIndex = 0;
-        if (items.length > 0) {
-            items[0].classList.add("active");
-            items[0].focus();
-        }
-
-        this.containerEl.onkeydown = (evt: KeyboardEvent) => {
-            if (!items.length) return;
-
-            if (evt.key === "ArrowDown") {
-                evt.preventDefault();
-                items[activeIndex].classList.remove("active");
-                activeIndex = (activeIndex + 1) % items.length;
-                items[activeIndex].classList.add("active");
-                items[activeIndex].focus();
-            } else if (evt.key === "ArrowUp") {
-                evt.preventDefault();
-                items[activeIndex].classList.remove("active");
-                activeIndex = (activeIndex - 1 + items.length) % items.length;
-                items[activeIndex].classList.add("active");
-                items[activeIndex].focus();
-            } else if (evt.key === "Enter") {
-                if (evt.metaKey || evt.ctrlKey) {
-                    evt.preventDefault();
-                    items[activeIndex].querySelector('mark')!.click();
-                }
-                if (evt.shiftKey) {
-                    console.log('⌥⌥');
-                    evt.preventDefault();
-                    console.log(items[activeIndex]);
-                    if (this.selectedIndices.has(activeIndex)) this.selectedIndices.delete(activeIndex);
-                    else this.selectedIndices.add(activeIndex);
-                    this.updateSelectionStyles();
-                }
-            }
-        };
-        /**/
     }
 
     private updateSelectionStyles() {
@@ -801,7 +892,6 @@ export class FindReplaceView extends ItemView {
                 type: 'markdown',
                 state: {
                     file: file.path,
-                    // mode: 'source'
                     mode: 'source'
                 },
             })
@@ -821,8 +911,6 @@ export class FindReplaceView extends ItemView {
         editor.setSelection({ line, ch: chStart }, { line, ch: chEnd });
         editor.focus();
         setTimeout(async () => {
-            // await this.plugin.saveSettings();
-            console.log(snippet);
             snippet.focus();
         }, 100);
 
