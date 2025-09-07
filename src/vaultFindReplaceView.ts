@@ -51,7 +51,7 @@ export class FindReplaceView extends ItemView {
         // Search input
         let findInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
         this.searchInput = findInputWrapper.createEl('input', { type: 'text', cls: 'find-replace-input', placeholder: 'Find' }) as HTMLInputElement;
-        let findClearBtn = findInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
+        findInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
         setTimeout(async () => {
             this.searchInput.focus();
         }, 100);
@@ -59,7 +59,11 @@ export class FindReplaceView extends ItemView {
         // Replace input
         let replaceInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
         this.replaceInput = replaceInputWrapper.createEl('input', { type: 'text', cls: 'find-replace-input', placeholder: 'Replace' }) as HTMLInputElement;
-        let replaceClearBtn = replaceInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
+        replaceInputWrapper.createEl('button', { cls: 'clear-btn', attr: { 'aria-label': 'Clear input' } }) as HTMLInputElement;
+        this.replaceInput.addEventListener("input", () => {
+            // re-render results when replacement changes
+            this.renderResults();
+        });
 
         // Clear input button listeners
         const clearBtns = this.containerEl.querySelectorAll<HTMLButtonElement>(".clear-btn");
@@ -195,8 +199,9 @@ export class FindReplaceView extends ItemView {
                 let line = lines[i];
                 if (useRegex) {
                     // REGEX: collect every match with its position
-                    const flags = matchCase ? 'g' : 'gi';
-                    const regex = new RegExp(query, flags);
+                    // const flags = matchCase ? 'g' : 'gi';
+                    // const regex = new RegExp(query, flags);
+                    const regex = this.buildSearchRegex();
                     let m: RegExpExecArray | null;
                     while ((m = regex.exec(line)) !== null) {
                         results.push({
@@ -347,19 +352,44 @@ export class FindReplaceView extends ItemView {
         return out;
     }
 
-    private buildSearchRegex(): RegExp {
-        let flags = 'g';
-        if (!(this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked) {
-            flags += 'i';
-        }
-        const isRegex = (this.regexCheckbox.querySelector('#toggle-regex-checkbox') as HTMLInputElement)!.checked;
-        const searchPattern = this.searchInput.value;
+    // private buildSearchRegex(): RegExp {
+    //     let flags = 'g';
+    //     if (!(this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked) {
+    //         flags += 'i';
+    //     }
+    //     const isRegex = (this.regexCheckbox.querySelector('#toggle-regex-checkbox') as HTMLInputElement)!.checked;
+    //     const searchPattern = this.searchInput.value;
 
-        return new RegExp(
-            isRegex ? searchPattern : searchPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-            flags
-        );
+    //     return new RegExp(
+    //         isRegex ? searchPattern : searchPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+    //         flags
+    //     );
+    // }
+
+    private buildSearchRegex(): RegExp {
+    const isRegex = (this.regexCheckbox.querySelector('#toggle-regex-checkbox') as HTMLInputElement)!.checked;
+    const isWholeWord = (this.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox') as HTMLInputElement)!.checked;
+    const isMatchCase = (this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked;
+    let pattern = this.searchInput.value ?? '';
+
+    // If regex mode is off, escape the user's input so it's treated literally.
+    if (!isRegex) {
+        pattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
+
+    // Defensive check: if user-provided regex already contains anchors or boundaries,
+    // don't automatically wrap — that could change an intentional pattern.
+    const looksAnchoredOrHasBoundaries = /(^\\b|\\b$|\^|\$|\(\?<!|\(\?=|\(\?!|\(\?<=)/.test(pattern);
+
+    if (isWholeWord && !looksAnchoredOrHasBoundaries) {
+        // When regex mode is ON we wrap in a non-capturing group so existing capture groups
+        // inside the user's pattern keep their indices.
+        pattern = isRegex ? `\\b(?:${pattern})\\b` : `\\b${pattern}\\b`;
+    }
+
+    const flags = (isMatchCase ? '' : 'i') + 'g';
+    return new RegExp(pattern, flags);
+}
 
 
     private renderResults() {
@@ -532,6 +562,7 @@ export class FindReplaceView extends ItemView {
         });
     }
 
+    /*/
     private highlightMatchText(
         container: HTMLElement,
         file: TFile,
@@ -577,6 +608,68 @@ export class FindReplaceView extends ItemView {
         const mark = document.createElement("mark");
         mark.textContent = mid;
         container.appendChild(mark);
+
+        if (after) container.appendChild(document.createTextNode(after));
+    }
+    /**/
+
+    private highlightMatchText(
+        container: HTMLElement,
+        file: TFile,
+        lineText: string,
+        matchText: string,
+        line: number,
+        col?: number
+    ) {
+        container.empty();
+
+        const matchIndex = lineText.toLowerCase().indexOf(
+            matchText.toLowerCase(),
+            col ?? 0
+        );
+
+        if (matchIndex === -1) {
+            container.appendChild(document.createTextNode(lineText));
+            return;
+        }
+
+        const matchLen = matchText.length;
+
+        const beforeContext = 10;
+        const afterContext = 50;
+
+        const start = Math.max(0, matchIndex - beforeContext);
+        const end = Math.min(lineText.length, matchIndex + matchLen + afterContext);
+
+        let before = lineText.slice(start, matchIndex);
+        const mid = lineText.slice(matchIndex, matchIndex + matchLen);
+        let after = lineText.slice(matchIndex + matchLen, end);
+
+        if (start > 0) before = "… " + before;
+        if (end < lineText.length) after = after + " …";
+
+        if (before) container.appendChild(document.createTextNode(before));
+
+        const mark = document.createElement("mark");
+        mark.textContent = mid;
+        container.appendChild(mark);
+
+        // === NEW: replacement preview ===
+        if (this.replaceInput?.value) {
+            const regex = this.buildSearchRegex();
+            regex.lastIndex = 0;
+
+            const fakeMatch = regex.exec(mid);
+            if (fakeMatch) {
+                const preview = this.expandReplacement(fakeMatch, this.replaceInput.value, lineText);
+                if (preview !== mid) {
+                    const previewSpan = document.createElement("span");
+                    previewSpan.className = "replace-preview";
+                    previewSpan.textContent = `${preview}`;
+                    container.appendChild(previewSpan);
+                }
+            }
+        }
 
         if (after) container.appendChild(document.createTextNode(after));
     }

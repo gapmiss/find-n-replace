@@ -231,12 +231,12 @@
 }
 
 .find-replace-results-toolbar .collapse-toggle {
-    font-size: 12px;
-    padding: 2px 6px;
-    border: none;
+    /* font-size: 12px; */
+    /* padding: 2px 6px; */
+    /* border: none; */
     /* border-radius: 3px; */
     /* background: var(--background-modifier-hover); */
-    cursor: pointer;
+    /* cursor: pointer; */
     /* color: var(--text-normal); */
 }
 
@@ -417,7 +417,7 @@
     color: var(--text-muted, rgba(220, 220, 220, 0.95));
 } */
 .line-result span.snippet:hover {
-    color: var(--interactive-accent-hover);
+    /* color: var(--interactive-accent-hover); */
 }
 
 .line-result span.snippet:focus,
@@ -425,6 +425,7 @@
     box-shadow: 0 0 0 3px var(--background-modifier-border-focus);
     border-radius: var(--input-radius);
 }
+
 .line-result span.snippet {
     flex: 1;
     overflow: hidden;
@@ -455,13 +456,13 @@
     margin-left: 4px;
 
     & svg {
-        width: 15px;
-        height: 15px;
+        /* width: 15px; */
+        /* height: 15px; */
     }
 }
 
 .line-result .clickable-icon:hover {
-    color: var(--interactive-accent-hover);
+    /* color: var(--interactive-accent-hover); */
 }
 
 .line-result:hover .clickable-icon {
@@ -500,7 +501,8 @@
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 } */
 .line-result:hover {
-    background: var(--background-modifier-hover);
+    /* background: var(--background-modifier-hover); */
+    background: rgba(var(--mono-rgb-100), 0.037);
 }
 
 /* keyboard focus */
@@ -532,11 +534,26 @@
     font-weight: 600;
 } */
 .line-result mark {
-    background: var(--text-selection);
     color: var(--text-normal);
+    /* background: var(--text-selection); */
+    /* color: var(--text-normal); */
     background-color: var(--text-highlight-bg);
-    padding: 0 1px;
-    border-radius: 2px;
+    /* padding: 0 1px; */
+    /* border-radius: 2px; */
+}
+
+.line-result mark:has(+ span.replace-preview) {
+    margin-right: 2px;
+    background-color: rgba(var(--background-modifier-error-rgb), 0.2) !important;
+}
+
+.line-result .replace-preview {
+    color: var(--text-normal);
+    /* font-style: italic; */
+    /* margin-left: 4px; */
+    /* background-color: var(--background-modifier-success); */
+    margin-left: 2px;
+    background-color: rgba(var(--background-modifier-success-rgb), 0.2);
 }
 
 
