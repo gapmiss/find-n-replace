@@ -26,22 +26,21 @@ export default class VaultFindReplacePlugin extends Plugin {
 	async activateView() {
 		const { workspace } = this.app;
 
-		// Check if view is already open
-		const leaf = workspace.getLeavesOfType(VIEW_TYPE_FIND_REPLACE).first();
-		if (leaf) {
-			await workspace.revealLeaf(leaf);
-			return;
+		let leaf: WorkspaceLeaf | null = null;
+		const leaves = workspace.getLeavesOfType(VIEW_TYPE_FIND_REPLACE);
+
+		if (leaves.length > 0) {
+			leaf = leaves[0];
+		} else {
+			leaf = workspace.getRightLeaf(false);
+			if (!leaf) {
+				console.error("vault-find-replace: failed to get or create leaf");
+				return;
+			}
+			await leaf.setViewState({ type: VIEW_TYPE_FIND_REPLACE, active: true });
 		}
 
-		// Open view in right sidebar
-		await workspace.getRightLeaf(false)?.setViewState({
-			type: VIEW_TYPE_FIND_REPLACE,
-			active: true,
-		});
-
-		workspace.revealLeaf(
-			workspace.getLeavesOfType(VIEW_TYPE_FIND_REPLACE).first()!
-		);
+		workspace.revealLeaf(leaf);
 	}
 
 	async loadSettings() {
