@@ -21,7 +21,6 @@ export class FindReplaceView extends ItemView {
     wholeWordCheckbox: HTMLElement;
     regexCheckbox: HTMLElement;
     resultsContainer: HTMLElement;
-    // searchModeEl: HTMLElement;
     selectedCountEl: HTMLElement;
     replaceSelectedBtn: HTMLButtonElement;
     replaceAllVaultBtn: HTMLButtonElement;
@@ -111,11 +110,6 @@ export class FindReplaceView extends ItemView {
         // Results container
         this.resultsContainer = this.containerEl.createDiv('find-replace-results');
 
-        // this.searchModeEl = this.containerEl.createDiv("search-mode-status");
-        // this.searchModeEl.style.cssText = "font-size: 0.8em; opacity: 0.7; margin-left: 8px;";
-        // this.searchModeEl.setText("📂 Ready (no search yet)");
-
-
         // Replace selected controls
         const selectedContainer = this.containerEl.createDiv('find-replace-selected-all');
 
@@ -178,251 +172,6 @@ export class FindReplaceView extends ItemView {
 
         return toggleContainer;
     }
-
-    // async performSearch() {
-
-    //     this.selectedCountEl.textContent = '0 selected';
-    //     this.replaceAllVaultBtn.setAttr('disabled', true);
-    //     const query = this.searchInput.value;
-    //     const trimmedQuery = this.searchInput.value.trim();
-    //     if (!trimmedQuery) {
-    //         this.resultsContainer.empty();
-    //         this.results = [];
-    //         this.updateResultsUI();
-    //         return;
-    //     }
-    //     const matchCase = (this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked;
-    //     const wholeWord = (this.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox') as HTMLInputElement)!.checked;
-    //     const useRegex = (this.regexCheckbox.querySelector('#toggle-regex-checkbox') as HTMLInputElement)!.checked;
-
-    //     if (useRegex) {
-    //         try {
-    //             this.buildSearchRegex();
-    //         } catch (error) {
-    //             console.warn(error);
-    //             new Notice('Invalid regular expression. Please see the developer console for more information.', 5000);
-    //             return;
-    //         }
-    //     }
-
-    //     const results: SearchResult[] = [];
-    //     for (const file of this.app.vault.getMarkdownFiles()) {
-    //         const content = await this.app.vault.cachedRead(file);
-    //         const lines = content.split('\n');
-
-    //         for (let i = 0; i < lines.length; i++) {
-    //             let line = lines[i];
-    //             if (useRegex) {
-    //                 // REGEX: collect every match with its position
-    //                 const regex = this.buildSearchRegex();
-    //                 let m: RegExpExecArray | null;
-    //                 while ((m = regex.exec(line)) !== null) {
-    //                     results.push({
-    //                         file,
-    //                         line: i,
-    //                         content: line,
-    //                         matchText: m[0],
-    //                         col: m.index,
-    //                         pattern: this.searchInput.value
-    //                     });
-    //                     // Prevent zero-width infinite loop
-    //                     if (regex.lastIndex === m.index) regex.lastIndex++;
-    //                 }
-    //             } else {
-    //                 // PLAIN TEXT (with optional whole-word): collect every occurrence
-    //                 const haystack = matchCase ? line : line.toLowerCase();
-    //                 const needle = matchCase ? query : query.toLowerCase();
-    //                 if (!needle) continue; // (defensive) already guarded above
-    //                 if (wholeWord) {
-    //                     // Build a global word-boundary regex on the normalized haystack
-    //                     const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    //                     const wordRe = new RegExp(`\\b${escaped}\\b`, 'g');
-    //                     let m: RegExpExecArray | null;
-    //                     while ((m = wordRe.exec(haystack)) !== null) {
-    //                         const col = m.index;
-    //                         results.push({
-    //                             file,
-    //                             line: i,
-    //                             content: line,
-    //                             matchText: line.substr(col, needle.length), // preserve original casing
-    //                             col,
-    //                             pattern: this.searchInput.value
-    //                         });
-    //                         if (wordRe.lastIndex === col) wordRe.lastIndex++;
-    //                     }
-    //                 } else {
-    //                     // Repeated indexOf scan to get all occurrences
-    //                     let start = 0;
-    //                     while (true) {
-    //                         const idx = haystack.indexOf(needle, start);
-    //                         if (idx === -1) break;
-    //                         results.push({
-    //                             file,
-    //                             line: i,
-    //                             content: line,
-    //                             matchText: line.substr(idx, needle.length), // original casing
-    //                             col: idx,
-    //                             pattern: this.searchInput.value
-    //                         });
-    //                         start = idx + Math.max(needle.length, 1);
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     this.results = results;
-    //     results.sort((a, b) => {
-    //         // First: file path (alphabetical)
-    //         if (a.file.path < b.file.path) return -1;
-    //         if (a.file.path > b.file.path) return 1;
-    //         // Then: line number
-    //         if (a.line !== b.line) return a.line - b.line;
-    //         // Then: column (fallback to 0 if missing)
-    //         const colA = typeof a.col === "number" ? a.col : 0;
-    //         const colB = typeof b.col === "number" ? b.col : 0;
-    //         return colA - colB;
-    //     });
-    //     this.renderResults();
-
-    //     this.selectedIndices.clear();
-    //     this.replaceSelectedBtn.setAttr('disabled', true);
-    // }
-
-    // async performSearch() {
-    //     this.selectedCountEl.textContent = '0 selected';
-    //     this.replaceAllVaultBtn.setAttr('disabled', true);
-
-    //     const query = this.searchInput.value;
-    //     const trimmedQuery = query.trim();
-    //     if (!trimmedQuery) {
-    //         this.resultsContainer.empty();
-    //         this.results = [];
-    //         this.updateResultsUI();
-    //         return;
-    //     }
-
-    //     const matchCase = (this.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)!.checked;
-    //     const wholeWord = (this.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox') as HTMLInputElement)!.checked;
-    //     const useRegex = (this.regexCheckbox.querySelector('#toggle-regex-checkbox') as HTMLInputElement)!.checked;
-
-    //     const results: SearchResult[] = [];
-    //     const files = this.app.vault.getMarkdownFiles();
-
-    //     // Prebuild regex
-    //     let regex: RegExp | null = null;
-    //     if (useRegex || wholeWord) {
-    //         regex = this.buildSearchRegex();
-    //     }
-
-    //     let lastYield = Date.now();
-
-    //     for (const file of files) {
-    //         const content = await this.app.vault.read(file);
-
-    //         if (useRegex && regex) {
-    //             // Special case for /.*/ or /./
-    //             if (regex.source === '.' || regex.source === '.*') {
-    //                 // One match per line
-    //                 let lineStart = 0;
-    //                 for (let i = 0; i < content.length; i++) {
-    //                     if (content[i] === '\n' || i === content.length - 1) {
-    //                         const lineText = content.slice(lineStart, i + 1);
-    //                         results.push({
-    //                             file,
-    //                             line: content.slice(0, lineStart).split('\n').length - 1,
-    //                             content: lineText,
-    //                             matchText: lineText,
-    //                             col: 0,
-    //                             pattern: query
-    //                         });
-    //                         lineStart = i + 1;
-    //                     }
-    //                 }
-    //                 continue;
-    //             }
-
-    //             let m: RegExpExecArray | null;
-    //             regex.lastIndex = 0;
-    //             while ((m = regex.exec(content)) !== null) {
-    //                 // Compute line number and column
-    //                 const beforeMatch = content.slice(0, m.index);
-    //                 const lineNumber = beforeMatch.split('\n').length - 1;
-    //                 const lineStart = beforeMatch.lastIndexOf('\n') + 1;
-    //                 const col = m.index - lineStart;
-
-    //                 // Extract full line content for context
-    //                 const nextNewline = content.indexOf('\n', m.index);
-    //                 const lineEnd = nextNewline === -1 ? content.length : nextNewline;
-    //                 const lineText = content.slice(lineStart, lineEnd);
-
-    //                 results.push({
-    //                     file,
-    //                     line: lineNumber,
-    //                     content: lineText,
-    //                     matchText: m[0],
-    //                     col,
-    //                     pattern: query
-    //                 });
-
-    //                 if (regex.lastIndex === m.index) regex.lastIndex++;
-    //             }
-    //         } else {
-    //             // Plain text search
-    //             const haystack = matchCase ? content : content.toLowerCase();
-    //             const needle = matchCase ? query : query.toLowerCase();
-    //             if (!needle) continue;
-
-    //             let start = 0;
-    //             while (true) {
-    //                 const idx = haystack.indexOf(needle, start);
-    //                 if (idx === -1) break;
-
-    //                 // Compute line number and column
-    //                 const beforeMatch = content.slice(0, idx);
-    //                 const lineNumber = beforeMatch.split('\n').length - 1;
-    //                 const lineStart = beforeMatch.lastIndexOf('\n') + 1;
-    //                 const col = idx - lineStart;
-    //                 const nextNewline = content.indexOf('\n', idx);
-    //                 const lineEnd = nextNewline === -1 ? content.length : nextNewline;
-    //                 const lineText = content.slice(lineStart, lineEnd);
-
-    //                 results.push({
-    //                     file,
-    //                     line: lineNumber,
-    //                     content: lineText,
-    //                     matchText: content.slice(idx, idx + needle.length),
-    //                     col,
-    //                     pattern: query
-    //                 });
-
-    //                 start = idx + Math.max(needle.length, 1);
-    //             }
-    //         }
-
-    //         // Yield to UI
-    //         if (Date.now() - lastYield > 50) {
-    //             await new Promise(r => setTimeout(r, 0));
-    //             lastYield = Date.now();
-    //         }
-    //     }
-
-    //     // Sort results
-    //     results.sort((a, b) => {
-    //         if (a.file.path < b.file.path) return -1;
-    //         if (a.file.path > b.file.path) return 1;
-    //         if (a.line !== b.line) return a.line - b.line;
-    //         const colA = typeof a.col === "number" ? a.col : 0;
-    //         const colB = typeof b.col === "number" ? b.col : 0;
-    //         return colA - colB;
-    //     });
-
-    //     this.results = results;
-    //     this.renderResults();
-
-    //     this.selectedIndices.clear();
-    //     this.replaceSelectedBtn.setAttr('disabled', true);
-    // }
 
     async performSearch() {
         this.selectedCountEl.textContent = '0 selected';
@@ -775,7 +524,6 @@ export class FindReplaceView extends ItemView {
             fileCount += 1;
         });
 
-        // console.log(fileCount);
         this.updateResultsUI(fileCount);
 
         this.setupKeyboardNavigation();
