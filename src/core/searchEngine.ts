@@ -34,6 +34,10 @@ export class SearchEngine {
             regex = this.buildSearchRegex(query, options);
         }
 
+        // Performance optimization: pre-convert query once for case-insensitive searches
+        // This eliminates thousands of repeated toLowerCase() calls during search
+        const searchQuery = options.matchCase ? trimmedQuery : trimmedQuery.toLowerCase();
+
         // Performance optimization: process files in batches to prevent UI freezing
         const BATCH_SIZE = 10;   // Number of files to process at once
         const YIELD_DELAY = 0;   // Milliseconds to wait between batches
@@ -88,8 +92,9 @@ export class SearchEngine {
                         }
                     } else {
                         // Use simple string matching for basic search
+                        // Only convert line text case when needed (not for case-sensitive searches)
                         const haystack = options.matchCase ? lineText : lineText.toLowerCase();
-                        const needle = options.matchCase ? query : query.toLowerCase();
+                        const needle = searchQuery; // Use pre-converted query
                         if (!needle) continue;
 
                         // Find all occurrences of needle in haystack
