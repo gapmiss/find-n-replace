@@ -4,6 +4,7 @@ import VaultFindReplacePlugin from "../../main";
 import { SearchResult, FindReplaceElements, SearchOptions, ViewState, ReplacementMode, ReplacementTarget } from '../../types';
 import { SearchEngine, ReplacementEngine, FileOperations } from '../../core';
 import { UIRenderer, SelectionManager } from '../components';
+import { Logger, safeQuerySelector, isNotNull } from '../../utils';
 
 // Define the unique identifier for this view type - used by Obsidian to track and manage this view
 export const VIEW_TYPE_FIND_REPLACE = 'find-replace-view';
@@ -29,6 +30,9 @@ export class FindReplaceView extends ItemView {
     // Plugin reference
     plugin: VaultFindReplacePlugin;
 
+    // Logger instance
+    private logger: Logger;
+
     /**
      * Constructor - initializes the view with required Obsidian components
      * @param leaf - The workspace leaf this view will be attached to
@@ -38,6 +42,9 @@ export class FindReplaceView extends ItemView {
     constructor(leaf: WorkspaceLeaf, app: App, plugin: VaultFindReplacePlugin) {
         super(leaf);
         this.plugin = plugin;
+
+        // Initialize logger
+        this.logger = Logger.create(plugin, 'FindReplaceView');
 
         // Initialize state
         this.state = {
@@ -169,7 +176,7 @@ export class FindReplaceView extends ItemView {
 
         // Initialize remaining components now that we have UI elements
         this.replacementEngine = new ReplacementEngine(this.app, this.searchEngine);
-        this.uiRenderer = new UIRenderer(this.elements, this.searchEngine);
+        this.uiRenderer = new UIRenderer(this.elements, this.searchEngine, this.plugin);
         this.selectionManager = new SelectionManager(this.elements);
         // NavigationHandler no longer needed for basic functionality
 
@@ -222,37 +229,48 @@ export class FindReplaceView extends ItemView {
      * Main search function - restored functionality
      */
     async performSearch(): Promise<void> {
+        this.logger.time('performSearch');
+
         try {
-            console.log('Search called');
-            const query = this.elements.searchInput.value;
-            console.log('Query:', query);
+            this.logger.debug('Search called');
+            const query = this.elements.searchInput?.value;
 
             if (!query || query.trim().length === 0) {
-                console.log('Empty query, clearing results');
+                this.logger.debug('Empty query, clearing results');
                 this.uiRenderer.clearResults();
                 this.state.results = [];
                 return;
             }
 
-            console.log('About to call search engine with query:', query);
+            this.logger.debug('Starting search', { query, length: query.length });
 
             // Get search options from checkboxes
             const searchOptions = this.getSearchOptions();
-            console.log('Search options:', searchOptions);
+            this.logger.debug('Search options:', searchOptions);
+
+            // Validate regex if regex mode is enabled
+            if (searchOptions.useRegex) {
+                try {
+                    new RegExp(query);
+                } catch (regexError) {
+                    this.logger.error('Invalid regex pattern', regexError, true);
+                    return;
+                }
+            }
 
             // Perform the actual search
             const results = await this.searchEngine.performSearch(query, searchOptions);
-            console.log('Search completed, found', results.length, 'results');
+            this.logger.info(`Search completed: found ${results.length} results for "${query}"`);
 
             // Update state and render results
             this.state.results = results;
             this.renderResults();
-            // this.renderResults(); // Disable rendering temporarily
-            console.log('Search completed');
+
+            this.logger.timeEnd('performSearch');
 
         } catch (error) {
-            console.error('Search failed:', error);
-            new Notice('Search failed: ' + error.message);
+            this.logger.timeEnd('performSearch');
+            this.logger.error('Search operation failed', error, true);
         }
     }
 
@@ -272,11 +290,23 @@ export class FindReplaceView extends ItemView {
      * Handles clicks on search results (delegation pattern)
      */
     private async handleResultClick(event: MouseEvent): Promise<void> {
-        const target = event.target as HTMLElement;
+        const target = event.target;
+
+        if (!(target instanceof HTMLElement)) {
+            this.logger.debug('Click event target is not an HTMLElement');
+            return;
+        }
+
+        this.logger.debug('Result click detected on element:', target);
 
         // If clicking on a clickable-icon (replace button), handle that
         if (target.classList.contains('clickable-icon') || target.closest('.clickable-icon')) {
-            const button = target.classList.contains('clickable-icon') ? target : target.closest('.clickable-icon') as HTMLElement;
+            const button = target.classList.contains('clickable-icon') ? target : target.closest('.clickable-icon');
+
+            if (!(button instanceof HTMLElement)) {
+                this.logger.error('Found clickable-icon but could not cast to HTMLElement');
+                return;
+            }
 
             if (button.getAttribute('aria-label') === 'Replace this match') {
                 const resultIndex = button.getAttribute('data-result-index');
@@ -306,21 +336,37 @@ export class FindReplaceView extends ItemView {
         }
 
         // If not clicking on an icon, check if clicking on snippet or its children
-        const snippetElement = target.classList.contains('snippet') ? target : target.closest('.snippet') as HTMLElement;
+        const snippetElement = target.classList.contains('snippet') ? target : target.closest('.snippet');
 
-        if (snippetElement) {
+        if (snippetElement instanceof HTMLElement) {
             if (event.metaKey || event.ctrlKey) return; // Ignore modifier clicks
 
-            const filePath = snippetElement.getAttribute('data-file-path');
-            const line = parseInt(snippetElement.getAttribute('data-line') || '0');
-            const col = parseInt(snippetElement.getAttribute('data-col') || '0');
-            const matchText = snippetElement.getAttribute('data-match-text') || '';
+            this.logger.debug('Snippet click detected');
 
-            if (filePath) {
-                const file = this.fileOperations.getFileByPath(filePath);
-                if (file) {
-                    await this.fileOperations.openFileAtLine(file, line, col, matchText, snippetElement);
-                }
+            const filePath = snippetElement.getAttribute('data-file-path');
+            const lineStr = snippetElement.getAttribute('data-line');
+            const colStr = snippetElement.getAttribute('data-col');
+            const matchText = snippetElement.getAttribute('data-match-text');
+
+            if (!filePath) {
+                this.logger.error('No file path found in snippet element');
+                return;
+            }
+
+            const line = lineStr ? parseInt(lineStr, 10) : 0;
+            const col = colStr ? parseInt(colStr, 10) : 0;
+
+            if (isNaN(line) || isNaN(col)) {
+                this.logger.error('Invalid line or column data in snippet element', { lineStr, colStr });
+                return;
+            }
+
+            const file = this.fileOperations.getFileByPath(filePath);
+            if (file) {
+                this.logger.debug('Opening file at line:', { file: file.path, line, col });
+                await this.fileOperations.openFileAtLine(file, line, col, matchText || '', snippetElement);
+            } else {
+                this.logger.error('File not found:', filePath, true); // Show to user
             }
             return;
         }
@@ -631,10 +677,22 @@ export class FindReplaceView extends ItemView {
      */
     private getSearchOptions(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean } {
         return {
-            matchCase: (this.elements.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)?.checked || false,
-            wholeWord: (this.elements.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox') as HTMLInputElement)?.checked || false,
-            useRegex: (this.elements.regexCheckbox.querySelector('#toggle-regex-checkbox') as HTMLInputElement)?.checked || false
+            matchCase: this.getCheckboxValue(this.elements.matchCaseCheckbox, '#toggle-match-case-checkbox'),
+            wholeWord: this.getCheckboxValue(this.elements.wholeWordCheckbox, '#toggle-whole-word-checkbox'),
+            useRegex: this.getCheckboxValue(this.elements.regexCheckbox, '#toggle-regex-checkbox')
         };
+    }
+
+    /**
+     * Safely gets checkbox value with proper error handling
+     */
+    private getCheckboxValue(container: HTMLElement, selector: string): boolean {
+        const checkbox = safeQuerySelector<HTMLInputElement>(container, selector, this.logger, false);
+        if (!checkbox) {
+            this.logger.warn(`Checkbox not found: ${selector}, defaulting to false`);
+            return false;
+        }
+        return checkbox.checked;
     }
 
     /**

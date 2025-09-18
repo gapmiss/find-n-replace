@@ -1,6 +1,8 @@
 import { setIcon, TFile } from 'obsidian';
 import { SearchResult, FindReplaceElements } from '../../types';
 import { SearchEngine } from '../../core';
+import { Logger } from '../../utils';
+import VaultFindReplacePlugin from '../../main';
 
 /**
  * Handles all UI rendering and DOM manipulation for search results
@@ -9,10 +11,12 @@ export class UIRenderer {
     private elements: FindReplaceElements;
     private searchEngine: SearchEngine;
     private isCollapsed: boolean = false;
+    private logger: Logger;
 
-    constructor(elements: FindReplaceElements, searchEngine: SearchEngine) {
+    constructor(elements: FindReplaceElements, searchEngine: SearchEngine, plugin: VaultFindReplacePlugin) {
         this.elements = elements;
         this.searchEngine = searchEngine;
+        this.logger = Logger.create(plugin, 'UIRenderer');
     }
 
     /**
@@ -355,8 +359,14 @@ export class UIRenderer {
      * @returns true if it's an activation key
      */
     private isActivationKey(event: KeyboardEvent): boolean {
-        const target = event.target as HTMLElement | null;
-        if (target?.getAttribute('role') === 'button' && target.tagName === 'SPAN') {
+        const target = event.target;
+
+        if (!(target instanceof HTMLElement)) {
+            this.logger.debug('Keyboard event target is not an HTMLElement');
+            return false;
+        }
+
+        if (target.getAttribute('role') === 'button' && target.tagName === 'SPAN') {
             const key = event.key;
             return key === 'Enter' || key === ' ' || key === 'Spacebar';
         }

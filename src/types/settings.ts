@@ -13,6 +13,7 @@ export interface VaultFindReplaceSettings {
     searchDebounceDelay: number;
     showLineNumbers: boolean;
     showFileExtensions: boolean;
+    enableDebugLogging: boolean;
 }
 
 /**
@@ -30,4 +31,5 @@ export const DEFAULT_SETTINGS: VaultFindReplaceSettings = {
     searchDebounceDelay: 300,
     showLineNumbers: true,
     showFileExtensions: false,
+    enableDebugLogging: false,
 };

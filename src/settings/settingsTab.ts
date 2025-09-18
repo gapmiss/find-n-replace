@@ -186,5 +186,18 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     })
             );
+
+        // Debug logging toggle
+        new Setting(containerEl)
+            .setName("Enable debug logging")
+            .setDesc("Show detailed debug information in the browser console. Useful for troubleshooting.")
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.enableDebugLogging)
+                    .onChange(async (value) => {
+                        this.plugin.settings.enableDebugLogging = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
     }
 }

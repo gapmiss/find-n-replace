@@ -1,4 +1,6 @@
 import { FindReplaceElements, PerformSearchCallback } from '../../types';
+import { Logger, safeQuerySelector, isNotNull } from '../../utils';
+import VaultFindReplacePlugin from '../../main';
 
 /**
  * Handles keyboard navigation and input management for the find/replace interface
@@ -6,10 +8,12 @@ import { FindReplaceElements, PerformSearchCallback } from '../../types';
 export class NavigationHandler {
     private elements: FindReplaceElements;
     private performSearchCallback: PerformSearchCallback;
+    private logger: Logger;
 
-    constructor(elements: FindReplaceElements, performSearchCallback: PerformSearchCallback) {
+    constructor(elements: FindReplaceElements, performSearchCallback: PerformSearchCallback, plugin: VaultFindReplacePlugin) {
         this.elements = elements;
         this.performSearchCallback = performSearchCallback;
+        this.logger = Logger.create(plugin, 'NavigationHandler');
     }
 
     /**
@@ -50,12 +54,17 @@ export class NavigationHandler {
         const clearBtns = this.elements.containerEl.querySelectorAll<HTMLButtonElement>(".clear-btn");
         clearBtns.forEach(btn => {
             btn.addEventListener("click", () => {
-                const input = btn.previousElementSibling as HTMLInputElement;
-                if (input) {
-                    input.value = "";
-                    input.dispatchEvent(new Event("input"));
-                    input.focus();
+                const input = btn.previousElementSibling;
+
+                if (!(input instanceof HTMLInputElement)) {
+                    this.logger.warn('Clear button clicked but previous sibling is not an input element');
+                    return;
                 }
+
+                this.logger.debug('Clearing input field');
+                input.value = "";
+                input.dispatchEvent(new Event("input"));
+                input.focus();
             });
         });
     }
@@ -156,7 +165,12 @@ export class NavigationHandler {
                     id: `toggle-${id}-checkbox`
                 }
             }
-        ) as HTMLInputElement;
+        );
+
+        if (!(checkbox instanceof HTMLInputElement)) {
+            this.logger.error(`Failed to create checkbox input for ${id}`);
+            return toggleContainer;
+        }
 
         // Add label text after checkbox
         labelElement.createSpan({ text: ` ${label}` });
@@ -186,10 +200,22 @@ export class NavigationHandler {
      */
     getSearchOptions(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean } {
         return {
-            matchCase: (this.elements.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement)?.checked || false,
-            wholeWord: (this.elements.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox') as HTMLInputElement)?.checked || false,
-            useRegex: (this.elements.regexCheckbox.querySelector('#toggle-regex-checkbox') as HTMLInputElement)?.checked || false
+            matchCase: this.getCheckboxValue(this.elements.matchCaseCheckbox, '#toggle-match-case-checkbox'),
+            wholeWord: this.getCheckboxValue(this.elements.wholeWordCheckbox, '#toggle-whole-word-checkbox'),
+            useRegex: this.getCheckboxValue(this.elements.regexCheckbox, '#toggle-regex-checkbox')
         };
+    }
+
+    /**
+     * Safely gets checkbox value with proper error handling
+     */
+    private getCheckboxValue(container: HTMLElement, selector: string): boolean {
+        const checkbox = safeQuerySelector<HTMLInputElement>(container, selector, this.logger, false);
+        if (!checkbox) {
+            this.logger.warn(`Checkbox not found: ${selector}, defaulting to false`);
+            return false;
+        }
+        return checkbox.checked;
     }
 
     /**
@@ -198,24 +224,28 @@ export class NavigationHandler {
      */
     setSearchOptions(options: { matchCase?: boolean; wholeWord?: boolean; useRegex?: boolean }): void {
         if (options.matchCase !== undefined) {
-            const checkbox = this.elements.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox') as HTMLInputElement;
-            if (checkbox) {
-                checkbox.checked = options.matchCase;
-            }
+            this.setCheckboxValue(this.elements.matchCaseCheckbox, '#toggle-match-case-checkbox', options.matchCase);
         }
 
         if (options.wholeWord !== undefined) {
-            const checkbox = this.elements.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox') as HTMLInputElement;
-            if (checkbox) {
-                checkbox.checked = options.wholeWord;
-            }
+            this.setCheckboxValue(this.elements.wholeWordCheckbox, '#toggle-whole-word-checkbox', options.wholeWord);
         }
 
         if (options.useRegex !== undefined) {
-            const checkbox = this.elements.regexCheckbox.querySelector('#toggle-regex-checkbox') as HTMLInputElement;
-            if (checkbox) {
-                checkbox.checked = options.useRegex;
-            }
+            this.setCheckboxValue(this.elements.regexCheckbox, '#toggle-regex-checkbox', options.useRegex);
+        }
+    }
+
+    /**
+     * Safely sets checkbox value with proper error handling
+     */
+    private setCheckboxValue(container: HTMLElement, selector: string, value: boolean): void {
+        const checkbox = safeQuerySelector<HTMLInputElement>(container, selector, this.logger, false);
+        if (checkbox) {
+            checkbox.checked = value;
+            this.logger.debug(`Set checkbox ${selector} to ${value}`);
+        } else {
+            this.logger.warn(`Cannot set checkbox ${selector}: not found`);
         }
     }
 
