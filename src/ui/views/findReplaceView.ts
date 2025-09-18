@@ -201,6 +201,25 @@ export class FindReplaceView extends ItemView {
             this.renderResults();
         });
 
+        // Set up checkbox change handlers to update search results
+        const checkboxes = [
+            this.elements.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox'),
+            this.elements.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox'),
+            this.elements.regexCheckbox.querySelector('#toggle-regex-checkbox')
+        ];
+
+        checkboxes.forEach(checkbox => {
+            if (checkbox) {
+                checkbox.addEventListener('change', () => {
+                    // Only re-search if there's an active query
+                    const query = this.elements.searchInput.value.trim();
+                    if (query.length > 0) {
+                        this.performSearch();
+                    }
+                });
+            }
+        });
+
         // Set up expand/collapse all functionality
         this.elements.toolbarBtn.addEventListener('click', () => {
             this.uiRenderer.toggleExpandCollapseAll();
@@ -546,20 +565,14 @@ export class FindReplaceView extends ItemView {
         checkboxContainer.addEventListener('click', () => {
             const isEnabled = checkboxContainer.classList.toggle('is-enabled');
             checkbox.checked = isEnabled;
-            // Don't automatically trigger search - let user control when to search
+            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
         });
 
-        // Handle keyboard navigation for checkbox
-        checkboxContainer.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                checkboxContainer.click();
-            }
+        // Handle checkbox changes
+        checkbox.addEventListener('change', () => {
+            const isEnabled = checkbox.checked;
+            checkboxContainer.classList.toggle('is-enabled', isEnabled);
         });
-
-        // Make checkbox container focusable
-        checkboxContainer.setAttribute('tabindex', '0');
-        checkboxContainer.setAttribute('role', 'checkbox');
 
         return toggleContainer;
     }
