@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, TFile, type App, Notice, setIcon } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, type App, Notice, setIcon, debounce } from 'obsidian';
 import { ConfirmModal } from "../../modals";
 import VaultFindReplacePlugin from "../../main";
 import { SearchResult, FindReplaceElements, SearchOptions, ViewState, ReplacementMode, ReplacementTarget } from '../../types';
@@ -56,7 +56,7 @@ export class FindReplaceView extends ItemView {
 
         // Initialize components
         this.searchEngine = new SearchEngine(app);
-        this.fileOperations = new FileOperations(app);
+        this.fileOperations = new FileOperations(app, plugin);
     }
 
     // Required Obsidian ItemView methods - these define how the view appears in the interface
@@ -603,23 +603,20 @@ export class FindReplaceView extends ItemView {
      * Sets up auto-search with proper debouncing
      */
     private setupAutoSearch(): void {
-        let searchTimeout: NodeJS.Timeout;
+        const debouncedSearch = debounce(async () => {
+            // Only auto-search if there's actual content
+            const query = this.elements.searchInput.value.trim();
+            if (query.length > 0) {
+                await this.performSearch();
+            } else {
+                // Clear results if search is empty
+                this.uiRenderer.clearResults();
+                this.state.results = [];
+                this.selectionManager.reset();
+            }
+        }, 300);
 
-        this.elements.searchInput.addEventListener("input", () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(async () => {
-                // Only auto-search if there's actual content
-                const query = this.elements.searchInput.value.trim();
-                if (query.length > 0) {
-                    await this.performSearch();
-                } else {
-                    // Clear results if search is empty
-                    this.uiRenderer.clearResults();
-                    this.state.results = [];
-                    this.selectionManager.reset();
-                }
-            }, 300); // 300ms debounce
-        });
+        this.elements.searchInput.addEventListener("input", debouncedSearch);
     }
 
 
@@ -627,22 +624,20 @@ export class FindReplaceView extends ItemView {
      * Auto-search with result limiting to prevent UI freeze
      */
     private setupLimitedAutoSearch(): void {
-        let searchTimeout: NodeJS.Timeout;
-        this.elements.searchInput.addEventListener("input", () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(async () => {
-                const query = this.elements.searchInput.value.trim();
-                if (query.length > 0) {
-                    console.log('Auto-search with limiting for:', query);
-                    await this.performLimitedSearch(query);
-                } else {
-                    // Clear results if search is empty
-                    this.uiRenderer.clearResults();
-                    this.state.results = [];
-                    this.selectionManager.reset();
-                }
-            }, 300);
-        });
+        const debouncedLimitedSearch = debounce(async () => {
+            const query = this.elements.searchInput.value.trim();
+            if (query.length > 0) {
+                console.log('Auto-search with limiting for:', query);
+                await this.performLimitedSearch(query);
+            } else {
+                // Clear results if search is empty
+                this.uiRenderer.clearResults();
+                this.state.results = [];
+                this.selectionManager.reset();
+            }
+        }, 300);
+
+        this.elements.searchInput.addEventListener("input", debouncedLimitedSearch);
     }
 
     /**

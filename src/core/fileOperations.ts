@@ -1,13 +1,22 @@
-import { App, MarkdownView, TFile, WorkspaceLeaf } from 'obsidian';
+import { App, MarkdownView, TFile, WorkspaceLeaf, TFolder, TAbstractFile, Editor } from 'obsidian';
+import { Logger } from '../utils';
+import VaultFindReplacePlugin from '../main';
 
 /**
  * Handles file opening and navigation operations
  */
 export class FileOperations {
     private app: App;
+    private logger: Logger;
 
-    constructor(app: App) {
+    constructor(app: App, plugin?: VaultFindReplacePlugin) {
         this.app = app;
+        this.logger = plugin ? Logger.create(plugin, 'FileOperations') : {
+            debug: console.debug.bind(console),
+            info: console.info.bind(console),
+            warn: console.warn.bind(console),
+            error: console.error.bind(console)
+        } as Logger;
     }
 
     /**
@@ -173,23 +182,46 @@ export class FileOperations {
      * @param line - Line number to center
      * @param ch - Character position
      */
-    private async centerMatchInViewport(editor: any, line: number, ch: number): Promise<void> {
+    private async centerMatchInViewport(editor: Editor, line: number, ch: number): Promise<void> {
         try {
-            // Access CodeMirror instance (this is a bit brittle but necessary)
-            const cmView = editor.cm;
-            if (cmView && cmView.dispatch) {
+            this.logger.debug('Centering match in viewport', { line, ch });
+
+            // Access CodeMirror instance with proper type checking
+            const editorWithCm = editor as Editor & {
+                cm?: {
+                    dispatch: (transaction: unknown) => void;
+                    constructor?: {
+                        scrollIntoView: (pos: number, options: { y: string }) => unknown;
+                    };
+                }
+            };
+            const cmView = editorWithCm.cm;
+
+            if (cmView && typeof cmView.dispatch === 'function') {
                 const pos = editor.posToOffset({ line, ch });
-                cmView.dispatch({
-                    effects: cmView.constructor.scrollIntoView(pos, { y: 'center' })
-                });
+                if (typeof pos === 'number' && cmView.constructor?.scrollIntoView) {
+                    cmView.dispatch({
+                        effects: cmView.constructor.scrollIntoView(pos, { y: 'center' })
+                    });
+                    this.logger.debug('Successfully centered match using CodeMirror API');
+                    return;
+                }
             }
+
+            // Fallback: use standard Obsidian scroll method
+            this.logger.debug('Using fallback scroll method');
+            const startPos = { line, ch };
+            const endPos = { line, ch };
+            editor.scrollIntoView({ from: startPos, to: endPos }, true);
+
         } catch (error) {
-            // Fallback: just scroll to line without centering
-            console.warn('Could not center match in viewport:', error);
+            this.logger.warn('Could not center match in viewport, trying basic scroll', error);
             try {
-                editor.scrollIntoView({ line, ch });
+                const startPos = { line, ch };
+                const endPos = { line, ch };
+                editor.scrollIntoView({ from: startPos, to: endPos }, true);
             } catch (fallbackError) {
-                console.warn('Could not scroll to match:', fallbackError);
+                this.logger.error('All scroll methods failed', fallbackError);
             }
         }
     }
@@ -264,25 +296,28 @@ export class FileOperations {
      * @returns Array of files in the folder
      */
     getFilesInFolder(folderPath: string): TFile[] {
-        const folder = this.app.vault.getAbstractFileByPath(folderPath);
-        if (!folder || !('children' in folder)) {
+        const abstractFile = this.app.vault.getAbstractFileByPath(folderPath);
+        if (!(abstractFile instanceof TFolder)) {
             return [];
         }
 
+        const folder = abstractFile as TFolder;
         const files: TFile[] = [];
-        const collectFiles = (children: any[]) => {
-            for (const child of children) {
-                if (child instanceof TFile && child.extension === 'md') {
-                    files.push(child);
-                } else if ('children' in child && (child as any).children) {
-                    collectFiles((child as any).children);
+
+        const collectFiles = (items: TAbstractFile[]) => {
+            for (const item of items) {
+                if (item instanceof TFile && item.extension === 'md') {
+                    files.push(item);
+                } else if (item instanceof TFolder && item.children) {
+                    collectFiles(item.children);
                 }
             }
         };
 
-        if ('children' in folder && (folder as any).children) {
-            collectFiles((folder as any).children);
+        if (folder.children) {
+            collectFiles(folder.children);
         }
+
         return files;
     }
 }

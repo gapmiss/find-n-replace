@@ -1,4 +1,5 @@
 import { FindReplaceElements } from '../../types';
+import { SearchResult } from '../../types/search';
 
 /**
  * Handles multi-selection functionality for search results
@@ -159,7 +160,7 @@ export class SelectionManager {
      * @param allResults - All search results
      * @returns Array of selected indices for the specified file
      */
-    getSelectedIndicesForFile(filePath: string, allResults: any[]): number[] {
+    getSelectedIndicesForFile(filePath: string, allResults: SearchResult[]): number[] {
         return Array.from(this.selectedIndices).filter(idx => {
             const result = allResults[idx];
             return result?.file?.path === filePath;
@@ -171,7 +172,7 @@ export class SelectionManager {
      * @param filePath - Path of the file
      * @param allResults - All search results
      */
-    selectAllInFile(filePath: string, allResults: any[]): void {
+    selectAllInFile(filePath: string, allResults: SearchResult[]): void {
         allResults.forEach((result, idx) => {
             if (result.file.path === filePath) {
                 this.selectedIndices.add(idx);
@@ -185,7 +186,7 @@ export class SelectionManager {
      * @param filePath - Path of the file
      * @param allResults - All search results
      */
-    deselectAllInFile(filePath: string, allResults: any[]): void {
+    deselectAllInFile(filePath: string, allResults: SearchResult[]): void {
         allResults.forEach((result, idx) => {
             if (result.file.path === filePath) {
                 this.selectedIndices.delete(idx);

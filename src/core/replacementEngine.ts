@@ -110,7 +110,7 @@ export class ReplacementEngine {
             const uniqueLines = Array.from(new Set(matches.map(m => m.line)));
             for (const lineNum of uniqueLines) {
                 const lineText = lines[lineNum] ?? '';
-                lines[lineNum] = lineText.replace(regex, (match, ...rest: any[]) => {
+                lines[lineNum] = lineText.replace(regex, (match, ...rest: (string | number)[]) => {
                     // Extract capture groups and match info from regex replace callback
                     // rest = [group1, group2, ..., offset, input]
                     const offset = rest[rest.length - 2] as number;
@@ -118,7 +118,11 @@ export class ReplacementEngine {
                     const groups = rest.slice(0, -2) as string[];
 
                     // Reconstruct a RegExpExecArray-like object for replacement expansion
-                    const execArray: any = [match, ...groups];
+                    interface RegExpExecArrayLike extends Array<string> {
+                        index: number;
+                        input: string;
+                    }
+                    const execArray = [match, ...groups] as RegExpExecArrayLike;
                     execArray.index = offset;
                     execArray.input = input;
 
