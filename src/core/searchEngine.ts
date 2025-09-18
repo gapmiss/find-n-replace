@@ -44,8 +44,9 @@ export class SearchEngine {
 
             // Process all files in current batch concurrently
             await Promise.all(batch.map(async (file) => {
-                const content = await this.app.vault.read(file);
-                const lines = content.split('\n');
+                try {
+                    const content = await this.app.vault.read(file);
+                    const lines = content.split('\n');
 
                 // Special case: handle dot regex patterns that match everything
                 const isDotRegex = options.useRegex && regex && (regex.source === '.' || regex.source === '.*');
@@ -110,6 +111,11 @@ export class SearchEngine {
                             start = idx + Math.max(needle.length, 1);
                         }
                     }
+                }
+                } catch (error) {
+                    // Log file read errors but continue processing other files
+                    console.warn(`Failed to read file ${file.path}:`, error);
+                    // Skip this file and continue with others
                 }
             }));
 

@@ -100,8 +100,9 @@ export class ReplacementEngine {
         searchOptions: SearchOptions,
         replaceAllInFile: boolean = false
     ): Promise<void> {
-        let content = await this.app.vault.read(file);
-        const lines = content.split('\n');
+        try {
+            let content = await this.app.vault.read(file);
+            const lines = content.split('\n');
 
         const regex = this.searchEngine.buildSearchRegex(matches[0]?.pattern || '', searchOptions);
 
@@ -176,8 +177,13 @@ export class ReplacementEngine {
             }
         }
 
-        // Write the modified content back to the file
-        await this.app.vault.modify(file, lines.join('\n'));
+            // Write the modified content back to the file
+            await this.app.vault.modify(file, lines.join('\n'));
+        } catch (error) {
+            // Handle file operation errors gracefully
+            console.error(`Failed to replace content in file ${file.path}:`, error);
+            throw new Error(`Replacement failed for file "${file.path}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     }
 
     /**

@@ -259,16 +259,28 @@ export class FindReplaceView extends ItemView {
 
         // Set up replace button handlers
         this.registerDomEvent(this.elements.replaceSelectedBtn, 'click', async () => {
-            await this.replaceSelectedMatches();
+            try {
+                await this.replaceSelectedMatches();
+            } catch (error) {
+                this.logger.error('Replace selected button error', error, true);
+            }
         });
 
         this.registerDomEvent(this.elements.replaceAllVaultBtn, 'click', async () => {
-            await this.replaceAllInVault();
+            try {
+                await this.replaceAllInVault();
+            } catch (error) {
+                this.logger.error('Replace all vault button error', error, true);
+            }
         });
 
         // Set up result click handlers (delegated)
         this.registerDomEvent(this.elements.resultsContainer, 'click', async (e) => {
-            await this.handleResultClick(e);
+            try {
+                await this.handleResultClick(e);
+            } catch (error) {
+                this.logger.error('Result click handler error', error, true);
+            }
         });
 
         // Manual search is handled by setupBasicNavigation Enter key handlers
@@ -476,53 +488,61 @@ export class FindReplaceView extends ItemView {
      * Replaces an individual match
      */
     private async replaceIndividualMatch(result: SearchResult): Promise<void> {
-        const replaceText = this.elements.replaceInput.value;
+        try {
+            const replaceText = this.elements.replaceInput.value;
 
-        // Confirm if replacing with empty string
-        if (!replaceText) {
-            const confirmed = await this.confirmReplaceEmpty('Replace match with empty content? This cannot be undone.');
-            if (!confirmed) return;
+            // Confirm if replacing with empty string
+            if (!replaceText) {
+                const confirmed = await this.confirmReplaceEmpty('Replace match with empty content? This cannot be undone.');
+                if (!confirmed) return;
+            }
+
+            const searchOptions = this.getSearchOptions();
+            await this.replacementEngine.dispatchReplace(
+                'one',
+                this.state.results,
+                this.selectionManager.getSelectedIndices(),
+                replaceText,
+                searchOptions,
+                result
+            );
+
+            await this.performSearch();
+        } catch (error) {
+            this.logger.error('Failed to replace individual match', error, true);
         }
-
-        const searchOptions = this.getSearchOptions();
-        await this.replacementEngine.dispatchReplace(
-            'one',
-            this.state.results,
-            this.selectionManager.getSelectedIndices(),
-            replaceText,
-            searchOptions,
-            result
-        );
-
-        await this.performSearch();
     }
 
     /**
      * Replaces all matches in a specific file
      */
     private async replaceAllInFile(file: TFile): Promise<void> {
-        const replaceText = this.elements.replaceInput.value;
-        const filePath = file.path;
+        try {
+            const replaceText = this.elements.replaceInput.value;
+            const filePath = file.path;
 
-        // Confirm replacement
-        const confirmMessage = replaceText === ''
-            ? `Replace all matches in "${filePath}" with an empty value? This action cannot be undone.`
-            : `Replace all matches in "${filePath}"? This action cannot be undone.`;
+            // Confirm replacement
+            const confirmMessage = replaceText === ''
+                ? `Replace all matches in "${filePath}" with an empty value? This action cannot be undone.`
+                : `Replace all matches in "${filePath}"? This action cannot be undone.`;
 
-        const confirmed = await this.confirmReplaceEmpty(confirmMessage);
-        if (!confirmed) return;
+            const confirmed = await this.confirmReplaceEmpty(confirmMessage);
+            if (!confirmed) return;
 
-        const searchOptions = this.getSearchOptions();
-        await this.replacementEngine.dispatchReplace(
-            'file',
-            this.state.results,
-            this.selectionManager.getSelectedIndices(),
-            replaceText,
-            searchOptions,
-            file
-        );
+            const searchOptions = this.getSearchOptions();
+            await this.replacementEngine.dispatchReplace(
+                'file',
+                this.state.results,
+                this.selectionManager.getSelectedIndices(),
+                replaceText,
+                searchOptions,
+                file
+            );
 
-        await this.performSearch();
+            await this.performSearch();
+        } catch (error) {
+            this.logger.error(`Failed to replace all matches in file ${file.path}`, error, true);
+        }
     }
 
     /**
@@ -530,31 +550,35 @@ export class FindReplaceView extends ItemView {
      * Shows confirmation dialog and performs replacement on all results
      */
     async replaceAllInVault(): Promise<void> {
-        if (!this.state.results || this.state.results.length === 0) {
-            new Notice('No results to replace.');
-            return;
+        try {
+            if (!this.state.results || this.state.results.length === 0) {
+                new Notice('No results to replace.');
+                return;
+            }
+
+            const replaceText = this.elements.replaceInput.value;
+
+            // Confirm the vault-wide replacement
+            const confirmMessage = replaceText === ''
+                ? 'Replace all matches across the vault with an empty value? This action cannot be undone.'
+                : 'Replace all matches across the vault? This action cannot be undone.';
+
+            const confirmed = await this.confirmReplaceEmpty(confirmMessage);
+            if (!confirmed) return;
+
+            const searchOptions = this.getSearchOptions();
+            await this.replacementEngine.dispatchReplace(
+                'vault',
+                this.state.results,
+                this.selectionManager.getSelectedIndices(),
+                replaceText,
+                searchOptions
+            );
+
+            await this.performSearch();
+        } catch (error) {
+            this.logger.error('Failed to replace all matches in vault', error, true);
         }
-
-        const replaceText = this.elements.replaceInput.value;
-
-        // Confirm the vault-wide replacement
-        const confirmMessage = replaceText === ''
-            ? 'Replace all matches across the vault with an empty value? This action cannot be undone.'
-            : 'Replace all matches across the vault? This action cannot be undone.';
-
-        const confirmed = await this.confirmReplaceEmpty(confirmMessage);
-        if (!confirmed) return;
-
-        const searchOptions = this.getSearchOptions();
-        await this.replacementEngine.dispatchReplace(
-            'vault',
-            this.state.results,
-            this.selectionManager.getSelectedIndices(),
-            replaceText,
-            searchOptions
-        );
-
-        await this.performSearch();
     }
 
     /**
@@ -562,26 +586,30 @@ export class FindReplaceView extends ItemView {
      * Shows confirmation for empty replacements and processes selected results
      */
     private async replaceSelectedMatches(): Promise<void> {
-        if (!this.selectionManager.hasSelection()) return;
+        try {
+            if (!this.selectionManager.hasSelection()) return;
 
-        const replaceText = this.elements.replaceInput.value;
+            const replaceText = this.elements.replaceInput.value;
 
-        // Confirm if replacing with empty string
-        if (!replaceText) {
-            const confirmed = await this.confirmReplaceEmpty('Replace selected matches with empty content? This cannot be undone.');
-            if (!confirmed) return;
+            // Confirm if replacing with empty string
+            if (!replaceText) {
+                const confirmed = await this.confirmReplaceEmpty('Replace selected matches with empty content? This cannot be undone.');
+                if (!confirmed) return;
+            }
+
+            const searchOptions = this.getSearchOptions();
+            await this.replacementEngine.dispatchReplace(
+                'selected',
+                this.state.results,
+                this.selectionManager.getSelectedIndices(),
+                replaceText,
+                searchOptions
+            );
+
+            await this.performSearch();
+        } catch (error) {
+            this.logger.error('Failed to replace selected matches', error, true);
         }
-
-        const searchOptions = this.getSearchOptions();
-        await this.replacementEngine.dispatchReplace(
-            'selected',
-            this.state.results,
-            this.selectionManager.getSelectedIndices(),
-            replaceText,
-            searchOptions
-        );
-
-        await this.performSearch();
     }
 
     /**
@@ -674,7 +702,11 @@ export class FindReplaceView extends ItemView {
         elements.forEach(el => {
             el.addEventListener('keydown', async (evt) => {
                 if (evt.key === 'Enter') {
-                    await this.performSearch();
+                    try {
+                        await this.performSearch();
+                    } catch (error) {
+                        this.logger.error('Search on Enter key error', error, true);
+                    }
                 }
             });
         });

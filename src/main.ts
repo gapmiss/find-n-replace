@@ -28,31 +28,46 @@ export default class VaultFindReplacePlugin extends Plugin {
 	}
 
 	async activateView() {
-		const { workspace } = this.app;
+		try {
+			const { workspace } = this.app;
 
-		let leaf: WorkspaceLeaf | null = null;
-		const leaves = workspace.getLeavesOfType(VIEW_TYPE_FIND_REPLACE);
+			let leaf: WorkspaceLeaf | null = null;
+			const leaves = workspace.getLeavesOfType(VIEW_TYPE_FIND_REPLACE);
 
-		if (leaves.length > 0) {
-			leaf = leaves[0];
-		} else {
-			leaf = workspace.getRightLeaf(false);
-			if (!leaf) {
-				console.error("vault-find-replace: failed to get or create leaf");
-				return;
+			if (leaves.length > 0) {
+				leaf = leaves[0];
+			} else {
+				leaf = workspace.getRightLeaf(false);
+				if (!leaf) {
+					console.error("vault-find-replace: failed to get or create leaf");
+					return;
+				}
+				await leaf.setViewState({ type: VIEW_TYPE_FIND_REPLACE, active: true });
 			}
-			await leaf.setViewState({ type: VIEW_TYPE_FIND_REPLACE, active: true });
-		}
 
-		workspace.revealLeaf(leaf);
+			workspace.revealLeaf(leaf);
+		} catch (error) {
+			console.error("vault-find-replace: failed to activate view:", error);
+			// Don't throw - just log the error so plugin doesn't crash
+		}
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		try {
+			this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		} catch (error) {
+			console.error('vault-find-replace: Failed to load settings, using defaults:', error);
+			this.settings = { ...DEFAULT_SETTINGS };
+		}
 	}
 
 	async saveSettings() {
-		await this.saveData(this.settings);
+		try {
+			await this.saveData(this.settings);
+		} catch (error) {
+			console.error('vault-find-replace: Failed to save settings:', error);
+			// Don't throw - settings save failure shouldn't break the plugin
+		}
 	}
 
 }
