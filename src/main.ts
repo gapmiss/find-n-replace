@@ -1,5 +1,5 @@
 import { Plugin, WorkspaceLeaf } from 'obsidian';
-import { FindReplaceView, VIEW_TYPE_FIND_REPLACE } from './vaultFindReplaceView';
+import { FindReplaceView, VIEW_TYPE_FIND_REPLACE } from './ui/views/findReplaceView';
 import {
 	VaultFindReplaceSettings,
 	DEFAULT_SETTINGS,
@@ -7,7 +7,7 @@ import {
 } from "./settings";
 
 export default class VaultFindReplacePlugin extends Plugin {
-	settings: any;
+	settings: VaultFindReplaceSettings;
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new VaultFindReplaceSettingTab(this.app, this));

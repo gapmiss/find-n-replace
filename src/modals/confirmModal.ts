@@ -3,6 +3,7 @@ import { App, Modal } from 'obsidian';
 export class ConfirmModal extends Modal {
     result: boolean = false;
     isOpen: boolean = false; // track open state
+
     constructor(app: App, private message: string) {
         super(app);
     }
