@@ -320,4 +320,14 @@ export class FileOperations {
 
         return files;
     }
+
+    /**
+     * Cleanup method for when file operations are no longer needed
+     * Clears all references for garbage collection
+     */
+    dispose(): void {
+        // Clear references for garbage collection
+        this.app = null as any;
+        this.logger = null as any;
+    }
 }

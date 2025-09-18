@@ -21,7 +21,11 @@ export default class VaultFindReplacePlugin extends Plugin {
 		});
 	}
 
-	onunload() { }
+	onunload() {
+		// Plugin cleanup - Obsidian handles view cleanup automatically
+		// Any global caches or resources would be cleared here
+		// Currently all resources are managed at the view level
+	}
 
 	async activateView() {
 		const { workspace } = this.app;

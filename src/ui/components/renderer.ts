@@ -372,4 +372,14 @@ export class UIRenderer {
         }
         return false;
     }
+
+    /**
+     * Cleanup method for when the renderer is no longer needed
+     * Clears all references and cached data
+     */
+    dispose(): void {
+        // Clear DOM references (elements are cleaned by Obsidian)
+        this.elements = null as any;
+        this.searchEngine = null as any;
+    }
 }

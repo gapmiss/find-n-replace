@@ -232,4 +232,15 @@ export class SelectionManager {
         this.lineElements = [];
         this.updateSelectionUI();
     }
+
+    /**
+     * Cleanup method for when the selection manager is no longer needed
+     * Clears all selections, elements, and references
+     */
+    dispose(): void {
+        this.selectedIndices.clear();
+        this.lineElements = [];
+        // Clear reference to elements for garbage collection
+        this.elements = null as any;
+    }
 }

@@ -33,6 +33,10 @@ export class FindReplaceView extends ItemView {
     // Logger instance
     private logger: Logger;
 
+    // Search state management
+    private currentSearchController: AbortController | null = null;
+    private isSearching: boolean = false;
+
     /**
      * Constructor - initializes the view with required Obsidian components
      * @param leaf - The workspace leaf this view will be attached to
@@ -190,6 +194,32 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
+     * Called when the view is closed - cleanup resources
+     */
+    async onClose(): Promise<void> {
+        // Cancel any ongoing search
+        if (this.currentSearchController) {
+            this.currentSearchController.abort();
+            this.currentSearchController = null;
+        }
+        this.isSearching = false;
+
+        // Cleanup component instances
+        this.searchEngine?.dispose();
+        this.fileOperations?.dispose();
+        this.selectionManager?.dispose();
+        this.uiRenderer?.dispose();
+
+        // Clear state data
+        this.state.results = [];
+        this.state.selectedIndices.clear();
+        this.state.lineElements = [];
+
+        // Clear element references (DOM cleanup handled by Obsidian)
+        this.elements = null as any;
+    }
+
+    /**
      * Sets up all event handlers for the UI
      */
     private setupEventHandlers(): void {
@@ -210,13 +240,15 @@ export class FindReplaceView extends ItemView {
 
         checkboxes.forEach(checkbox => {
             if (checkbox) {
-                checkbox.addEventListener('change', () => {
+                const debouncedCheckboxSearch = debounce(() => {
                     // Only re-search if there's an active query
                     const query = this.elements.searchInput.value.trim();
                     if (query.length > 0) {
                         this.performSearch();
                     }
-                });
+                }, 100); // Short debounce to prevent rapid firing
+
+                checkbox.addEventListener('change', debouncedCheckboxSearch);
             }
         });
 
@@ -248,7 +280,24 @@ export class FindReplaceView extends ItemView {
      * Main search function - restored functionality
      */
     async performSearch(): Promise<void> {
-        this.logger.time('performSearch');
+        // Prevent duplicate searches
+        if (this.isSearching) {
+            this.logger.debug('Search already in progress, skipping duplicate call');
+            return;
+        }
+
+        // Cancel any previous search
+        if (this.currentSearchController) {
+            this.currentSearchController.abort();
+        }
+
+        // Create new search controller and unique timer ID
+        this.currentSearchController = new AbortController();
+        const searchId = Date.now().toString();
+        const timerName = `performSearch-${searchId}`;
+        this.isSearching = true;
+
+        this.logger.time(timerName);
 
         try {
             this.logger.debug('Search called');
@@ -258,6 +307,12 @@ export class FindReplaceView extends ItemView {
                 this.logger.debug('Empty query, clearing results');
                 this.uiRenderer.clearResults();
                 this.state.results = [];
+                return;
+            }
+
+            // Check if search was cancelled
+            if (this.currentSearchController.signal.aborted) {
+                this.logger.debug('Search cancelled before starting');
                 return;
             }
 
@@ -277,19 +332,45 @@ export class FindReplaceView extends ItemView {
                 }
             }
 
+            // Check if search was cancelled before performing search
+            if (this.currentSearchController.signal.aborted) {
+                this.logger.debug('Search cancelled before execution');
+                return;
+            }
+
             // Perform the actual search
             const results = await this.searchEngine.performSearch(query, searchOptions);
+
+            // Check if search was cancelled after completion
+            if (this.currentSearchController.signal.aborted) {
+                this.logger.debug('Search cancelled after completion, not updating UI');
+                return;
+            }
+
             this.logger.info(`Search completed: found ${results.length} results for "${query}"`);
 
             // Update state and render results
             this.state.results = results;
             this.renderResults();
 
-            this.logger.timeEnd('performSearch');
+            this.logger.timeEnd(timerName);
 
         } catch (error) {
-            this.logger.timeEnd('performSearch');
-            this.logger.error('Search operation failed', error, true);
+            if (error instanceof Error && error.name === 'AbortError') {
+                this.logger.debug('Search was cancelled');
+            } else {
+                this.logger.error('Search operation failed', error, true);
+            }
+            // Safe timeEnd - only call if timer exists
+            try {
+                this.logger.timeEnd(timerName);
+            } catch (timerError) {
+                // Timer may not exist if error occurred early
+                this.logger.debug('Timer cleanup failed (expected in some cases)');
+            }
+        } finally {
+            this.isSearching = false;
+            this.currentSearchController = null;
         }
     }
 

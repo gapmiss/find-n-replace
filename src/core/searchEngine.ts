@@ -209,4 +209,14 @@ export class SearchEngine {
         this.lastCompiledRegex = null;
         this.lastSearchOptions = '';
     }
+
+    /**
+     * Cleanup method for when the engine is no longer needed
+     * Clears all cached data and references
+     */
+    dispose(): void {
+        this.clearCache();
+        // Clear reference to app for garbage collection
+        this.app = null as any;
+    }
 }
