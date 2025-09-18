@@ -214,6 +214,8 @@ export class FindReplaceView extends ItemView {
         });
 
         // Manual search is handled by setupBasicNavigation Enter key handlers
+        // Enable auto-search with result limiting
+        this.setupLimitedAutoSearch();
     }
 
     /**
@@ -572,6 +574,56 @@ export class FindReplaceView extends ItemView {
                 }
             }, 300); // 300ms debounce
         });
+    }
+
+
+    /**
+     * Auto-search with result limiting to prevent UI freeze
+     */
+    private setupLimitedAutoSearch(): void {
+        let searchTimeout: NodeJS.Timeout;
+        this.elements.searchInput.addEventListener("input", () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                const query = this.elements.searchInput.value.trim();
+                if (query.length > 0) {
+                    console.log('Auto-search with limiting for:', query);
+                    await this.performLimitedSearch(query);
+                } else {
+                    // Clear results if search is empty
+                    this.uiRenderer.clearResults();
+                    this.state.results = [];
+                    this.selectionManager.reset();
+                }
+            }, 300);
+        });
+    }
+
+    /**
+     * Performs search with result limiting for auto-search
+     */
+    private async performLimitedSearch(query: string): Promise<void> {
+        try {
+            const searchOptions = this.getSearchOptions();
+            const results = await this.searchEngine.performSearch(query, searchOptions);
+
+            console.log(`Found ${results.length} total results`);
+
+            // Limit results to prevent UI freeze
+            const MAX_AUTO_SEARCH_RESULTS = 500;
+            const limitedResults = results.slice(0, MAX_AUTO_SEARCH_RESULTS);
+
+            if (results.length > MAX_AUTO_SEARCH_RESULTS) {
+                console.log(`Limited to ${MAX_AUTO_SEARCH_RESULTS} results for auto-search`);
+            }
+
+            // Update state and render limited results
+            this.state.results = limitedResults;
+            this.renderResults();
+
+        } catch (error) {
+            console.error('Auto-search failed:', error);
+        }
     }
 
     /**
