@@ -142,7 +142,16 @@ export class ReplacementEngine {
                 regex.lastIndex = 0; // Reset regex state
 
                 // Find the specific match at the expected position
+                // Protection against infinite loops and runaway regex patterns
+                const startTime = Date.now();
+                const REGEX_TIMEOUT_MS = 5000; // 5 second timeout for complex patterns
+
                 while ((matchArr = regex.exec(lineText)) !== null) {
+                    // SECURITY: Check for timeout to prevent runaway regex (ReDoS protection)
+                    if (Date.now() - startTime > REGEX_TIMEOUT_MS) {
+                        throw new Error(`Regex execution timeout after ${REGEX_TIMEOUT_MS}ms. Pattern may be too complex.`);
+                    }
+
                     if (matchArr.index === res.col) {
                         // Found the exact match - perform replacement
                         const replacement = this.expandReplacement(matchArr, replaceText, lineText, searchOptions);
@@ -151,6 +160,17 @@ export class ReplacementEngine {
                             replacement +
                             lineText.slice(matchArr.index + matchArr[0].length);
                         break;
+                    }
+
+                    // CRITICAL: Prevent infinite loops with zero-length matches
+                    // Examples: /(?=x)/, /\b/, /^/, /$/, /(?!x)/, etc.
+                    // Without this, regex.exec() will match at the same position forever
+                    if (matchArr[0].length === 0) {
+                        regex.lastIndex++;
+                        // Safety check: don't go past the end of the string
+                        if (regex.lastIndex >= lineText.length) {
+                            break;
+                        }
                     }
                 }
             }
