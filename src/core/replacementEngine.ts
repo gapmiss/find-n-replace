@@ -1,5 +1,5 @@
 import { App, Notice, TFile } from 'obsidian';
-import { SearchResult, SearchOptions, ReplacementMode, ReplacementTarget } from '../types';
+import { SearchResult, SearchOptions, ReplacementMode, ReplacementTarget, ReplacementResult, AffectedResults } from '../types';
 import { SearchEngine } from './searchEngine';
 
 /**
@@ -23,6 +23,7 @@ export class ReplacementEngine {
      * @param replaceText - The replacement text
      * @param searchOptions - Current search options
      * @param target - Optional target (SearchResult for "one", TFile for "file")
+     * @returns ReplacementResult with metadata for incremental UI updates
      */
     async dispatchReplace(
         mode: ReplacementMode,
@@ -31,15 +32,37 @@ export class ReplacementEngine {
         replaceText: string,
         searchOptions: SearchOptions,
         target?: ReplacementTarget
-    ): Promise<number> {
-        // Group matches by file for efficient processing
-        const grouped = new Map<TFile, SearchResult[]>();
+    ): Promise<ReplacementResult> {
+        const startTime = Date.now();
 
+        // Group matches by file for efficient processing and track metadata
+        const grouped = new Map<TFile, SearchResult[]>();
+        const replacedResultIndices: number[] = [];
+        const modifiedFiles = new Set<TFile>();
+        const modifiedLines = new Map<TFile, Set<number>>();
+
+        // Determine which results will be replaced and build metadata
         switch (mode) {
             case "one": {
                 // Replace a single specific match
                 const res = target as SearchResult;
                 grouped.set(res.file, [res]);
+
+                // Find the index of this specific result
+                const resultIndex = results.findIndex(r =>
+                    r === res || (
+                        r.file.path === res.file.path &&
+                        r.line === res.line &&
+                        r.col === res.col &&
+                        r.matchText === res.matchText
+                    )
+                );
+                if (resultIndex !== -1) {
+                    replacedResultIndices.push(resultIndex);
+                }
+                modifiedFiles.add(res.file);
+                if (!modifiedLines.has(res.file)) modifiedLines.set(res.file, new Set());
+                modifiedLines.get(res.file)!.add(res.line);
                 break;
             }
 
@@ -49,6 +72,10 @@ export class ReplacementEngine {
                     const res = results[idx];
                     if (!grouped.has(res.file)) grouped.set(res.file, []);
                     grouped.get(res.file)!.push(res);
+                    replacedResultIndices.push(idx);
+                    modifiedFiles.add(res.file);
+                    if (!modifiedLines.has(res.file)) modifiedLines.set(res.file, new Set());
+                    modifiedLines.get(res.file)!.add(res.line);
                 }
                 break;
             }
@@ -57,15 +84,30 @@ export class ReplacementEngine {
                 // Replace all matches in a specific file
                 const file = target as TFile;
                 const fileResults = results.filter(r => r.file.path === file.path);
-                if (fileResults.length) grouped.set(file, fileResults);
+                if (fileResults.length) {
+                    grouped.set(file, fileResults);
+                    // Find all indices for results in this file
+                    for (let i = 0; i < results.length; i++) {
+                        if (results[i].file.path === file.path) {
+                            replacedResultIndices.push(i);
+                        }
+                    }
+                    modifiedFiles.add(file);
+                    modifiedLines.set(file, new Set(fileResults.map(r => r.line)));
+                }
                 break;
             }
 
             case "vault": {
                 // Replace all matches in the entire vault
-                for (const res of results) {
+                for (let i = 0; i < results.length; i++) {
+                    const res = results[i];
                     if (!grouped.has(res.file)) grouped.set(res.file, []);
                     grouped.get(res.file)!.push(res);
+                    replacedResultIndices.push(i);
+                    modifiedFiles.add(res.file);
+                    if (!modifiedLines.has(res.file)) modifiedLines.set(res.file, new Set());
+                    modifiedLines.get(res.file)!.add(res.line);
                 }
                 break;
             }
@@ -73,16 +115,45 @@ export class ReplacementEngine {
 
         // Process each file's replacements
         let total = 0;
+        const errors: string[] = [];
+
         for (const [file, matches] of grouped) {
-            const replaceAllInFile = mode === "file" || mode === "vault";
-            await this.applyReplacements(file, matches, replaceText, searchOptions, replaceAllInFile);
-            total += matches.length;
+            try {
+                const replaceAllInFile = mode === "file" || mode === "vault";
+                await this.applyReplacements(file, matches, replaceText, searchOptions, replaceAllInFile);
+                total += matches.length;
+            } catch (error) {
+                const errorMsg = `Failed to replace matches in ${file.path}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+                errors.push(errorMsg);
+                console.error(errorMsg, error);
+            }
         }
 
         // Show success notification
         this.showReplacementNotification(mode, total);
 
-        return total;
+        // Build AffectedResults metadata
+        const affectedResults: AffectedResults = {
+            replacedResultIndices,
+            modifiedFiles,
+            modifiedLines,
+            // Complex replacements that might affect other results require full revalidation
+            requiresFullRevalidation: searchOptions.useRegex && (
+                replaceText.includes('$') || // Capture groups or special tokens
+                mode === "vault" // Vault-wide changes might have complex interactions
+            )
+        };
+
+        const duration = Date.now() - startTime;
+
+        return {
+            mode,
+            totalReplacements: total,
+            filesModified: modifiedFiles.size,
+            duration,
+            errors,
+            affectedResults
+        };
     }
 
     /**

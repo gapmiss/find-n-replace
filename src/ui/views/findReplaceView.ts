@@ -1,7 +1,7 @@
 import { ItemView, WorkspaceLeaf, TFile, type App, Notice, setIcon, debounce } from 'obsidian';
 import { ConfirmModal } from "../../modals";
 import VaultFindReplacePlugin from "../../main";
-import { SearchResult, FindReplaceElements, SearchOptions, ViewState, ReplacementMode, ReplacementTarget } from '../../types';
+import { SearchResult, FindReplaceElements, SearchOptions, ViewState, ReplacementMode, ReplacementTarget, AffectedResults } from '../../types';
 import { SearchEngine, ReplacementEngine, FileOperations } from '../../core';
 import { UIRenderer, SelectionManager } from '../components';
 import { Logger, safeQuerySelector, isNotNull } from '../../utils';
@@ -498,7 +498,7 @@ export class FindReplaceView extends ItemView {
             }
 
             const searchOptions = this.getSearchOptions();
-            await this.replacementEngine.dispatchReplace(
+            const replacementResult = await this.replacementEngine.dispatchReplace(
                 'one',
                 this.state.results,
                 this.selectionManager.getSelectedIndices(),
@@ -507,7 +507,17 @@ export class FindReplaceView extends ItemView {
                 result
             );
 
-            await this.performSearch();
+            // Use incremental update instead of full re-search
+            if (replacementResult.affectedResults) {
+                await this.updateResultsAfterReplacement(
+                    replacementResult.affectedResults,
+                    replaceText,
+                    searchOptions
+                );
+            } else {
+                // Fallback to full search if no metadata available
+                await this.performSearch();
+            }
         } catch (error) {
             this.logger.error('Failed to replace individual match', error, true);
         }
@@ -530,7 +540,7 @@ export class FindReplaceView extends ItemView {
             if (!confirmed) return;
 
             const searchOptions = this.getSearchOptions();
-            await this.replacementEngine.dispatchReplace(
+            const replacementResult = await this.replacementEngine.dispatchReplace(
                 'file',
                 this.state.results,
                 this.selectionManager.getSelectedIndices(),
@@ -539,7 +549,17 @@ export class FindReplaceView extends ItemView {
                 file
             );
 
-            await this.performSearch();
+            // Use incremental update instead of full re-search
+            if (replacementResult.affectedResults) {
+                await this.updateResultsAfterReplacement(
+                    replacementResult.affectedResults,
+                    replaceText,
+                    searchOptions
+                );
+            } else {
+                // Fallback to full search if no metadata available
+                await this.performSearch();
+            }
         } catch (error) {
             this.logger.error(`Failed to replace all matches in file ${file.path}`, error, true);
         }
@@ -567,7 +587,7 @@ export class FindReplaceView extends ItemView {
             if (!confirmed) return;
 
             const searchOptions = this.getSearchOptions();
-            await this.replacementEngine.dispatchReplace(
+            const replacementResult = await this.replacementEngine.dispatchReplace(
                 'vault',
                 this.state.results,
                 this.selectionManager.getSelectedIndices(),
@@ -575,7 +595,17 @@ export class FindReplaceView extends ItemView {
                 searchOptions
             );
 
-            await this.performSearch();
+            // Use incremental update instead of full re-search
+            if (replacementResult.affectedResults) {
+                await this.updateResultsAfterReplacement(
+                    replacementResult.affectedResults,
+                    replaceText,
+                    searchOptions
+                );
+            } else {
+                // Fallback to full search if no metadata available
+                await this.performSearch();
+            }
         } catch (error) {
             this.logger.error('Failed to replace all matches in vault', error, true);
         }
@@ -598,7 +628,7 @@ export class FindReplaceView extends ItemView {
             }
 
             const searchOptions = this.getSearchOptions();
-            await this.replacementEngine.dispatchReplace(
+            const replacementResult = await this.replacementEngine.dispatchReplace(
                 'selected',
                 this.state.results,
                 this.selectionManager.getSelectedIndices(),
@@ -606,7 +636,17 @@ export class FindReplaceView extends ItemView {
                 searchOptions
             );
 
-            await this.performSearch();
+            // Use incremental update instead of full re-search
+            if (replacementResult.affectedResults) {
+                await this.updateResultsAfterReplacement(
+                    replacementResult.affectedResults,
+                    replaceText,
+                    searchOptions
+                );
+            } else {
+                // Fallback to full search if no metadata available
+                await this.performSearch();
+            }
         } catch (error) {
             this.logger.error('Failed to replace selected matches', error, true);
         }
@@ -841,5 +881,154 @@ export class FindReplaceView extends ItemView {
         }
 
         return true;
+    }
+
+    /**
+     * Updates results incrementally after a replacement operation
+     * This avoids the need for a full vault re-search, improving performance significantly
+     * @param affectedResults - Metadata about which results were affected by the replacement
+     * @param replaceText - The replacement text that was used
+     * @param searchOptions - Current search options for re-validation
+     */
+    private async updateResultsAfterReplacement(
+        affectedResults: AffectedResults,
+        replaceText: string,
+        searchOptions: SearchOptions
+    ): Promise<void> {
+        try {
+            this.logger.debug('Starting incremental result update', {
+                replacedCount: affectedResults.replacedResultIndices.length,
+                modifiedFiles: affectedResults.modifiedFiles.size,
+                requiresFullRevalidation: affectedResults.requiresFullRevalidation
+            });
+
+            // If replacement might have complex side effects, fall back to full search
+            if (affectedResults.requiresFullRevalidation) {
+                this.logger.debug('Full revalidation required, falling back to complete search');
+                await this.performSearch();
+                return;
+            }
+
+            // Remove replaced results from our state (in reverse order to preserve indices)
+            const sortedIndices = [...affectedResults.replacedResultIndices].sort((a, b) => b - a);
+            for (const index of sortedIndices) {
+                this.state.results.splice(index, 1);
+            }
+
+            // Re-validate results in modified lines to see if they still match
+            await this.revalidateModifiedResults(affectedResults, searchOptions);
+
+            // TODO: Update selection manager to account for removed results
+            // this.selectionManager.adjustForRemovedResults(affectedResults.replacedResultIndices);
+
+            // TODO: Update UI incrementally instead of full rebuild
+            // For now, use existing render method as fallback
+            const replaceText = this.elements.replaceInput.value;
+            this.uiRenderer.renderResults(this.state.results, replaceText);
+
+            // Update search statistics
+            this.updateSearchStatistics();
+
+            this.logger.debug('Incremental update completed successfully');
+
+        } catch (error) {
+            this.logger.warn('Incremental update failed, falling back to full search', error);
+            // Safety fallback: if incremental update fails, do full search
+            await this.performSearch();
+        }
+    }
+
+    /**
+     * Re-validates search results in lines that were modified by replacement
+     * Removes results that no longer match, keeps those that still match
+     */
+    private async revalidateModifiedResults(
+        affectedResults: AffectedResults,
+        searchOptions: SearchOptions
+    ): Promise<void> {
+        const query = this.elements.searchInput.value.trim();
+        if (!query) return;
+
+        // Build regex for re-validation
+        const regex = this.searchEngine.buildSearchRegex(query, searchOptions);
+
+        // Check each modified file
+        for (const file of affectedResults.modifiedFiles) {
+            try {
+                const content = await this.app.vault.read(file);
+                const lines = content.split('\n');
+                const modifiedLineNumbers = affectedResults.modifiedLines.get(file) || new Set();
+
+                // Find results in this file that need re-validation
+                const resultsToCheck = this.state.results.filter(result =>
+                    result.file.path === file.path &&
+                    modifiedLineNumbers.has(result.line)
+                );
+
+                // Re-validate each result
+                for (let i = resultsToCheck.length - 1; i >= 0; i--) {
+                    const result = resultsToCheck[i];
+                    const lineText = lines[result.line] || '';
+
+                    // Check if this result still matches the search
+                    const stillMatches = this.doesLineStillMatch(lineText, result, regex, searchOptions, query);
+
+                    if (!stillMatches) {
+                        // Remove this result from the main results array
+                        const mainIndex = this.state.results.findIndex(r =>
+                            r === result || (
+                                r.file.path === result.file.path &&
+                                r.line === result.line &&
+                                r.col === result.col
+                            )
+                        );
+                        if (mainIndex !== -1) {
+                            this.state.results.splice(mainIndex, 1);
+                        }
+                    }
+                }
+
+            } catch (error) {
+                this.logger.warn(`Failed to re-validate results in file ${file.path}`, error);
+                // Continue with other files
+            }
+        }
+    }
+
+    /**
+     * Checks if a specific line still contains the search match after replacement
+     */
+    private doesLineStillMatch(
+        lineText: string,
+        originalResult: SearchResult,
+        regex: RegExp,
+        searchOptions: SearchOptions,
+        query: string
+    ): boolean {
+        if ((searchOptions.useRegex || searchOptions.wholeWord) && regex) {
+            // Use regex matching
+            regex.lastIndex = 0; // Reset regex state
+            const match = regex.exec(lineText);
+            return match !== null && match.index === originalResult.col;
+        } else {
+            // Use simple string matching
+            const haystack = searchOptions.matchCase ? lineText : lineText.toLowerCase();
+            const needle = searchOptions.matchCase ? query : query.toLowerCase();
+            const index = haystack.indexOf(needle, originalResult.col);
+            return index === originalResult.col;
+        }
+    }
+
+    /**
+     * Updates search statistics after incremental changes
+     */
+    private updateSearchStatistics(): void {
+        // Update result count display
+        const resultCount = this.state.results.length;
+        const fileCount = new Set(this.state.results.map(r => r.file.path)).size;
+
+        // Update any UI elements that display these counts
+        // This will be implemented when we modify the UI renderer
+        this.logger.debug('Updated search statistics', { resultCount, fileCount });
     }
 }
