@@ -78,39 +78,57 @@ export class FindReplaceView extends ItemView {
         this.containerEl.addClass('find-replace-container');
         this.state.isCollapsed = true; // Start with results collapsed for better UX
 
-        // === SEARCH INPUT SECTION ===
-        // Create wrapper div for the search input and its clear button
-        let findInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
-        const searchInput = findInputWrapper.createEl('input', {
+        // === MAIN SEARCH TOOLBAR ===
+        // VSCode-style search toolbar with inputs and inline controls
+        const searchToolbar = this.containerEl.createDiv('find-replace-search-toolbar');
+
+        // Search input row with inline options
+        const searchRow = searchToolbar.createDiv('find-replace-search-row');
+
+        // Search input with icon
+        const searchInputContainer = searchRow.createDiv('find-replace-input-container');
+        const searchIcon = searchInputContainer.createSpan('search-input-icon');
+        setIcon(searchIcon, 'search');
+
+        const searchInput = searchInputContainer.createEl('input', {
             type: 'text',
             cls: 'find-replace-input',
             placeholder: 'Find'
         }) as HTMLInputElement;
 
-        // Add clear button next to search input
-        findInputWrapper.createEl('button', {
-            cls: 'clear-btn',
-            attr: { 'aria-label': 'Clear input' }
-        }) as HTMLInputElement;
+        // Inline search options (VSCode-style)
+        const searchOptions = searchRow.createDiv('find-replace-inline-options');
 
-        // === REPLACE INPUT SECTION ===
-        // Create wrapper div for the replace input and its clear button
-        let replaceInputWrapper = this.containerEl.createDiv('find-replace-input-wrapper');
-        const replaceInput = replaceInputWrapper.createEl('input', {
+        // Create inline toggle buttons for search options
+        const matchCaseBtn = this.createInlineToggle(searchOptions, 'match-case', 'case-sensitive', 'Match Case');
+        const wholeWordBtn = this.createInlineToggle(searchOptions, 'whole-word', 'whole-word', 'Match Whole Word');
+        const regexBtn = this.createInlineToggle(searchOptions, 'regex', 'regex', 'Use Regular Expression');
+
+        // Toolbar actions (clear, settings, etc.)
+        const toolbarActions = searchRow.createDiv('find-replace-toolbar-actions');
+
+        // Global clear button
+        const clearAllBtn = toolbarActions.createEl('button', {
+            cls: 'inline-toggle-btn toolbar-action',
+            attr: { 'aria-label': 'Clear Search' }
+        });
+        setIcon(clearAllBtn, 'trash-2');
+
+        // Replace input row
+        const replaceRow = searchToolbar.createDiv('find-replace-replace-row');
+
+        // Replace input with icon
+        const replaceInputContainer = replaceRow.createDiv('find-replace-input-container');
+        const replaceIcon = replaceInputContainer.createSpan('replace-input-icon');
+        setIcon(replaceIcon, 'replace');
+
+        const replaceInput = replaceInputContainer.createEl('input', {
             type: 'text',
             cls: 'find-replace-input',
             placeholder: 'Replace'
         }) as HTMLInputElement;
 
-        // Add clear button next to replace input
-        replaceInputWrapper.createEl('button', {
-            cls: 'clear-btn',
-            attr: { 'aria-label': 'Clear input' }
-        }) as HTMLInputElement;
-
-        // === SEARCH OPTIONS SECTION ===
-        // Create container for the three search option checkboxes
-        const optionsDiv = this.containerEl.createDiv('find-replace-options');
+        // Skip old options section - now using inline toggles
 
         // === RESULTS TOOLBAR SECTION ===
         // Create toolbar that appears above results (initially hidden)
@@ -134,48 +152,61 @@ export class FindReplaceView extends ItemView {
         // Container where all search results will be displayed
         const resultsContainer = this.containerEl.createDiv('find-replace-results');
 
-        // === REPLACE CONTROLS SECTION ===
-        // Create container for replace selected and replace all buttons
-        const selectedContainer = this.containerEl.createDiv('find-replace-selected-all');
+        // Global replace all button (appears in toolbar when results exist)
+        const replaceAllVaultBtn = toolbarActions.createEl('button', {
+            cls: 'inline-toggle-btn toolbar-action',
+            attr: {
+                'disabled': true, // Start disabled (no results)
+                'aria-label': 'Replace All in Vault'
+            }
+        });
+        setIcon(replaceAllVaultBtn, 'replace-all');
+        replaceAllVaultBtn.style.display = 'none'; // Hidden until results exist
 
-        // Display count of selected results
-        const selectedCountEl = selectedContainer.createEl('span', { text: '0 selected' });
+        // === BOTTOM ACTION BAR ===
+        // Create modern bottom toolbar for selections and global actions
+        const bottomActionBar = this.containerEl.createDiv('find-replace-bottom-bar');
 
-        // Button to replace only selected matches
-        const replaceSelectedBtn = selectedContainer.createEl('button', {
+        // Selected results display
+        const selectedCountEl = bottomActionBar.createEl('span', {
+            cls: 'selected-count-display',
+            text: '0 selected'
+        });
+
+        // Action buttons container
+        const actionButtons = bottomActionBar.createDiv('bottom-action-buttons');
+
+        // Replace selected button
+        const replaceSelectedBtn = actionButtons.createEl('button', {
+            cls: 'bottom-action-btn',
             text: 'Replace selected',
             attr: { 'disabled': true } // Start disabled (no selections)
         });
 
-        // Button to replace all matches in the entire vault
-        const replaceAllVaultBtn = selectedContainer.createEl('button', {
-            cls: 'find-replace-btn',
+        // Replace all in vault button (duplicate in bottom bar for easy access)
+        const replaceAllVaultBtnBottom = actionButtons.createEl('button', {
+            cls: 'bottom-action-btn bottom-action-btn-primary',
+            text: 'Replace all in vault',
             attr: { 'disabled': true } // Start disabled (no results)
         });
-        replaceAllVaultBtn.textContent = 'Replace all in vault';
-
-        this.containerEl.appendChild(selectedContainer);
-
-        // Create search options first
-        const matchCaseCheckbox = this.createOption(optionsDiv, 'Match Case', 'match-case');
-        const wholeWordCheckbox = this.createOption(optionsDiv, 'Whole Word', 'whole-word');
-        const regexCheckbox = this.createOption(optionsDiv, 'Regex', 'regex');
 
         // Store UI elements for component access
         this.elements = {
             containerEl: this.containerEl,
             searchInput,
             replaceInput,
-            matchCaseCheckbox,
-            wholeWordCheckbox,
-            regexCheckbox,
+            matchCaseCheckbox: matchCaseBtn, // Now using inline toggle
+            wholeWordCheckbox: wholeWordBtn, // Now using inline toggle
+            regexCheckbox: regexBtn, // Now using inline toggle
             resultsContainer,
             selectedCountEl,
             replaceSelectedBtn: replaceSelectedBtn as HTMLButtonElement,
             replaceAllVaultBtn: replaceAllVaultBtn as HTMLButtonElement,
             resultsToolbar,
             toolbarBtn: toolbarBtn as HTMLButtonElement,
-            resultsCountEl
+            resultsCountEl,
+            clearAllBtn, // Global clear button
+            replaceAllVaultBtnBottom: replaceAllVaultBtnBottom as HTMLButtonElement // Bottom bar duplicate
         };
 
         // Initialize remaining components now that we have UI elements
@@ -231,16 +262,16 @@ export class FindReplaceView extends ItemView {
             this.renderResults();
         });
 
-        // Set up checkbox change handlers to update search results
-        const checkboxes = [
-            this.elements.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox'),
-            this.elements.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox'),
-            this.elements.regexCheckbox.querySelector('#toggle-regex-checkbox')
+        // Set up inline toggle handlers to update search results
+        const toggleButtons = [
+            this.elements.matchCaseCheckbox,
+            this.elements.wholeWordCheckbox,
+            this.elements.regexCheckbox
         ];
 
-        checkboxes.forEach(checkbox => {
-            if (checkbox) {
-                const debouncedCheckboxSearch = debounce(() => {
+        toggleButtons.forEach(toggleBtn => {
+            if (toggleBtn) {
+                const debouncedToggleSearch = debounce(() => {
                     // Only re-search if there's an active query
                     const query = this.elements.searchInput.value.trim();
                     if (query.length > 0) {
@@ -248,8 +279,28 @@ export class FindReplaceView extends ItemView {
                     }
                 }, 100); // Short debounce to prevent rapid firing
 
-                checkbox.addEventListener('change', debouncedCheckboxSearch);
+                toggleBtn.addEventListener('click', debouncedToggleSearch);
             }
+        });
+
+        // Set up global clear button
+        this.elements.clearAllBtn.addEventListener('click', () => {
+            this.elements.searchInput.value = '';
+            this.elements.replaceInput.value = '';
+
+            // Clear search results
+            this.uiRenderer.clearResults();
+            this.state.results = [];
+            this.selectionManager.reset();
+
+            // Reset toggle states
+            toggleButtons.forEach(btn => {
+                btn.setAttribute('aria-pressed', 'false');
+                btn.classList.remove('is-active');
+            });
+
+            // Focus back to search input
+            this.elements.searchInput.focus();
         });
 
         // Set up expand/collapse all functionality
@@ -271,6 +322,15 @@ export class FindReplaceView extends ItemView {
                 await this.replaceAllInVault();
             } catch (error) {
                 this.logger.error('Replace all vault button error', error, true);
+            }
+        });
+
+        // Set up bottom toolbar button handlers (duplicates for easy access)
+        this.registerDomEvent(this.elements.replaceAllVaultBtnBottom, 'click', async () => {
+            try {
+                await this.replaceAllInVault();
+            } catch (error) {
+                this.logger.error('Replace all vault bottom button error', error, true);
             }
         });
 
@@ -730,15 +790,13 @@ export class FindReplaceView extends ItemView {
      * Sets up basic navigation without auto-search
      */
     private setupBasicNavigation(): void {
-        // Set up Enter key handlers
+        // Set up Enter key handlers for inputs and toggle buttons
         const elements = [
             this.elements.searchInput,
             this.elements.replaceInput,
-            this.elements.matchCaseCheckbox.querySelector('#toggle-match-case-checkbox'),
-            this.elements.wholeWordCheckbox.querySelector('#toggle-whole-word-checkbox'),
-            this.elements.regexCheckbox.querySelector('#toggle-regex-checkbox'),
-        ].filter((el): el is HTMLInputElement => el instanceof HTMLInputElement);
+        ];
 
+        // Add Enter key search for input elements
         elements.forEach(el => {
             el.addEventListener('keydown', async (evt) => {
                 if (evt.key === 'Enter') {
@@ -751,15 +809,18 @@ export class FindReplaceView extends ItemView {
             });
         });
 
-        // Set up clear button handlers
-        const clearBtns = this.elements.containerEl.querySelectorAll<HTMLButtonElement>(".clear-btn");
-        clearBtns.forEach(btn => {
-            btn.addEventListener("click", () => {
-                const input = btn.previousElementSibling as HTMLInputElement;
-                if (input) {
-                    input.value = "";
-                    input.dispatchEvent(new Event("input"));
-                    input.focus();
+        // Add Enter/Space key support for toggle buttons
+        const toggleButtons = [
+            this.elements.matchCaseCheckbox,
+            this.elements.wholeWordCheckbox,
+            this.elements.regexCheckbox
+        ];
+
+        toggleButtons.forEach(btn => {
+            btn.addEventListener('keydown', (evt) => {
+                if (evt.key === 'Enter' || evt.key === ' ') {
+                    evt.preventDefault();
+                    btn.click(); // Trigger the toggle
                 }
             });
         });
@@ -834,26 +895,24 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
-     * Gets the current state of search options from checkboxes
+     * Gets the current state of search options from inline toggles
      */
     private getSearchOptions(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean } {
         return {
-            matchCase: this.getCheckboxValue(this.elements.matchCaseCheckbox, '#toggle-match-case-checkbox'),
-            wholeWord: this.getCheckboxValue(this.elements.wholeWordCheckbox, '#toggle-whole-word-checkbox'),
-            useRegex: this.getCheckboxValue(this.elements.regexCheckbox, '#toggle-regex-checkbox')
+            matchCase: this.getToggleValue(this.elements.matchCaseCheckbox),
+            wholeWord: this.getToggleValue(this.elements.wholeWordCheckbox),
+            useRegex: this.getToggleValue(this.elements.regexCheckbox)
         };
     }
 
     /**
-     * Safely gets checkbox value with proper error handling
+     * Safely gets toggle button value from aria-pressed attribute
      */
-    private getCheckboxValue(container: HTMLElement, selector: string): boolean {
-        const checkbox = safeQuerySelector<HTMLInputElement>(container, selector, this.logger, false);
-        if (!checkbox) {
-            this.logger.warn(`Checkbox not found: ${selector}, defaulting to false`);
+    private getToggleValue(toggleBtn: HTMLElement): boolean {
+        if (!toggleBtn) {
             return false;
         }
-        return checkbox.checked;
+        return toggleBtn.getAttribute('aria-pressed') === 'true';
     }
 
     /**
@@ -1030,5 +1089,35 @@ export class FindReplaceView extends ItemView {
         // Update any UI elements that display these counts
         // This will be implemented when we modify the UI renderer
         this.logger.debug('Updated search statistics', { resultCount, fileCount });
+    }
+
+    /**
+     * Creates a VSCode-style inline toggle button
+     * @param container - Parent container element
+     * @param id - Unique identifier for the toggle
+     * @param icon - Icon name for the toggle
+     * @param label - Aria label for accessibility
+     * @returns The toggle button element
+     */
+    private createInlineToggle(container: HTMLElement, id: string, icon: string, label: string): HTMLElement {
+        const toggleBtn = container.createEl('button', {
+            cls: 'inline-toggle-btn',
+            attr: {
+                'data-toggle': id,
+                'aria-label': label,
+                'aria-pressed': 'false'
+            }
+        });
+
+        setIcon(toggleBtn, icon);
+
+        // Handle toggle state
+        toggleBtn.addEventListener('click', () => {
+            const isPressed = toggleBtn.getAttribute('aria-pressed') === 'true';
+            toggleBtn.setAttribute('aria-pressed', (!isPressed).toString());
+            toggleBtn.classList.toggle('is-active', !isPressed);
+        });
+
+        return toggleBtn;
     }
 }

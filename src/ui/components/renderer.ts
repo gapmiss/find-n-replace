@@ -330,8 +330,9 @@ export class UIRenderer {
             }
         }
 
-        // Enable/disable replace all button based on results
+        // Enable/disable replace all buttons based on results
         this.elements.replaceAllVaultBtn?.toggleAttribute('disabled', !hasResults);
+        this.elements.replaceAllVaultBtnBottom?.toggleAttribute('disabled', !hasResults);
 
         // Show/hide results toolbar based on whether we have results
         this.elements.resultsToolbar?.classList.toggle('hidden', !hasResults);

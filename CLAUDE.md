@@ -126,6 +126,41 @@ src/
   - Event handlers: Complete async operation protection
 - **Impact:** Production-ready stability, no crashes from edge cases
 
+#### 5. **Incremental UI Updates** (Performance Enhancement)
+- **Problem:** Every replacement triggered full vault re-search and UI rebuild
+- **Solution:** Smart incremental updates that preserve user state
+- **Implementation:**
+  - Track replacement metadata (affected files, lines, indices)
+  - Remove only replaced results from state
+  - Re-validate affected results against current search
+  - Preserve scroll position and expand/collapse states
+- **Impact:** Instant replacements without jarring UI rebuilds
+
+#### 6. **Persistent Collapse/Expand States** (UX Enhancement)
+- **Feature:** Individual file group expand/collapse preferences persist across sessions
+- **Implementation:**
+  - State stored in plugin settings per file path
+  - Default to collapsed for better visual management
+  - Automatic cleanup of states for deleted files
+  - Smart toolbar button reflects overall state
+- **Benefits:** Cleaner initial view, preserved user preferences, zero configuration
+
+#### 7. **VSCode-Style UI Modernization** (Major UX Overhaul)
+- **Goal:** Transform interface to match VSCode's search functionality
+- **Key Changes:**
+  - **Inline Search Options:** Match Case, Whole Word, Regex as toggle buttons
+  - **Input Icons:** Search and replace inputs with inline icons
+  - **Global Clear:** Single button clears all inputs and resets options
+  - **Modern Toolbar:** Contextual actions appear when relevant
+  - **Bottom Action Bar:** Restored with modern styling for bulk operations
+  - **Responsive Design:** Mobile-friendly layout with touch optimization
+- **Technical Implementation:**
+  - 359 new lines of modern CSS using Obsidian design tokens
+  - VSCode-inspired button styling and interactions
+  - Accessibility improvements with proper ARIA labels
+  - Smooth transitions and hover effects
+- **User Benefits:** Familiar UX for VSCode users, cleaner interface, better mobile support
+
 ## Development Guidelines
 
 ### Code Quality Standards

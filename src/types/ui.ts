@@ -7,9 +7,9 @@ export interface FindReplaceElements {
     containerEl: HTMLElement;
     searchInput: HTMLInputElement;
     replaceInput: HTMLInputElement;
-    matchCaseCheckbox: HTMLElement;
-    wholeWordCheckbox: HTMLElement;
-    regexCheckbox: HTMLElement;
+    matchCaseCheckbox: HTMLElement; // Now inline toggle button
+    wholeWordCheckbox: HTMLElement; // Now inline toggle button
+    regexCheckbox: HTMLElement; // Now inline toggle button
     resultsContainer: HTMLElement;
     selectedCountEl: HTMLElement;
     replaceSelectedBtn: HTMLButtonElement;
@@ -17,6 +17,8 @@ export interface FindReplaceElements {
     resultsToolbar: HTMLElement;
     toolbarBtn: HTMLButtonElement;
     resultsCountEl: HTMLElement;
+    clearAllBtn: HTMLButtonElement; // Global clear button
+    replaceAllVaultBtnBottom: HTMLButtonElement; // Bottom toolbar duplicate
 }
 
 /**

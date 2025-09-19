@@ -279,3 +279,362 @@
 .hidden {
     display: none !important;
 }
+
+/* ==============================================
+   VSCode-Style Modernized Interface
+   ============================================== */
+
+/* --- Main Search Toolbar --- */
+.find-replace-search-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--size-4-1);
+    padding: var(--size-4-2);
+    background: var(--background-primary);
+    border-radius: var(--radius-s);
+    border: 1px solid var(--background-modifier-border);
+}
+
+/* --- Search Row (input + inline options + actions) --- */
+.find-replace-search-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+.find-replace-replace-row {
+    display: flex;
+    align-items: center;
+    gap: var(--size-4-1);
+}
+
+/* --- Input Containers with Icons --- */
+.find-replace-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+}
+
+.search-input-icon,
+.replace-input-icon {
+    position: absolute;
+    left: 8px;
+    z-index: 2;
+    color: var(--text-muted);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+}
+
+.find-replace-input-container .find-replace-input {
+    padding-left: 32px !important; /* Make room for icon */
+    padding-right: 8px !important;
+    width: 100%;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+}
+
+.find-replace-input-container .find-replace-input:focus {
+    border-color: var(--interactive-accent);
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+/* --- Inline Option Toggles (VSCode-style) --- */
+.find-replace-inline-options {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.inline-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-s);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 14px;
+    padding: 0;
+}
+
+.inline-toggle-btn:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.inline-toggle-btn.is-active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.inline-toggle-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+/* --- Toolbar Actions --- */
+.find-replace-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.toolbar-action {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--radius-s);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toolbar-action:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.toolbar-action:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.toolbar-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toolbar-action:disabled:hover {
+    background: transparent;
+    color: var(--text-muted);
+}
+
+/* --- Selected Count and Actions in Results Toolbar --- */
+.selected-count {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    margin-right: var(--size-4-2);
+}
+
+.inline-action-btn {
+    padding: 4px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    transition: all 0.15s ease;
+}
+
+.inline-action-btn:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
+}
+
+.inline-action-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.inline-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--background-primary);
+    border-color: var(--background-modifier-border);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .find-replace-search-row {
+        flex-wrap: wrap;
+    }
+
+    .find-replace-input-container {
+        min-width: 200px;
+    }
+
+    .find-replace-inline-options {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        padding-top: var(--size-4-1);
+        border-top: 1px solid var(--background-modifier-border);
+    }
+
+    .find-replace-toolbar-actions {
+        order: 2;
+    }
+}
+
+/* --- Enhanced File Group Headers --- */
+.file-group-header {
+    position: relative;
+    padding: 6px 8px;
+    border-radius: var(--radius-s);
+    transition: background-color 0.15s ease;
+}
+
+.file-group-header:hover {
+    background: var(--background-modifier-hover);
+}
+
+.file-group-header .clickable-icon {
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+}
+
+.file-group-header:hover .clickable-icon {
+    opacity: 1;
+}
+
+/* --- Icon Improvements --- */
+.clickable-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-s);
+    transition: all 0.15s ease;
+}
+
+.clickable-icon:hover {
+    background: var(--background-modifier-hover);
+}
+
+.clickable-icon:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+/* --- Input Focus Improvements --- */
+.find-replace-input:focus {
+    border-color: var(--interactive-accent) !important;
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover) !important;
+}
+
+/* --- Legacy Clear Button Removal --- */
+.clear-btn {
+    display: none !important;
+}
+
+/* --- Bottom Action Bar --- */
+.find-replace-bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--size-4-2) var(--size-4-3);
+    background: var(--background-secondary);
+    border-top: 1px solid var(--background-modifier-border);
+    border-radius: 0 0 var(--radius-s) var(--radius-s);
+    margin-top: var(--size-4-2);
+}
+
+.selected-count-display {
+    color: var(--text-muted);
+    font-size: var(--font-ui-smaller);
+    flex: 1;
+}
+
+.bottom-action-buttons {
+    display: flex;
+    gap: var(--size-4-2);
+    align-items: center;
+}
+
+.bottom-action-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: var(--font-ui-smaller);
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.bottom-action-btn:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--interactive-accent);
+}
+
+.bottom-action-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.bottom-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--background-primary);
+    border-color: var(--background-modifier-border);
+}
+
+.bottom-action-btn:disabled:hover {
+    background: var(--background-primary);
+    border-color: var(--background-modifier-border);
+}
+
+.bottom-action-btn-primary {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.bottom-action-btn-primary:hover:not(:disabled) {
+    background: var(--interactive-accent-hover);
+    border-color: var(--interactive-accent-hover);
+}
+
+.bottom-action-btn-primary:disabled {
+    background: var(--background-primary);
+    color: var(--text-normal);
+    border-color: var(--background-modifier-border);
+}
+
+/* --- Mobile Responsive Bottom Bar --- */
+@media (max-width: 768px) {
+    .find-replace-bottom-bar {
+        flex-direction: column;
+        gap: var(--size-4-2);
+        align-items: stretch;
+        text-align: center;
+    }
+
+    .selected-count-display {
+        flex: none;
+        text-align: center;
+    }
+
+    .bottom-action-buttons {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .bottom-action-btn {
+        flex: 1;
+        min-width: 120px;
+    }
+}
