@@ -202,6 +202,36 @@ src/
   - `styles.css` (removed bottom-bar CSS, added adaptive-toolbar styling)
   - `src/types/ui.ts` (updated interface for adaptiveToolbar reference)
 
+#### 10. **Comprehensive Keyboard Navigation and Selection State Fixes** (Accessibility & UX)
+- **Problems Addressed:**
+  - **Tab Order Issues:** Tab navigation broke at regex button, skipped adaptive toolbar, went to other Obsidian panes
+  - **Selection State Desync:** Individual replacements caused selection count/visual state inconsistencies
+  - **Focus Loss:** Replacing individual results lost tab focus context, forcing restart of navigation
+- **Keyboard Navigation Solutions:**
+  - **Complete Tab Chain:** Added explicit `tabindex` attributes (1-9) ensuring proper flow within plugin boundary
+  - **Custom Tab Handlers:** Clear search button → First adaptive toolbar button → Results area
+  - **Smart Focus Restoration:** Individual replacements return focus to previous result in tab order
+  - **Adaptive Button Integration:** Replace Selected/Replace All/Expand-Collapse properly included in tab sequence
+- **Selection Management Solutions:**
+  - **Index Synchronization:** New `adjustSelectionForRemovedIndices()` method maintains valid selection indices when results are removed
+  - **Visual State Preservation:** Enhanced `setupSelection()` with `preserveSelection` flag to maintain highlights during UI updates
+  - **Selection State Tracking:** Individual replacements properly remove replaced items from selection and update count
+- **Technical Implementation:**
+  - Smart tab order: Find → Replace → Match Case → Whole Word → Regex → Clear → Adaptive Toolbar → Results
+  - Focus management with DOM validation and fallback strategies
+  - Selection index adjustment algorithm handling array modifications
+  - Event handler preservation during DOM re-rendering
+- **User Benefits:**
+  - **Seamless Keyboard Navigation:** Tab flows logically through entire interface without escaping to other panes
+  - **Accessible Design:** Full keyboard-only operation with visible focus indicators
+  - **Consistent Selection State:** Visual highlights and counts always match after any operation
+  - **Context Preservation:** Focus returns to logical previous element, maintaining navigation flow
+- **File Changes:**
+  - `src/ui/views/findReplaceView.ts` (tab order, focus handlers, selection preservation)
+  - `src/ui/components/selectionManager.ts` (index adjustment, visual state preservation)
+  - `styles.css` (focus visibility styles)
+  - Comprehensive debugging and error handling throughout
+
 ## Development Guidelines
 
 ### Code Quality Standards

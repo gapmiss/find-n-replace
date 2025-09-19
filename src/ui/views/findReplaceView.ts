@@ -93,16 +93,17 @@ export class FindReplaceView extends ItemView {
         const searchInput = searchInputContainer.createEl('input', {
             type: 'text',
             cls: 'find-replace-input',
-            placeholder: 'Find'
+            placeholder: 'Find',
+            attr: { 'tabindex': '1' }
         }) as HTMLInputElement;
 
         // Inline search options (VSCode-style)
         const searchOptions = searchRow.createDiv('find-replace-inline-options');
 
         // Create inline toggle buttons for search options
-        const matchCaseBtn = this.createInlineToggle(searchOptions, 'match-case', 'case-sensitive', 'Match Case');
-        const wholeWordBtn = this.createInlineToggle(searchOptions, 'whole-word', 'whole-word', 'Match Whole Word');
-        const regexBtn = this.createInlineToggle(searchOptions, 'regex', 'regex', 'Use Regular Expression');
+        const matchCaseBtn = this.createInlineToggle(searchOptions, 'match-case', 'case-sensitive', 'Match Case', 3);
+        const wholeWordBtn = this.createInlineToggle(searchOptions, 'whole-word', 'whole-word', 'Match Whole Word', 4);
+        const regexBtn = this.createInlineToggle(searchOptions, 'regex', 'regex', 'Use Regular Expression', 5);
 
         // Toolbar actions (clear, settings, etc.)
         const toolbarActions = searchRow.createDiv('find-replace-toolbar-actions');
@@ -110,9 +111,31 @@ export class FindReplaceView extends ItemView {
         // Global clear button
         const clearAllBtn = toolbarActions.createEl('button', {
             cls: 'inline-toggle-btn toolbar-action clickable-icon',
-            attr: { 'aria-label': 'Clear Search' }
+            attr: {
+                'aria-label': 'Clear Search',
+                'tabindex': '6'
+            }
         });
         setIcon(clearAllBtn, 'search-x');
+
+        // Handle tab navigation from clear button to adaptive toolbar
+        clearAllBtn.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Tab' && !e.shiftKey) {
+                // Tab forward to first adaptive toolbar button (if visible), then to results
+                const firstAdaptiveButton = this.elements.adaptiveToolbar.querySelector('.adaptive-action-btn:not(.hidden)') as HTMLElement;
+                if (firstAdaptiveButton) {
+                    e.preventDefault();
+                    firstAdaptiveButton.focus();
+                } else {
+                    // If no adaptive toolbar visible, go to first result
+                    const firstFocusableResult = this.elements.resultsContainer.querySelector('.snippet, [role="button"]') as HTMLElement;
+                    if (firstFocusableResult) {
+                        e.preventDefault();
+                        firstFocusableResult.focus();
+                    }
+                }
+            }
+        });
 
         // Replace input row
         const replaceRow = searchToolbar.createDiv('find-replace-replace-row');
@@ -125,7 +148,8 @@ export class FindReplaceView extends ItemView {
         const replaceInput = replaceInputContainer.createEl('input', {
             type: 'text',
             cls: 'find-replace-input',
-            placeholder: 'Replace'
+            placeholder: 'Replace',
+            attr: { 'tabindex': '2' }
         }) as HTMLInputElement;
 
         // Skip old options section - now using inline toggles
@@ -179,7 +203,8 @@ export class FindReplaceView extends ItemView {
             cls: 'adaptive-action-btn clickable-icon hidden',
             attr: {
                 'disabled': true, // Start disabled (no selections)
-                'aria-label': 'Replace selected matches'
+                'aria-label': 'Replace selected matches',
+                'tabindex': '7'
             }
         });
         setIcon(replaceSelectedBtn, 'check-circle');
@@ -189,7 +214,8 @@ export class FindReplaceView extends ItemView {
             cls: 'adaptive-action-btn clickable-icon adaptive-action-btn-primary',
             attr: {
                 'disabled': true, // Start disabled (no results)
-                'aria-label': 'Replace all in vault'
+                'aria-label': 'Replace all in vault',
+                'tabindex': '8'
             }
         });
         setIcon(replaceAllVaultBtnBottom, 'vault');
@@ -197,9 +223,24 @@ export class FindReplaceView extends ItemView {
         // Move expand/collapse button to adaptive toolbar
         const expandCollapseBtn = adaptiveActions.createEl('button', {
             cls: 'adaptive-action-btn clickable-icon hidden',
-            attr: { 'aria-label': 'Expand all' }
+            attr: {
+                'aria-label': 'Expand all',
+                'tabindex': '9'
+            }
         });
         setIcon(expandCollapseBtn, 'copy-plus'); // Set initial icon to "expand" since we start collapsed
+
+        // Handle tab navigation from last adaptive button to results
+        expandCollapseBtn.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Tab' && !e.shiftKey) {
+                // Tab forward to first result
+                const firstFocusableResult = this.elements.resultsContainer.querySelector('.snippet, [role="button"]') as HTMLElement;
+                if (firstFocusableResult) {
+                    e.preventDefault();
+                    firstFocusableResult.focus();
+                }
+            }
+        });
 
         // Store UI elements for component access
         this.elements = {
@@ -499,7 +540,12 @@ export class FindReplaceView extends ItemView {
                     const index = parseInt(resultIndex);
                     const result = this.state.results[index];
                     if (result) {
+                        // Store focus context before replacement
+                        const focusTarget = this.findNextFocusTarget(button);
+                        this.logger.debug('Focus target found before replacement:', focusTarget);
                         await this.replaceIndividualMatch(result);
+                        // Restore focus to next logical element
+                        this.restoreFocusAfterReplacement(focusTarget);
                     }
                 }
                 return;
@@ -570,6 +616,14 @@ export class FindReplaceView extends ItemView {
                 if (!confirmed) return;
             }
 
+            // Find the index of the result being replaced
+            const resultIndex = this.state.results.findIndex(r =>
+                r.file.path === result.file.path &&
+                r.line === result.line &&
+                r.col === result.col &&
+                r.matchText === result.matchText
+            );
+
             const searchOptions = this.getSearchOptions();
             const replacementResult = await this.replacementEngine.dispatchReplace(
                 'one',
@@ -579,6 +633,13 @@ export class FindReplaceView extends ItemView {
                 searchOptions,
                 result
             );
+
+            // Update selection state before updating results
+            if (resultIndex !== -1 && this.selectionManager.getSelectedIndices().has(resultIndex)) {
+                // If the replaced result was selected, remove it from selection
+                this.selectionManager.toggleSelection(resultIndex);
+                this.logger.debug(`Removed replaced result at index ${resultIndex} from selection`);
+            }
 
             // Use incremental update instead of full re-search
             if (replacementResult.affectedResults) {
@@ -987,6 +1048,9 @@ export class FindReplaceView extends ItemView {
                 this.state.results.splice(index, 1);
             }
 
+            // Update selection indices to account for removed results
+            this.selectionManager.adjustSelectionForRemovedIndices(sortedIndices);
+
             // Get current search options for revalidation and rendering
             const searchOptions = this.getSearchOptions();
 
@@ -999,7 +1063,11 @@ export class FindReplaceView extends ItemView {
             // TODO: Update UI incrementally instead of full rebuild
             // For now, use existing render method as fallback
             const replaceText = this.elements.replaceInput.value;
-            this.uiRenderer.renderResults(this.state.results, replaceText, searchOptions);
+            const lineElements = this.uiRenderer.renderResults(this.state.results, replaceText, searchOptions);
+
+            // Re-setup selection manager with new DOM elements and restore visual state
+            this.state.lineElements = lineElements;
+            this.selectionManager.setupSelection(lineElements, true); // Preserve existing selections
 
             // Update search statistics
             this.updateSearchStatistics();
@@ -1108,20 +1176,104 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
+     * Finds the previous logical focus target when removing an element
+     * @param currentElement - The element that will be removed
+     * @returns The previous element that should receive focus
+     */
+    private findNextFocusTarget(currentElement: HTMLElement): HTMLElement | null {
+        // Find the line result container
+        const lineResult = currentElement.closest('.line-result');
+        if (!lineResult) return null;
+
+        // Look for the PREVIOUS line result first (where tab focus came from)
+        let targetSibling = lineResult.previousElementSibling;
+
+        // If no previous sibling in current file group, look in previous file group
+        if (!targetSibling) {
+            const fileGroup = lineResult.closest('.file-group');
+            if (fileGroup) {
+                const prevFileGroup = fileGroup.previousElementSibling;
+                if (prevFileGroup) {
+                    const lineResults = prevFileGroup.querySelectorAll('.line-result');
+                    targetSibling = lineResults[lineResults.length - 1]; // Get last result
+                }
+            }
+        }
+
+        // If no previous element, then look for next element
+        if (!targetSibling) {
+            let nextSibling = lineResult.nextElementSibling;
+
+            // If no sibling in current file group, look in next file group
+            if (!nextSibling) {
+                const fileGroup = lineResult.closest('.file-group');
+                if (fileGroup) {
+                    const nextFileGroup = fileGroup.nextElementSibling;
+                    if (nextFileGroup) {
+                        nextSibling = nextFileGroup.querySelector('.line-result');
+                    }
+                }
+            }
+
+            targetSibling = nextSibling;
+        }
+
+        // Find focusable element within the target line result
+        if (targetSibling) {
+            return targetSibling.querySelector('.snippet, [role="button"]') as HTMLElement;
+        }
+
+        // Fallback to search input if no other elements
+        return this.elements.searchInput;
+    }
+
+    /**
+     * Restores focus to the appropriate element after replacement
+     * @param targetElement - The element that should receive focus
+     */
+    private restoreFocusAfterReplacement(targetElement: HTMLElement | null): void {
+        // Wait longer for DOM updates since we're doing incremental updates
+        setTimeout(() => {
+            if (targetElement && document.contains(targetElement)) {
+                try {
+                    targetElement.focus();
+                    this.logger.debug('Focus restored to element after replacement:', targetElement);
+                } catch (error) {
+                    this.logger.debug('Failed to restore focus, falling back to search input:', error);
+                    this.elements.searchInput.focus();
+                }
+            } else {
+                this.logger.debug('Target element no longer exists, looking for alternative focus target');
+                // Try to find a new focus target in the updated DOM
+                const firstResult = this.elements.resultsContainer.querySelector('.snippet, [role="button"]') as HTMLElement;
+                if (firstResult) {
+                    firstResult.focus();
+                    this.logger.debug('Focus restored to first available result');
+                } else {
+                    this.elements.searchInput.focus();
+                    this.logger.debug('No results available, focus restored to search input');
+                }
+            }
+        }, 100); // Increased delay for DOM updates
+    }
+
+    /**
      * Creates a VSCode-style inline toggle button
      * @param container - Parent container element
      * @param id - Unique identifier for the toggle
      * @param icon - Icon name for the toggle
      * @param label - Aria label for accessibility
+     * @param tabIndex - Tab order index for keyboard navigation
      * @returns The toggle button element
      */
-    private createInlineToggle(container: HTMLElement, id: string, icon: string, label: string): HTMLElement {
+    private createInlineToggle(container: HTMLElement, id: string, icon: string, label: string, tabIndex?: number): HTMLElement {
         const toggleBtn = container.createEl('button', {
             cls: 'inline-toggle-btn clickable-icon',
             attr: {
                 'data-toggle': id,
                 'aria-label': label,
-                'aria-pressed': 'false'
+                'aria-pressed': 'false',
+                ...(tabIndex && { 'tabindex': tabIndex.toString() })
             }
         });
 

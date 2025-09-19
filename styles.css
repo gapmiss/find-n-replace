@@ -108,6 +108,14 @@
     border-radius: 6px;
     margin: 0 !important;
     background: var(--background-secondary);
+    outline: none; /* Remove default outline */
+}
+
+/* Focus styles for results container when tabbed to */
+.find-replace-results:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-s);
 }
 
 /* file group (group per file) */

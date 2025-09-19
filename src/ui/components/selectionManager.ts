@@ -16,10 +16,15 @@ export class SelectionManager {
     /**
      * Sets up keyboard navigation and multi-selection functionality for results
      * @param lineElements - Array of DOM elements for result lines
+     * @param preserveSelection - Whether to preserve existing selection state (default: false)
      */
-    setupSelection(lineElements: HTMLDivElement[]): void {
+    setupSelection(lineElements: HTMLDivElement[], preserveSelection: boolean = false): void {
         this.lineElements = lineElements;
-        this.selectedIndices.clear(); // Clear previous selections
+
+        // Only clear selections if not preserving them
+        if (!preserveSelection) {
+            this.selectedIndices.clear();
+        }
 
         if (!lineElements.length) return;
 
@@ -34,7 +39,7 @@ export class SelectionManager {
             });
         });
 
-        // Update UI to reflect initial state (no selections)
+        // Update UI to reflect current selection state (preserving if requested)
         this.updateSelectionUI();
     }
 
@@ -224,6 +229,40 @@ export class SelectionManager {
         }
         this.selectedIndices = newSelection;
         this.updateSelectionUI();
+    }
+
+    /**
+     * Adjusts selection indices when results are removed from the array
+     * @param removedIndices - Array of indices that were removed (must be sorted in descending order)
+     */
+    adjustSelectionForRemovedIndices(removedIndices: number[]): void {
+        const newSelection = new Set<number>();
+
+        // For each selected index, calculate its new position after removals
+        for (const selectedIndex of this.selectedIndices) {
+            // Count how many indices were removed before this selected index
+            const removedBeforeCount = removedIndices.filter(removedIndex => removedIndex < selectedIndex).length;
+
+            // Check if this selected index was itself removed
+            const wasRemoved = removedIndices.includes(selectedIndex);
+
+            if (!wasRemoved) {
+                // Adjust the index by subtracting the number of removed indices before it
+                const newIndex = selectedIndex - removedBeforeCount;
+                newSelection.add(newIndex);
+            }
+            // If the index was removed, don't add it to the new selection
+        }
+
+        this.selectedIndices = newSelection;
+        this.updateSelectionUI();
+
+        // Log the adjustment for debugging
+        console.debug('Selection adjusted for removed indices:', {
+            removedIndices,
+            oldSelectionSize: this.selectedIndices.size + removedIndices.filter(idx => this.selectedIndices.has(idx)).length,
+            newSelectionSize: this.selectedIndices.size
+        });
     }
 
     /**
