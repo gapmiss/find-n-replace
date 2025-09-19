@@ -111,7 +111,7 @@ The plugin opens in a dedicated pane that can be docked anywhere in your workspa
 - **Max Results**: Maximum search results to display (default: 1000)
 - **Search Debounce Delay**: Delay before auto-search triggers (default: 300ms)
 - **Enable Auto Search**: Toggle automatic search-as-you-type
-- **Enable Debug Logging**: Detailed console logging for troubleshooting
+- **Console Logging Level**: Granular control over console output (Silent, Errors Only, Standard, Verbose, Debug, Trace)
 
 ### File Filtering
 - **File Extensions**: Limit search to specific file types (default: md)
@@ -231,11 +231,13 @@ Result: Replace multiple consecutive spaces with single space
 - Ensure not clicking during active search operations
 
 ### Debug Information
-Enable "Debug Logging" in settings to access detailed console logs:
-- Search operation lifecycle tracking
-- Selection state change logging
-- Performance timing information
-- Error details and stack traces
+Adjust "Console Logging Level" in settings to control debug output:
+- **Silent**: No console output (production)
+- **Errors Only**: Critical failures only (recommended default)
+- **Standard**: Errors and warnings
+- **Verbose**: All info, warnings, and errors
+- **Debug**: Full debugging output with detailed operation tracking
+- **Trace**: Maximum verbosity including performance timing and lifecycle events
 
 ## Development
 

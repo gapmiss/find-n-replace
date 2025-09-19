@@ -427,11 +427,11 @@ export class FindReplaceView extends ItemView {
      */
     async performSearch(): Promise<void> {
         const callId = Date.now().toString();
-        this.logger.warn(`[${callId}] ===== SEARCH START =====`);
+        this.logger.debug(`[${callId}] ===== SEARCH START =====`);
 
         // FORCE CANCEL ANY RUNNING SEARCH IMMEDIATELY
         if (this.currentSearchController) {
-            this.logger.warn(`[${callId}] FORCE CANCELLING previous search controller`);
+            this.logger.debug(`[${callId}] FORCE CANCELLING previous search controller`);
             this.currentSearchController.abort();
         }
 
@@ -462,18 +462,18 @@ export class FindReplaceView extends ItemView {
         const timerName = `performSearch-${searchId}`;
         this.isSearching = true;
 
-        this.logger.warn(`[${searchId}] Search lock acquired, starting execution`);
+        this.logger.debug(`[${searchId}] Search lock acquired, starting execution`);
 
         this.logger.time(timerName);
 
         try {
             const query = this.elements.searchInput?.value;
-            this.logger.warn(`[${searchId}] Query: "${query}"`);
+            this.logger.debug(`[${searchId}] Query: "${query}"`);
 
             // Read search options ONCE at the start and FREEZE them for entire search
             // This PREVENTS race conditions from option changes during search
             const searchOptions = this.readSearchOptionsOnce();
-            this.logger.warn(`[${searchId}] Search options FROZEN:`, searchOptions);
+            this.logger.debug(`[${searchId}] Search options FROZEN:`, searchOptions);
 
             if (!query || query.trim().length === 0) {
                 this.logger.debug(`[${searchId}] Empty query, clearing results`);
@@ -536,7 +536,7 @@ export class FindReplaceView extends ItemView {
             this.renderResultsWithOptions(searchOptions);
 
             this.logger.timeEnd(timerName);
-            this.logger.warn(`[${searchId}] ===== SEARCH COMPLETED SUCCESSFULLY =====`);
+            this.logger.debug(`[${searchId}] ===== SEARCH COMPLETED SUCCESSFULLY =====`);
 
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
@@ -555,7 +555,7 @@ export class FindReplaceView extends ItemView {
             // CRITICAL: Always reset the search state
             this.isSearching = false;
             this.currentSearchController = null;
-            this.logger.warn(`[${searchId}] ===== SEARCH LOCK RELEASED =====`);
+            this.logger.debug(`[${searchId}] ===== SEARCH LOCK RELEASED =====`);
         }
     }
 

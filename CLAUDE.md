@@ -321,6 +321,40 @@ src/
 - **Impact:** Eliminates JavaScript errors while preserving all search concurrency controls
 - **File Changed:** `src/ui/views/findReplaceView.ts` (lines 435-439)
 
+#### 15. **Comprehensive Logging System Overhaul** (Console Spam Fix & Developer Experience)
+- **Problem:** Excessive console logging even with debug setting disabled
+  - **Root Cause:** Hardcoded `console.log`, `console.warn`, `console.error` calls bypassing user settings
+  - **User Impact:** Console spam interfering with development and normal usage
+  - **Specific Issues:** `FileOperations.openFileAtLine called with:` appearing with every result click
+- **Solution Implementation:**
+  - **Log Level System:** Replaced boolean debug flag with 6-level enum (SILENT=0, ERROR=1, WARN=2, INFO=3, DEBUG=4, TRACE=5)
+  - **Centralized Logging:** All console output now routed through Logger class with level gating
+  - **Settings Migration:** Automatic migration from `enableDebugLogging` boolean to `logLevel` enum
+  - **Performance Gating:** Early returns in logger methods prevent expensive operations when level insufficient
+- **Technical Implementation:**
+  - **Logger Enhancement:** All logging methods (`trace`, `debug`, `info`, `warn`, `error`) now check log level before output
+  - **Settings Update:** Dropdown UI replaces debug toggle with granular level selection
+  - **Console Cleanup:** Fixed hardcoded console calls in `fileOperations.ts` and `findReplaceView.ts`
+  - **Migration Logic:** Backward compatibility with automatic settings conversion on plugin load
+- **User Experience:**
+  - **Clean Console (Default):** ERROR level provides clean experience for end users
+  - **Developer Control:** DEBUG/TRACE levels enable comprehensive troubleshooting when needed
+  - **Progressive Disclosure:** INFO → WARN → DEBUG → TRACE levels allow precise control over verbosity
+  - **Production Ready:** SILENT level for completely clean console in production environments
+- **File Changes:**
+  - `src/types/settings.ts` (LogLevel enum, updated interface)
+  - `src/utils/logger.ts` (enhanced level gating)
+  - `src/settings/settingsTab.ts` (dropdown UI, commented out unimplemented features)
+  - `src/main.ts` (migration logic)
+  - `src/core/fileOperations.ts` (console cleanup)
+  - `src/ui/views/findReplaceView.ts` (debug level adjustments)
+  - `ROADMAP.md` (new file documenting planned features)
+- **Developer Benefits:**
+  - **Debugging Control:** Granular visibility into plugin operations without code changes
+  - **Performance Monitoring:** TRACE level includes timing information
+  - **Clean Development:** No more console spam during normal development work
+  - **User-Friendly Defaults:** Plugin ships with clean console experience
+
 ## Development Guidelines
 
 ### Code Quality Standards

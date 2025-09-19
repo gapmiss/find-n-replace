@@ -35,7 +35,7 @@ export class FileOperations {
         sourceElement?: HTMLElement
     ): Promise<void> {
         try {
-            console.log('FileOperations.openFileAtLine called with:', { file: file.path, line, col, matchText });
+            this.logger.debug('FileOperations.openFileAtLine called with:', { file: file.path, line, col, matchText });
             // Find existing leaf with this file or create a new one
             const existingLeaves = this.app.workspace.getLeavesOfType('markdown');
             let leaf = existingLeaves.find(l =>
@@ -56,7 +56,7 @@ export class FileOperations {
             await this.ensureSourceMode(leaf, file);
 
             if (!mdView?.editor) {
-                console.warn('No editor available for file:', file.path);
+                this.logger.warn('No editor available for file:', file.path);
                 return;
             }
 
@@ -84,7 +84,7 @@ export class FileOperations {
             }
 
         } catch (error) {
-            console.error('Error opening file at line:', error);
+            this.logger.error('Error opening file at line:', error);
         }
     }
 
@@ -103,7 +103,7 @@ export class FileOperations {
                 await this.app.workspace.openLinkText(file.path, '', false);
             }
         } catch (error) {
-            console.error('Error opening file:', error);
+            this.logger.error('Error opening file:', error);
         }
     }
 

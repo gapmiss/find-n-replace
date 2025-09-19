@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import VaultFindReplacePlugin from "../main";
-import { VaultFindReplaceSettings } from "../types";
+import { VaultFindReplaceSettings, LogLevel } from "../types";
 
 export class VaultFindReplaceSettingTab extends PluginSettingTab {
     plugin: VaultFindReplacePlugin;
@@ -16,6 +16,9 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
 
         containerEl.createEl("h2", { text: "Vault Find & Replace Settings" });
 
+        // TODO: Implement search result highlighting feature
+        // See ROADMAP.md - High Priority feature
+        /*
         // Highlight duration
         new Setting(containerEl)
             .setName("Highlight duration")
@@ -45,6 +48,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     })
             );
+        */
 
         // Max results
         new Setting(containerEl)
@@ -93,6 +97,9 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                     })
             );
 
+        // TODO: Implement line number display in search results
+        // See ROADMAP.md - Medium Priority feature
+        /*
         // Show line numbers
         new Setting(containerEl)
             .setName("Show line numbers")
@@ -105,7 +112,11 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     })
             );
+        */
 
+        // TODO: Implement file extension display in file headers
+        // See ROADMAP.md - Low Priority feature
+        /*
         // Show file extensions
         new Setting(containerEl)
             .setName("Show file extensions")
@@ -118,7 +129,11 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     })
             );
+        */
 
+        // TODO: Implement file filtering in SearchEngine.performSearch()
+        // See ROADMAP.md - High Priority feature
+        /*
         // File extensions filter
         new Setting(containerEl)
             .setName("File extensions")
@@ -186,18 +201,25 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     })
             );
+        */
 
-        // Debug logging toggle
+        // Log level dropdown
         new Setting(containerEl)
-            .setName("Enable debug logging")
-            .setDesc("Show detailed debug information in the browser console. Useful for troubleshooting.")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.enableDebugLogging)
+            .setName("Console logging level")
+            .setDesc("Control how much information is shown in the browser console. Higher levels include all lower levels.")
+            .addDropdown((dropdown) => {
+                dropdown
+                    .addOption(LogLevel.SILENT.toString(), "Silent - No console output")
+                    .addOption(LogLevel.ERROR.toString(), "Errors Only - Critical failures only (recommended)")
+                    .addOption(LogLevel.WARN.toString(), "Standard - Errors and warnings")
+                    .addOption(LogLevel.INFO.toString(), "Verbose - All info, warnings, and errors")
+                    .addOption(LogLevel.DEBUG.toString(), "Debug - Full debugging output")
+                    .addOption(LogLevel.TRACE.toString(), "Trace - Maximum verbosity (development)")
+                    .setValue(this.plugin.settings.logLevel.toString())
                     .onChange(async (value) => {
-                        this.plugin.settings.enableDebugLogging = value;
+                        this.plugin.settings.logLevel = parseInt(value) as LogLevel;
                         await this.plugin.saveSettings();
-                    })
-            );
+                    });
+            });
     }
 }

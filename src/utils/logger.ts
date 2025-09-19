@@ -1,5 +1,6 @@
 import { Notice } from 'obsidian';
 import VaultFindReplacePlugin from '../main';
+import { LogLevel } from '../types/settings';
 
 /**
  * Centralized logging utility with debug control and user-friendly error handling
@@ -14,46 +15,61 @@ export class Logger {
     }
 
     /**
-     * Debug logging - only shown when debug setting is enabled
+     * Trace logging - maximum verbosity for core development
+     */
+    trace(message: string, ...data: any[]): void {
+        if (this.plugin.settings.logLevel >= LogLevel.TRACE) {
+            console.log(`[${this.context}] TRACE:`, message, ...data);
+        }
+    }
+
+    /**
+     * Debug logging - detailed information for troubleshooting
      */
     debug(message: string, ...data: any[]): void {
-        if (this.plugin.settings.enableDebugLogging) {
+        if (this.plugin.settings.logLevel >= LogLevel.DEBUG) {
             console.log(`[${this.context}] DEBUG:`, message, ...data);
         }
     }
 
     /**
-     * Info logging - always shown in console
+     * Info logging - general operational information
      */
     info(message: string, ...data: any[]): void {
-        console.info(`[${this.context}] INFO:`, message, ...data);
+        if (this.plugin.settings.logLevel >= LogLevel.INFO) {
+            console.info(`[${this.context}] INFO:`, message, ...data);
+        }
     }
 
     /**
-     * Warning logging - always shown in console
+     * Warning logging - important events that should be noted
      */
     warn(message: string, ...data: any[]): void {
-        console.warn(`[${this.context}] WARN:`, message, ...data);
+        if (this.plugin.settings.logLevel >= LogLevel.WARN) {
+            console.warn(`[${this.context}] WARN:`, message, ...data);
+        }
     }
 
     /**
-     * Error logging - always shown in console and optionally to user
+     * Error logging - critical failures (always shown unless SILENT)
      */
     error(message: string, error?: Error | unknown, showToUser: boolean = false): void {
-        const fullMessage = `[${this.context}] ERROR: ${message}`;
+        if (this.plugin.settings.logLevel >= LogLevel.ERROR) {
+            const fullMessage = `[${this.context}] ERROR: ${message}`;
 
-        if (error) {
-            console.error(fullMessage, error);
+            if (error) {
+                console.error(fullMessage, error);
 
-            // Show debug info if enabled
-            if (this.plugin.settings.enableDebugLogging && error instanceof Error) {
-                console.error('Stack trace:', error.stack);
+                // Show debug info if debug level or higher
+                if (this.plugin.settings.logLevel >= LogLevel.DEBUG && error instanceof Error) {
+                    console.error('Stack trace:', error.stack);
+                }
+            } else {
+                console.error(fullMessage);
             }
-        } else {
-            console.error(fullMessage);
         }
 
-        // Show user-friendly notice if requested
+        // Show user-friendly notice if requested (regardless of log level for critical errors)
         if (showToUser) {
             new Notice(this.getUserFriendlyMessage(message), 5000);
         }
@@ -75,19 +91,19 @@ export class Logger {
     }
 
     /**
-     * Performance timing utility
+     * Performance timing utility - trace level
      */
     time(label: string): void {
-        if (this.plugin.settings.enableDebugLogging) {
+        if (this.plugin.settings.logLevel >= LogLevel.TRACE) {
             console.time(`[${this.context}] ${label}`);
         }
     }
 
     /**
-     * End performance timing
+     * End performance timing - trace level
      */
     timeEnd(label: string): void {
-        if (this.plugin.settings.enableDebugLogging) {
+        if (this.plugin.settings.logLevel >= LogLevel.TRACE) {
             console.timeEnd(`[${this.context}] ${label}`);
         }
     }
