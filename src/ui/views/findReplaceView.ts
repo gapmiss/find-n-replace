@@ -433,8 +433,10 @@ export class FindReplaceView extends ItemView {
         if (this.currentSearchController) {
             this.logger.warn(`[${callId}] FORCE CANCELLING previous search controller`);
             this.currentSearchController.abort();
-            this.currentSearchController = null;
         }
+
+        // Create new controller for this search
+        this.currentSearchController = new AbortController();
 
         // FORCE CLEAR SearchEngine cache to prevent stale state
         this.searchEngine.clearCache();
