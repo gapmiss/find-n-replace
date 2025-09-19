@@ -98,20 +98,24 @@ export class NavigationHandler {
             return true;
         }
 
-        // Ctrl/Cmd + Enter: Replace all
+        // Ctrl/Cmd + Enter: Replace all (trigger ellipsis menu or direct action)
         if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
             event.preventDefault();
-            if (!this.elements.replaceAllVaultBtn.disabled) {
-                this.elements.replaceAllVaultBtn.click();
+            if (!this.elements.ellipsisMenuBtn.disabled) {
+                // Trigger the replace all action directly since buttons are removed
+                // The actual implementation will need to be handled by the view
+                this.elements.ellipsisMenuBtn.dispatchEvent(new CustomEvent('replace-all-vault'));
             }
             return true;
         }
 
-        // Alt + Enter: Replace selected
+        // Alt + Enter: Replace selected (trigger ellipsis menu or direct action)
         if (event.altKey && event.key === 'Enter') {
             event.preventDefault();
-            if (!this.elements.replaceSelectedBtn.disabled) {
-                this.elements.replaceSelectedBtn.click();
+            if (!this.elements.ellipsisMenuBtn.disabled) {
+                // Trigger the replace selected action directly since buttons are removed
+                // The actual implementation will need to be handled by the view
+                this.elements.ellipsisMenuBtn.dispatchEvent(new CustomEvent('replace-selected'));
             }
             return true;
         }

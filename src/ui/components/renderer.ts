@@ -352,10 +352,6 @@ export class UIRenderer {
             }
         }
 
-        // Enable/disable replace all buttons based on results
-        this.elements.replaceAllVaultBtn?.toggleAttribute('disabled', !hasResults);
-        this.elements.replaceAllVaultBtnBottom?.toggleAttribute('disabled', !hasResults);
-
         // Enable/disable ellipsis menu button based on results (Menu items are handled dynamically)
         this.elements.ellipsisMenuBtn?.toggleAttribute('disabled', !hasResults);
 

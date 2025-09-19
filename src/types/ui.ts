@@ -12,12 +12,12 @@ export interface FindReplaceElements {
     regexCheckbox: HTMLElement; // Now inline toggle button
     resultsContainer: HTMLElement;
     selectedCountEl: HTMLElement;
-    replaceSelectedBtn: HTMLButtonElement;
-    replaceAllVaultBtn: HTMLButtonElement;
+    // replaceSelectedBtn: HTMLButtonElement;
+    // replaceAllVaultBtn: HTMLButtonElement;
     toolbarBtn: HTMLButtonElement;
     resultsCountEl: HTMLElement;
     clearAllBtn: HTMLButtonElement; // Global clear button
-    replaceAllVaultBtnBottom: HTMLButtonElement; // Adaptive toolbar duplicate
+    // replaceAllVaultBtnBottom: HTMLButtonElement; // Adaptive toolbar duplicate
     adaptiveToolbar: HTMLElement; // Contextual results toolbar
     ellipsisMenuBtn: HTMLButtonElement; // Ellipsis menu trigger button (uses Obsidian Menu class)
 }

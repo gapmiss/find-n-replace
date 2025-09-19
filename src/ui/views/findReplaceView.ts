@@ -191,26 +191,26 @@ export class FindReplaceView extends ItemView {
         });
         setIcon(ellipsisMenuBtn, 'more-horizontal');
 
-        // Keep direct action buttons for desktop (will be hidden on mobile via CSS)
-        const replaceSelectedBtn = adaptiveActions.createEl('button', {
-            cls: 'adaptive-action-btn clickable-icon desktop-only hidden',
-            attr: {
-                'disabled': true,
-                'aria-label': 'Replace selected matches',
-                'tabindex': '8'
-            }
-        });
-        setIcon(replaceSelectedBtn, 'check-circle');
+        // // Keep direct action buttons for desktop (will be hidden on mobile via CSS)
+        // const replaceSelectedBtn = adaptiveActions.createEl('button', {
+        //     cls: 'adaptive-action-btn clickable-icon desktop-only hidden',
+        //     attr: {
+        //         'disabled': true,
+        //         'aria-label': 'Replace selected matches',
+        //         'tabindex': '8'
+        //     }
+        // });
+        // setIcon(replaceSelectedBtn, 'check-circle');
 
-        const replaceAllVaultBtnBottom = adaptiveActions.createEl('button', {
-            cls: 'adaptive-action-btn clickable-icon adaptive-action-btn-primary desktop-only',
-            attr: {
-                'disabled': true,
-                'aria-label': 'Replace all in vault',
-                'tabindex': '9'
-            }
-        });
-        setIcon(replaceAllVaultBtnBottom, 'vault');
+        // const replaceAllVaultBtnBottom = adaptiveActions.createEl('button', {
+        //     cls: 'adaptive-action-btn clickable-icon adaptive-action-btn-primary desktop-only',
+        //     attr: {
+        //         'disabled': true,
+        //         'aria-label': 'Replace all in vault',
+        //         'tabindex': '9'
+        //     }
+        // });
+        // setIcon(replaceAllVaultBtnBottom, 'vault');
 
         // Move expand/collapse button to adaptive toolbar
         const expandCollapseBtn = adaptiveActions.createEl('button', {
@@ -222,15 +222,15 @@ export class FindReplaceView extends ItemView {
         });
         setIcon(expandCollapseBtn, 'copy-plus'); // Set initial icon to "expand" since we start collapsed
 
-        // Add Obsidian Menu functionality
-        ellipsisMenuBtn.addEventListener('click', (e: MouseEvent) => {
+        // Create menu function for both mouse and keyboard events
+        const showEllipsisMenu = (e: MouseEvent | KeyboardEvent) => {
             e.stopPropagation();
             const menu = new Menu();
 
             // Add "Replace Selected" menu item
             menu.addItem((item) => {
                 item.setTitle('Replace Selected')
-                    .setIcon('check-circle')
+                    .setIcon('replace')
                     .setDisabled(this.selectionManager.getSelectedIndices().size === 0)
                     .onClick(async () => {
                         try {
@@ -244,7 +244,7 @@ export class FindReplaceView extends ItemView {
             // Add "Replace All in Vault" menu item
             menu.addItem((item) => {
                 item.setTitle('Replace All in Vault')
-                    .setIcon('vault')
+                    .setIcon('replace-all')
                     .onClick(async () => {
                         try {
                             await this.replaceAllInVault();
@@ -254,7 +254,42 @@ export class FindReplaceView extends ItemView {
                     });
             });
 
-            menu.showAtMouseEvent(e);
+            // Show menu at proper position based on event type
+            if (e instanceof MouseEvent) {
+                menu.showAtMouseEvent(e);
+            } else {
+                // For keyboard events, show at button position
+                const rect = ellipsisMenuBtn.getBoundingClientRect();
+                menu.showAtPosition({ x: rect.left, y: rect.bottom });
+            }
+        };
+
+        // Add mouse click handler
+        ellipsisMenuBtn.addEventListener('click', showEllipsisMenu);
+
+        // Add keyboard handler for Space and Enter
+        ellipsisMenuBtn.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                showEllipsisMenu(e);
+            }
+        });
+
+        // Add custom event listeners for keyboard shortcuts
+        ellipsisMenuBtn.addEventListener('replace-all-vault', async () => {
+            try {
+                await this.replaceAllInVault();
+            } catch (error) {
+                this.logger.error('Replace all vault keyboard shortcut error', error, true);
+            }
+        });
+
+        ellipsisMenuBtn.addEventListener('replace-selected', async () => {
+            try {
+                await this.replaceSelectedMatches();
+            } catch (error) {
+                this.logger.error('Replace selected keyboard shortcut error', error, true);
+            }
         });
 
         // Handle tab navigation from last adaptive button to results
@@ -279,12 +314,12 @@ export class FindReplaceView extends ItemView {
             regexCheckbox: regexBtn, // Now using inline toggle
             resultsContainer,
             selectedCountEl,
-            replaceSelectedBtn: replaceSelectedBtn as HTMLButtonElement,
-            replaceAllVaultBtn: replaceAllVaultBtnBottom as HTMLButtonElement, // Use adaptive toolbar button as primary
+            // replaceSelectedBtn: replaceSelectedBtn as HTMLButtonElement,
+            // replaceAllVaultBtn: replaceAllVaultBtnBottom as HTMLButtonElement, // Use adaptive toolbar button as primary
             toolbarBtn: expandCollapseBtn as HTMLButtonElement, // Now in adaptive toolbar
             resultsCountEl,
             clearAllBtn, // Global clear button
-            replaceAllVaultBtnBottom: replaceAllVaultBtnBottom as HTMLButtonElement, // Adaptive toolbar duplicate
+            // replaceAllVaultBtnBottom: replaceAllVaultBtnBottom as HTMLButtonElement, // Adaptive toolbar duplicate
             adaptiveToolbar, // Contextual results toolbar
             ellipsisMenuBtn: ellipsisMenuBtn as HTMLButtonElement
         };
@@ -409,31 +444,31 @@ export class FindReplaceView extends ItemView {
             this.uiRenderer.toggleExpandCollapseAll();
         });
 
-        // Set up replace button handlers
-        this.registerDomEvent(this.elements.replaceSelectedBtn, 'click', async () => {
-            try {
-                await this.replaceSelectedMatches();
-            } catch (error) {
-                this.logger.error('Replace selected button error', error, true);
-            }
-        });
+        // // Set up replace button handlers
+        // this.registerDomEvent(this.elements.replaceSelectedBtn, 'click', async () => {
+        //     try {
+        //         await this.replaceSelectedMatches();
+        //     } catch (error) {
+        //         this.logger.error('Replace selected button error', error, true);
+        //     }
+        // });
 
-        this.registerDomEvent(this.elements.replaceAllVaultBtn, 'click', async () => {
-            try {
-                await this.replaceAllInVault();
-            } catch (error) {
-                this.logger.error('Replace all vault button error', error, true);
-            }
-        });
+        // this.registerDomEvent(this.elements.replaceAllVaultBtn, 'click', async () => {
+        //     try {
+        //         await this.replaceAllInVault();
+        //     } catch (error) {
+        //         this.logger.error('Replace all vault button error', error, true);
+        //     }
+        // });
 
-        // Set up bottom toolbar button handlers (duplicates for easy access)
-        this.registerDomEvent(this.elements.replaceAllVaultBtnBottom, 'click', async () => {
-            try {
-                await this.replaceAllInVault();
-            } catch (error) {
-                this.logger.error('Replace all vault bottom button error', error, true);
-            }
-        });
+        // // Set up bottom toolbar button handlers (duplicates for easy access)
+        // this.registerDomEvent(this.elements.replaceAllVaultBtnBottom, 'click', async () => {
+        //     try {
+        //         await this.replaceAllInVault();
+        //     } catch (error) {
+        //         this.logger.error('Replace all vault bottom button error', error, true);
+        //     }
+        // });
 
         // Menu event handlers are now handled by Obsidian's Menu class directly in the click handler
 

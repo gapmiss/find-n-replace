@@ -128,14 +128,7 @@ export class SelectionManager {
             this.elements.selectedCountEl.classList.toggle('hidden', !hasSelections);
         }
 
-        // Enable/disable and show/hide "Replace selected" button based on selection count
-        const hasSelections = this.selectedIndices.size > 0;
-        if (this.elements.replaceSelectedBtn) {
-            this.elements.replaceSelectedBtn.toggleAttribute('disabled', !hasSelections);
-            this.elements.replaceSelectedBtn.classList.toggle('hidden', !hasSelections);
-        }
-
-        // Menu items are dynamically enabled/disabled when menu is created (no longer needed)
+        // Menu items are dynamically enabled/disabled when menu is created (button references removed)
     }
 
     /**
