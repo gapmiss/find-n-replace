@@ -1,177 +1,302 @@
+# Vault Find Replace
 
-# Clean Links Plugin for Obsidian
+A comprehensive find and replace plugin for Obsidian that performs vault-wide search and replacement operations with regex support, multi-selection capabilities, and real-time replacement preview.
 
-Clean Links is an Obsidian.md plugin that automatically removes tracking parameters from URLs in your vault. It works on existing notes, newly pasted content, and provides previews before modifying anything.
+## What This Plugin Does
 
-This keeps your notes clean, concise, and free from unnecessary tracking codes like `?utm_source=` or `?fbclid=`.
+This plugin provides a dedicated search interface that allows you to:
 
----
+1. Search across your entire vault for text patterns
+2. Preview all matches in a structured, navigable list
+3. Select specific matches or entire files for replacement
+4. Execute replacements with full regex capture group support
+5. Navigate directly to any match location with a single click
 
-## Features
+Unlike Obsidian's built-in search, this plugin is designed specifically for bulk editing operations across multiple files simultaneously.
 
-* **Vault-wide cleaning** – Remove tracking parameters from all Markdown notes.
-* **Per-note cleaning** – Clean the current note with one command.
-* **Preview mode** – Preview changes in a scrollable modal before modifying any files.
-* **Dry run mode** – Show all links that would be cleaned without modifying files.
-* **Paste cleaning** – Automatically clean URLs when pasting content into a note.
-* **Modifier-key paste** – Paste without cleaning by holding **Shift**.
-* **Undo-aware paste** – Optionally restore the original clipboard URL when undoing a cleaned paste.
-* **File menu** – Clean links in the current note directly from the file menu.
-* **Logging** – Optional log file with `[[Wiki-links]]`, clickable URLs, and summary counts.
-* **Auto-preview toggle** – Automatically preview changes before cleaning the vault.
+## Core Features
 
----
+### Search Capabilities
+- Full-text search across all markdown files in your vault
+- Regular expression pattern matching with JavaScript regex syntax
+- Case-sensitive and whole-word matching options
+- Automatic search-as-you-type with configurable debouncing
+- Search result limiting to handle large vaults efficiently
+
+### Selection System
+- Multi-select individual matches using Ctrl/Cmd+click
+- Select all matches in a specific file
+- Select all matches across the entire vault
+- Visual selection indicators with persistent state
+- Keyboard shortcuts for bulk selection operations
+
+### Replacement Operations
+- Replace individual matches one at a time
+- Replace all selected matches in bulk
+- Replace all matches within a specific file
+- Replace all matches across the entire vault
+- Real-time preview showing exact replacement text before execution
+
+### Regex Support
+- Full JavaScript regular expression support
+- Capture group replacement using `$1`, `$2`, etc.
+- Special replacement tokens: `$&` (full match), `$$` (literal $)
+- Live preview of regex replacements with capture group expansion
+- Regex validation with clear error messages
+
+### User Interface
+- Clean, focused interface optimized for find/replace workflows
+- Collapsible file groups with persistent expand/collapse state
+- Adaptive toolbar that shows relevant controls contextually
+- Full keyboard navigation with proper tab order
+- Accessible design with screen reader support
+
+### Performance Optimizations
+- Incremental result updates after replacements (avoids full re-search)
+- Intelligent regex compilation caching
+- Batched file processing to maintain UI responsiveness
+- Configurable result limits to prevent UI freezing
+- Search operation serialization to prevent race conditions
 
 ## Installation
 
-1. Download the latest release from the [GitHub repository](#).
-2. Extract the plugin folder to your Obsidian vault under `.obsidian/plugins/clean-links`.
-3. Enable the plugin in **Settings → Community Plugins**.
+### Community Plugins (Recommended)
+1. Open Obsidian Settings
+2. Navigate to Community Plugins
+3. Browse for "Vault Find Replace"
+4. Install and enable
 
----
+### Manual Installation
+1. Download the latest release from GitHub
+2. Extract to `.obsidian/plugins/vault-find-replace/` in your vault
+3. Enable in Obsidian Community Plugins settings
 
-## Commands
+## Usage Guide
 
-| Command                                             | Description                                                                                     |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Clean tracking parameters from all links in vault   | Cleans all notes in the vault.                                                                  |
-| Clean tracking parameters from current note         | Cleans only the currently active note.                                                          |
-| Preview links that would be cleaned in current note | Shows a dry-run preview for the current note.                                                   |
-| Preview links that would be cleaned in vault        | Shows a dry-run preview for the vault.                                                          |
-| Preview vault (dry-run, show all links to clean)    | Shows all links in the vault that would be cleaned without modifying any files.                 |
-| Preview and clean vault links                       | Automatically previews the vault, then cleans links based on dry-run and auto-preview settings. |
+### Opening the Plugin
+Access via Command Palette: `Vault Find Replace: Open`
 
----
+The plugin opens in a dedicated pane that can be docked anywhere in your workspace.
 
-## Usage
+### Basic Search Workflow
+1. Enter search term in the search input field
+2. Results populate automatically as you type
+3. Browse results organized by file
+4. Click any result to navigate to that location in your vault
 
-### Cleaning a Single Note
+### Search Options
+- **Match Case**: Enable case-sensitive searching
+- **Whole Word**: Match complete words only (adds word boundaries)
+- **Use Regex**: Enable regular expression pattern matching
 
-1. Open the note you want to clean.
-2. Open the command palette (`Cmd/Ctrl + P`).
-3. Select **Clean tracking parameters from current note**.
+### Multi-Selection
+- **Ctrl/Cmd+Click**: Toggle selection of individual results
+- **Ctrl/Cmd+A**: Select all visible results
+- **Escape**: Clear all selections
 
-### Cleaning the Entire Vault
+### Replacement Options
+- **Replace This**: Replace a single match (appears on hover)
+- **Replace Selected**: Replace all currently selected matches
+- **Replace All in File**: Replace all matches within a specific file
+- **Replace All in Vault**: Replace all matches across entire vault
 
-1. Open the command palette.
-2. Select **Clean tracking parameters from all links in vault**.
-3. If auto-preview is enabled, you will see a preview in a modal before the vault is cleaned.
+### File Group Management
+- Click file names to expand/collapse result groups
+- File states persist across search sessions
+- Expand/Collapse All button in toolbar for bulk operations
 
----
+## Configuration
 
-## Preview Mode
+### Plugin Settings
+- **Max Results**: Maximum search results to display (default: 1000)
+- **Search Debounce Delay**: Delay before auto-search triggers (default: 300ms)
+- **Enable Auto Search**: Toggle automatic search-as-you-type
+- **Enable Debug Logging**: Detailed console logging for troubleshooting
 
-* Previews now open in a **scrollable modal with a textarea**.
-* Text does **not wrap**, preserving original URL formatting.
-* Includes a **Copy to Clipboard** button for easy copying.
-* Dry-run previews show **plain URLs only**, without Markdown links.
-* Works for **single-note** and **vault-wide** previews.
+### File Filtering
+- **File Extensions**: Limit search to specific file types (default: md)
+- **Search In Folders**: Restrict search to specific folders
+- **Exclude Folders**: Skip specific folders during search
+- **Exclude Patterns**: Regex patterns for files to ignore
 
----
+### Performance Tuning
+- **Result Limiting**: Automatic truncation with user notification
+- **Batch Processing**: Files processed in batches to maintain responsiveness
+- **Cache Management**: Automatic regex compilation caching for repeated searches
 
-## Paste Cleaning
+## Practical Examples
 
-* URLs pasted into notes are automatically cleaned.
-* Modifier-key paste allows bypassing cleaning: **Shift**, **Cmd/Ctrl**, or **Alt** + paste.
-
-**Example:**
-
-Clipboard content:
-
+### Find All TODOs
 ```
-https://example.com/?utm_source=newsletter&utm_medium=email
-```
-
-* Normal paste →
-
-```
-https://example.com/
-```
-
-* Paste with modifier →
-
-```
-https://example.com/?utm_source=newsletter&utm_medium=email
-```
-
----
-
-## Undo-Aware Paste (Optional)
-
-* When enabled, undo after a cleaned paste restores the **original clipboard URL** with tracking parameters.
-* Can be toggled in settings (**Restore original URL on undo**).
-
-**Behavior:**
-
-| Setting  | Ctrl/Cmd+Z after paste                |
-| -------- | ------------------------------------- |
-| Enabled  | Original clipboard URL restored       |
-| Disabled | Undo restores previous editor content |
-
----
-
-## Settings
-
-Access settings in **Settings → Community Plugins → Clean Links**:
-
-* **Tracking parameters** – Customize which URL parameters to remove (comma-separated).
-* **Dry run mode** – Enable to preview changes without modifying files.
-* **Log to file** – Enable logging of previews and clean operations.
-* **Log file name** – Specify the filename for logs (default: `CleanLinks Log.md`).
-* **Auto preview before cleaning** – Automatically preview vault changes before cleaning.
-* **Restore original URL on undo** – When enabled, undo after a cleaned paste restores the original clipboard URL.
-
----
-
-## Log File Format
-
-When logging is enabled, entries appear like this:
-
-```markdown
----
-**2025-08-28 18:05:00** – 2 links affected
-[[My Note]]:
-https://example.com/?utm_source=test → https://example.com/
-https://foo.com/page?utm_medium=email&bar=1 → https://foo.com/page?bar=1
+Search: TODO
+Result: Locates all TODO items across your vault for review
 ```
 
-* Logs include the **note filename** for pastes and clean operations.
-* Entries show whether a paste was skipped due to a modifier key or unchanged.
-
----
-
-## Right-click Context Menu
-
-Right-click any note in the file explorer and select **Clean links in this note** to clean links without opening the note.
-
----
-
-## Workflow Diagram
-
-**Vault Cleaning Workflow:**
-
-```mermaid
-flowchart TD
-    A[Start Cleaning Command] --> B{Dry Run Mode?}
-    B -- Yes --> C[Preview Changes in Modal]
-    B -- No --> D{Auto Preview Enabled?}
-    D -- Yes --> C[Preview Changes in Modal]
-    D -- No --> E[Clean Vault Directly]
-    C --> F{Confirm?}
-    F -- Yes --> E[Clean Vault]
-    F -- No --> G[Cancel Cleaning]
-    E --> H[Log Changes if enabled]
-    G --> H
+### Convert Date Formats
+```
+Search: (\d{4})-(\d{2})-(\d{2})
+Replace: $2/$3/$1
+Result: Changes "2024-01-15" to "01/15/2024"
 ```
 
----
+### Standardize Heading Formats
+```
+Search: ^#+\s*(.+?)\s*#+\s*$
+Replace: ## $1
+Result: Converts any heading level to level 2 headings
+```
 
-## Contribution
+### Find Broken Wikilinks
+```
+Search: \[\[([^\]]+)\]\]
+Result: Locate all wikilinks for validation
+```
 
-Contributions and suggestions are welcome! Please submit a pull request or open an issue on the GitHub repository.
+### Replace Markdown Links
+```
+Search: \[([^\]]+)\]\(([^)]+)\)
+Replace: [[$1|$2]]
+Result: Convert markdown links to wikilinks
+```
 
----
+### Clean Up Multiple Spaces
+```
+Search: \s{2,}
+Replace: (single space)
+Result: Replace multiple consecutive spaces with single space
+```
+
+## Keyboard Shortcuts
+
+### Navigation
+- **Tab**: Move between interface elements
+- **Shift+Tab**: Move backwards through interface elements
+- **Enter**: Activate buttons and execute search
+- **Space**: Toggle checkboxes and buttons
+
+### Selection
+- **Ctrl/Cmd+A**: Select all results
+- **Escape**: Clear current selection
+- **Ctrl/Cmd+Click**: Toggle individual result selection
+
+### Search
+- **Enter** (in search field): Execute manual search
+- **Escape** (in search field): Clear search input
+
+## Architecture
+
+### Search Engine
+- Batched file processing with configurable batch sizes
+- Regex compilation caching for performance
+- Incremental result updates after replacements
+- Search operation serialization to prevent concurrency issues
+
+### UI Components
+- **Search Input**: Debounced input with validation
+- **Options Toggles**: Inline toggle buttons for search options
+- **Results Container**: Virtualized result display with file grouping
+- **Selection Manager**: Multi-selection state management
+- **Adaptive Toolbar**: Context-sensitive action buttons
+
+### State Management
+- Centralized view state with immutable updates
+- Persistent file group expand/collapse states
+- Selection state preservation during result updates
+- Search option state synchronization
+
+## Troubleshooting
+
+### Common Issues
+
+**Search returns no results**
+- Verify file extension filters include your target files
+- Check folder inclusion/exclusion settings
+- Ensure search pattern syntax is correct for regex mode
+
+**Performance problems with large vaults**
+- Reduce Max Results setting
+- Use more specific search patterns
+- Enable folder filtering to limit search scope
+- Check console for performance warnings
+
+**Regex patterns not working**
+- Validate regex syntax using online regex testers
+- Escape special characters when searching for literal text
+- Verify capture group numbering in replacement patterns
+- Check console for regex compilation errors
+
+**Selection state issues**
+- Clear selection and re-select if state becomes inconsistent
+- Check console for selection state warnings
+- Ensure not clicking during active search operations
+
+### Debug Information
+Enable "Debug Logging" in settings to access detailed console logs:
+- Search operation lifecycle tracking
+- Selection state change logging
+- Performance timing information
+- Error details and stack traces
+
+## Development
+
+### Project Structure
+```
+src/
+├── core/           # Search and replacement engines
+├── ui/             # User interface components
+├── types/          # TypeScript type definitions
+├── utils/          # Utility functions and helpers
+└── main.ts         # Plugin entry point
+```
+
+### Build Process
+```bash
+# Install dependencies
+npm install
+
+# Development build with watching
+npm run dev
+
+# Production build
+npm run build
+
+# Release build
+npm run release
+```
+
+### Code Architecture
+- **TypeScript**: Full type safety with strict mode
+- **Event-driven**: Reactive UI updates based on state changes
+- **Modular**: Separation of concerns between search, UI, and state
+- **Testable**: Isolated components with dependency injection
+
+### Contributing Guidelines
+1. Follow existing code style and TypeScript conventions
+2. Add comprehensive logging for debugging
+3. Include error handling for all async operations
+4. Test with large vaults to ensure performance
+5. Update documentation for any API changes
+
+## Technical Details
+
+### Search Performance
+- Files processed in configurable batches (default: 10 files)
+- Regex compilation cached to avoid recompilation
+- Results limited to prevent UI freezing (default: 1000)
+- Incremental updates after replacements avoid full re-search
+
+### Memory Management
+- Search results stored efficiently with minimal object overhead
+- Automatic cleanup of event listeners and references
+- Garbage collection friendly with proper disposal methods
+- Memory usage monitoring in debug mode
+
+### Concurrency Control
+- Search operations serialized to prevent race conditions
+- Proper async/await usage throughout codebase
+- AbortController support for cancelling long-running searches
+- Debounced user input to prevent excessive search requests
 
 ## License
 
-MIT License — free and open source.
+MIT License

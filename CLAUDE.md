@@ -232,6 +232,66 @@ src/
   - `styles.css` (focus visibility styles)
   - Comprehensive debugging and error handling throughout
 
+#### 11. **Complete Search Concurrency Rewrite** (Critical Race Condition Fix)
+- **Problem Identified:** Multiple simultaneous searches causing inconsistent results
+  - **Root Cause:** Same query `"(typescript)"` producing 0, 76, and 25 results randomly
+  - **Technical Issue:** Broken search cancellation allowing concurrent search executions
+  - **Symptoms:** Race conditions from search options being read during active searches
+- **Comprehensive Solution Implementation:**
+  - **Search Serialization:** Force sequential execution with completion waits (up to 1000ms timeout)
+  - **Option State Freezing:** Read search options ONCE at start, pass frozen state through entire pipeline
+  - **Cache Management:** Clear SearchEngine regex cache before each search to prevent stale state
+  - **Robust Cleanup:** Enhanced finally blocks ensuring `isSearching` flag always resets
+  - **Search Controller:** Proper AbortController cancellation with null reference cleanup
+- **Code Architecture Changes:**
+  - **New Method:** `readSearchOptionsOnce()` for conflict-free option reading during search execution
+  - **Enhanced Method:** `renderResultsWithOptions()` eliminates mid-search option reading
+  - **Cache Control:** `SearchEngine.clearCache()` prevents regex compilation state corruption
+  - **Concurrency Guards:** Wait loops and force resets for hung search operations
+  - **Comprehensive Logging:** Search lifecycle tracking with unique IDs for debugging
+- **Technical Details:**
+  - Search operations now fully serialized with proper async/await chains
+  - Option reading consolidated to single point with frozen snapshots
+  - SearchEngine regex cache cleared on every option change to prevent inconsistency
+  - Enhanced error handling for search cancellation and state corruption
+  - Deprecation warnings for old methods that could cause race conditions
+- **User Impact:**
+  - **Consistent Results:** Identical queries now always produce identical result counts
+  - **Eliminated Race Conditions:** No more concurrent searches stepping on each other
+  - **Reliable Operation:** Search state corruption and timing conflicts completely resolved
+  - **Debug Visibility:** Clear logging shows search lifecycle and detects any remaining issues
+- **File Changes:**
+  - `src/ui/views/findReplaceView.ts` (major search execution rewrite, option state management)
+  - `src/core/searchEngine.ts` (cache management, enhanced error handling)
+  - Comprehensive race condition detection and prevention throughout
+
+#### 12. **Professional README Documentation** (Project Documentation)
+- **Challenge:** Original README was generic marketing copy with emoji clutter and no technical depth
+- **Solution:** Complete rewrite with comprehensive technical documentation
+- **Content Structure:**
+  - **Clear Problem Statement:** What the plugin does and why it's needed vs Obsidian's built-in search
+  - **Detailed Feature Explanation:** Technical depth on search capabilities, regex support, UI components
+  - **Practical Usage Guide:** Step-by-step workflows for real-world use cases
+  - **Configuration Reference:** Complete settings documentation with defaults and performance tuning
+  - **Real Examples:** Actual regex patterns for common tasks (date conversion, link formatting, etc.)
+  - **Architecture Overview:** Technical details for developers including performance and concurrency
+  - **Comprehensive Troubleshooting:** Common issues with specific solutions and debug strategies
+- **Technical Writing Approach:**
+  - **User-Focused:** Explains features in terms of user benefits and workflows
+  - **Developer-Friendly:** Architecture section provides implementation details for contributors
+  - **Practical Examples:** Copy-paste regex patterns for immediate utility
+  - **No Fluff:** Every section provides actionable information without marketing language
+- **Documentation Quality:**
+  - **Professional Tone:** Technical accuracy without condescending explanations
+  - **Complete Coverage:** Installation, configuration, usage, troubleshooting, development
+  - **Accessibility Focus:** Keyboard shortcuts and navigation documented
+  - **Performance Guidance:** Settings optimization for large vaults and complex searches
+- **User Benefits:**
+  - **Faster Onboarding:** Clear installation and usage instructions
+  - **Advanced Usage:** Regex examples enable power-user workflows
+  - **Self-Service Support:** Comprehensive troubleshooting reduces support burden
+  - **Contributor Enablement:** Architecture documentation facilitates community contributions
+
 ## Development Guidelines
 
 ### Code Quality Standards
