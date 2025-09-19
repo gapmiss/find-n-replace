@@ -324,14 +324,35 @@ export class FindReplaceView extends ItemView {
 
         toggleButtons.forEach(toggleBtn => {
             if (toggleBtn) {
+                const toggleName = toggleBtn.getAttribute('aria-label') || 'unknown';
                 const debouncedToggleSearch = debounce(() => {
-                    // Only re-search if there's an active query
                     const query = this.elements.searchInput.value.trim();
+                    this.logger.debug(`[Toggle:${toggleName}] Click triggered for query: "${query}"`);
+
+                    // Check if search is already in progress
+                    if (this.isSearching) {
+                        this.logger.warn(`[Toggle:${toggleName}] Search in progress, option change may cause inconsistency`);
+                        // Cancel current search to prevent inconsistent results
+                        if (this.currentSearchController) {
+                            this.currentSearchController.abort();
+                            this.logger.debug(`[Toggle:${toggleName}] Cancelled ongoing search due to option change`);
+                        }
+                    }
+
+                    // Clear SearchEngine cache when options change to prevent stale regex
+                    this.searchEngine.clearCache();
+                    this.logger.debug(`[Toggle:${toggleName}] Cleared SearchEngine cache due to option change`);
+
+                    // Only re-search if there's an active query
                     if (query.length > 0) {
+                        this.logger.debug(`[Toggle:${toggleName}] Calling performSearch for: "${query}"`);
                         this.performSearch();
+                    } else {
+                        this.logger.debug(`[Toggle:${toggleName}] No query, skipping search`);
                     }
                 }, this.plugin.settings.searchDebounceDelay); // Use settings-based debounce timing
 
+                this.logger.debug(`[Toggle:${toggleName}] Setting up click listener with debounce: ${this.plugin.settings.searchDebounceDelay}ms`);
                 toggleBtn.addEventListener('click', debouncedToggleSearch);
             }
         });
@@ -405,31 +426,55 @@ export class FindReplaceView extends ItemView {
      * Main search function - restored functionality
      */
     async performSearch(): Promise<void> {
-        // Prevent duplicate searches
-        if (this.isSearching) {
-            this.logger.debug('Search already in progress, skipping duplicate call');
-            return;
-        }
+        const callId = Date.now().toString();
+        this.logger.warn(`[${callId}] ===== SEARCH START =====`);
 
-        // Cancel any previous search
+        // FORCE CANCEL ANY RUNNING SEARCH IMMEDIATELY
         if (this.currentSearchController) {
+            this.logger.warn(`[${callId}] FORCE CANCELLING previous search controller`);
             this.currentSearchController.abort();
+            this.currentSearchController = null;
         }
 
-        // Create new search controller and unique timer ID
+        // FORCE CLEAR SearchEngine cache to prevent stale state
+        this.searchEngine.clearCache();
+        this.logger.debug(`[${callId}] Cleared SearchEngine cache`);
+
+        // WAIT for any previous search to fully complete before starting new one
+        if (this.isSearching) {
+            this.logger.error(`[${callId}] CONCURRENT SEARCH DETECTED! Waiting for completion...`);
+            let waitCount = 0;
+            while (this.isSearching && waitCount < 100) { // Max 1000ms wait
+                await new Promise(resolve => setTimeout(resolve, 10));
+                waitCount++;
+            }
+            if (this.isSearching) {
+                this.logger.error(`[${callId}] Previous search FAILED to complete, FORCE RESETTING`);
+                this.isSearching = false;
+            }
+        }
+
+        // NOW we can safely start the new search
         this.currentSearchController = new AbortController();
-        const searchId = Date.now().toString();
+        const searchId = callId;
         const timerName = `performSearch-${searchId}`;
         this.isSearching = true;
+
+        this.logger.warn(`[${searchId}] Search lock acquired, starting execution`);
 
         this.logger.time(timerName);
 
         try {
-            this.logger.debug('Search called');
             const query = this.elements.searchInput?.value;
+            this.logger.warn(`[${searchId}] Query: "${query}"`);
+
+            // Read search options ONCE at the start and FREEZE them for entire search
+            // This PREVENTS race conditions from option changes during search
+            const searchOptions = this.readSearchOptionsOnce();
+            this.logger.warn(`[${searchId}] Search options FROZEN:`, searchOptions);
 
             if (!query || query.trim().length === 0) {
-                this.logger.debug('Empty query, clearing results');
+                this.logger.debug(`[${searchId}] Empty query, clearing results`);
                 this.uiRenderer.clearResults();
                 this.state.results = [];
                 return;
@@ -437,42 +482,39 @@ export class FindReplaceView extends ItemView {
 
             // Check if search was cancelled
             if (this.currentSearchController.signal.aborted) {
-                this.logger.debug('Search cancelled before starting');
+                this.logger.debug(`[${searchId}] Search cancelled before starting`);
                 return;
             }
 
-            this.logger.debug('Starting search', { query, length: query.length });
-
-            // Get search options from checkboxes
-            const searchOptions = this.getSearchOptions();
-            this.logger.debug('Search options:', searchOptions);
-
-            // Validate regex if regex mode is enabled
+            // Validate regex if regex mode is enabled (ONLY validation here, not in SearchEngine)
             if (searchOptions.useRegex) {
                 try {
-                    new RegExp(query);
+                    new RegExp(query.trim());
+                    this.logger.debug(`[${searchId}] Regex validation passed`);
                 } catch (regexError) {
-                    this.logger.error('Invalid regex pattern', regexError, true);
+                    this.logger.error(`[${searchId}] Invalid regex pattern`, regexError, true);
                     return;
                 }
             }
 
             // Check if search was cancelled before performing search
             if (this.currentSearchController.signal.aborted) {
-                this.logger.debug('Search cancelled before execution');
+                this.logger.debug(`[${searchId}] Search cancelled before execution`);
                 return;
             }
 
+            this.logger.debug(`[${searchId}] Starting SearchEngine.performSearch`);
             // Perform the actual search
             const results = await this.searchEngine.performSearch(query, searchOptions);
+            this.logger.debug(`[${searchId}] SearchEngine.performSearch completed: ${results.length} results`);
 
             // Check if search was cancelled after completion
             if (this.currentSearchController.signal.aborted) {
-                this.logger.debug('Search cancelled after completion, not updating UI');
+                this.logger.debug(`[${searchId}] Search cancelled after completion, not updating UI`);
                 return;
             }
 
-            this.logger.info(`Search completed: found ${results.length} results for "${query}"`);
+            this.logger.info(`[${searchId}] Search completed: found ${results.length} results for "${query}"`);
 
             // Apply consistent result limiting based on settings
             const maxResults = this.plugin.settings.maxResults;
@@ -485,19 +527,20 @@ export class FindReplaceView extends ItemView {
                 this.logger.info(`Results limited to ${maxResults} of ${results.length} total results`);
             }
 
-            // Update state and render results
+            // Update state and render results using FROZEN search options
             this.state.results = finalResults;
             this.state.totalResults = results.length; // Store total for UI feedback
             this.state.isLimited = isLimited;
-            this.renderResults();
+            this.renderResultsWithOptions(searchOptions);
 
             this.logger.timeEnd(timerName);
+            this.logger.warn(`[${searchId}] ===== SEARCH COMPLETED SUCCESSFULLY =====`);
 
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
-                this.logger.debug('Search was cancelled');
+                this.logger.warn(`[${searchId}] Search was CANCELLED (AbortError)`);
             } else {
-                this.logger.error('Search operation failed', error, true);
+                this.logger.error(`[${searchId}] Search operation FAILED`, error, true);
             }
             // Safe timeEnd - only call if timer exists
             try {
@@ -507,17 +550,38 @@ export class FindReplaceView extends ItemView {
                 this.logger.debug('Timer cleanup failed (expected in some cases)');
             }
         } finally {
+            // CRITICAL: Always reset the search state
             this.isSearching = false;
             this.currentSearchController = null;
+            this.logger.warn(`[${searchId}] ===== SEARCH LOCK RELEASED =====`);
         }
     }
 
     /**
-     * Renders search results using UIRenderer and sets up selection
+     * Renders search results using FROZEN search options (no race conditions)
+     */
+    private renderResultsWithOptions(searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean }): void {
+        const replaceText = this.elements.replaceInput.value;
+        const lineElements = this.uiRenderer.renderResults(
+            this.state.results,
+            replaceText,
+            searchOptions,
+            this.state.totalResults,
+            this.state.isLimited
+        );
+
+        // Update state and set up selection
+        this.state.lineElements = lineElements;
+        this.selectionManager.setupSelection(lineElements);
+    }
+
+    /**
+     * DEPRECATED: Use renderResultsWithOptions() to avoid race conditions
+     * This method reads search options which can cause inconsistency during search
      */
     private renderResults(): void {
         const replaceText = this.elements.replaceInput.value;
-        const searchOptions = this.getSearchOptions();
+        const searchOptions = this.getSearchOptions(); // WARNING: Race condition risk!
         const lineElements = this.uiRenderer.renderResults(
             this.state.results,
             replaceText,
@@ -924,11 +988,15 @@ export class FindReplaceView extends ItemView {
      */
     private setupAutoSearch(): void {
         const debouncedSearch = debounce(async () => {
-            // Only auto-search if there's actual content
             const query = this.elements.searchInput.value.trim();
+            this.logger.debug(`[AutoSearch] Debounced search triggered for query: "${query}"`);
+
+            // Only auto-search if there's actual content
             if (query.length > 0) {
+                this.logger.debug(`[AutoSearch] Calling performSearch for: "${query}"`);
                 await this.performSearch();
             } else {
+                this.logger.debug(`[AutoSearch] Empty query, clearing results`);
                 // Clear results if search is empty
                 this.uiRenderer.clearResults();
                 this.state.results = [];
@@ -936,6 +1004,7 @@ export class FindReplaceView extends ItemView {
             }
         }, this.plugin.settings.searchDebounceDelay);
 
+        this.logger.debug(`[AutoSearch] Setting up input listener with debounce: ${this.plugin.settings.searchDebounceDelay}ms`);
         this.elements.searchInput.addEventListener("input", debouncedSearch);
     }
 
@@ -945,12 +1014,44 @@ export class FindReplaceView extends ItemView {
     /**
      * Gets the current state of search options from inline toggles
      */
+    /**
+     * Reads search options ONCE for freezing during search execution
+     * This method should only be called at the START of a search
+     */
+    private readSearchOptionsOnce(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean } {
+        const matchCase = this.getToggleValue(this.elements.matchCaseCheckbox);
+        const wholeWord = this.getToggleValue(this.elements.wholeWordCheckbox);
+        const useRegex = this.getToggleValue(this.elements.regexCheckbox);
+
+        const optionsSnapshot = { matchCase, wholeWord, useRegex };
+
+        this.logger.debug('readSearchOptionsOnce() creating frozen snapshot:', {
+            matchCase: { value: matchCase, pressed: this.elements.matchCaseCheckbox?.getAttribute('aria-pressed') },
+            wholeWord: { value: wholeWord, pressed: this.elements.wholeWordCheckbox?.getAttribute('aria-pressed') },
+            useRegex: { value: useRegex, pressed: this.elements.regexCheckbox?.getAttribute('aria-pressed') },
+            snapshot: optionsSnapshot
+        });
+
+        return optionsSnapshot;
+    }
+
+    /**
+     * DEPRECATED: Use readSearchOptionsOnce() for search execution
+     * This method is only for non-search operations
+     */
     private getSearchOptions(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean } {
-        return {
-            matchCase: this.getToggleValue(this.elements.matchCaseCheckbox),
-            wholeWord: this.getToggleValue(this.elements.wholeWordCheckbox),
-            useRegex: this.getToggleValue(this.elements.regexCheckbox)
-        };
+        const matchCase = this.getToggleValue(this.elements.matchCaseCheckbox);
+        const wholeWord = this.getToggleValue(this.elements.wholeWordCheckbox);
+        const useRegex = this.getToggleValue(this.elements.regexCheckbox);
+
+        const optionsSnapshot = { matchCase, wholeWord, useRegex };
+
+        // If search is in progress, warn about option state changes
+        if (this.isSearching) {
+            this.logger.error('RACE CONDITION: Search options read while search is in progress!');
+        }
+
+        return optionsSnapshot;
     }
 
     /**
@@ -1014,7 +1115,10 @@ export class FindReplaceView extends ItemView {
 
             // If replacement might have complex side effects, fall back to full search
             if (affectedResults.requiresFullRevalidation) {
-                this.logger.debug('Full revalidation required, falling back to complete search');
+                this.logger.warn('Full revalidation required, falling back to complete search', {
+                    originalResultCount,
+                    reason: 'requiresFullRevalidation=true'
+                });
                 await this.performSearch();
                 return;
             }
@@ -1051,7 +1155,11 @@ export class FindReplaceView extends ItemView {
 
                 // Consider falling back to full search if removal seems excessive
                 if (revalidationRemoved > affectedResults.replacedResultIndices.length * 10) {
-                    this.logger.warn('Excessive result removal detected, falling back to full search');
+                    this.logger.error('Excessive result removal detected, falling back to full search', {
+                        revalidationRemoved,
+                        expectedRemoved: affectedResults.replacedResultIndices.length,
+                        threshold: affectedResults.replacedResultIndices.length * 10
+                    });
                     await this.performSearch();
                     return;
                 }
@@ -1089,7 +1197,12 @@ export class FindReplaceView extends ItemView {
             this.logger.debug('Incremental update completed successfully');
 
         } catch (error) {
-            this.logger.warn('Incremental update failed, falling back to full search', error);
+            this.logger.error('Incremental update failed, falling back to full search', {
+                error: error.message,
+                stack: error.stack,
+                currentResultCount: this.state.results.length,
+                replacedIndices: affectedResults.replacedResultIndices
+            });
             // Safety fallback: if incremental update fails, do full search
             await this.performSearch();
         }

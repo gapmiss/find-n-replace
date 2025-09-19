@@ -14,6 +14,16 @@ export class SearchEngine {
     }
 
     /**
+     * Clears the regex cache to ensure fresh compilation
+     * Should be called when search options change
+     */
+    clearCache(): void {
+        console.debug('[SearchEngine] Clearing regex cache');
+        this.lastCompiledRegex = null;
+        this.lastSearchOptions = '';
+    }
+
+    /**
      * Main search function - searches all markdown files in the vault
      * @param query - The search query string
      * @param options - Search configuration options
@@ -21,12 +31,16 @@ export class SearchEngine {
      */
     async performSearch(query: string, options: SearchOptions): Promise<SearchResult[]> {
         const trimmedQuery = query.trim();
+        console.debug('[SearchEngine] performSearch called:', { query: trimmedQuery, options });
+
         if (!trimmedQuery) {
+            console.debug('[SearchEngine] Empty query, returning 0 results');
             return [];
         }
 
         const results: SearchResult[] = [];
         const files = this.app.vault.getMarkdownFiles();
+        console.debug('[SearchEngine] Found', files.length, 'markdown files to search');
 
         // Pre-build regex pattern if needed (for performance)
         let regex: RegExp | null = null;
@@ -138,6 +152,13 @@ export class SearchEngine {
             return colA - colB;
         });
 
+        console.debug('[SearchEngine] Search completed:', {
+            query: trimmedQuery,
+            options,
+            resultCount: results.length,
+            fileCount: files.length
+        });
+
         return results;
     }
 
@@ -154,8 +175,12 @@ export class SearchEngine {
 
         // Return cached regex if options haven't changed
         if (this.lastSearchOptions === cacheKey && this.lastCompiledRegex) {
+            console.debug('[SearchEngine] Using cached regex for:', cacheKey);
             return this.lastCompiledRegex;
         }
+
+        console.debug('[SearchEngine] Building new regex for:', cacheKey);
+        console.debug('[SearchEngine] Previous cache key was:', this.lastSearchOptions);
 
         let pattern = query ?? '';
 
@@ -184,9 +209,11 @@ export class SearchEngine {
 
             return regex;
         } catch (error) {
-            // Handle invalid regex gracefully
-            new Notice('Invalid regular expression pattern');
-            throw new Error('Invalid regex pattern');
+            // This should not happen since validation is done in the view first
+            console.error('[SearchEngine] Unexpected regex error during buildSearchRegex:', error);
+            console.error('[SearchEngine] Pattern that failed:', pattern);
+            console.error('[SearchEngine] Options:', options);
+            throw new Error(`Unexpected regex compilation error: ${error.message}`);
         }
     }
 
@@ -213,13 +240,6 @@ export class SearchEngine {
         return true;
     }
 
-    /**
-     * Clears the regex cache (useful when switching between different search contexts)
-     */
-    clearCache(): void {
-        this.lastCompiledRegex = null;
-        this.lastSearchOptions = '';
-    }
 
     /**
      * Cleanup method for when the engine is no longer needed
