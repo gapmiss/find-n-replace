@@ -116,16 +116,18 @@ export class SelectionManager {
             }
         });
 
-        // Update selection count display
+        // Update selection count display and visibility in adaptive toolbar
         if (this.elements.selectedCountEl) {
-            this.elements.selectedCountEl.textContent = `${this.selectedIndices.size} selected`;
+            const hasSelections = this.selectedIndices.size > 0;
+            this.elements.selectedCountEl.textContent = `• ${this.selectedIndices.size} selected`;
+            this.elements.selectedCountEl.classList.toggle('hidden', !hasSelections);
         }
 
-        // Enable/disable "Replace selected" button based on selection count
-        if (this.selectedIndices.size < 1) {
-            this.elements.replaceSelectedBtn?.setAttr('disabled', true);
-        } else {
-            this.elements.replaceSelectedBtn?.removeAttribute('disabled');
+        // Enable/disable and show/hide "Replace selected" button based on selection count
+        const hasSelections = this.selectedIndices.size > 0;
+        if (this.elements.replaceSelectedBtn) {
+            this.elements.replaceSelectedBtn.toggleAttribute('disabled', !hasSelections);
+            this.elements.replaceSelectedBtn.classList.toggle('hidden', !hasSelections);
         }
     }
 

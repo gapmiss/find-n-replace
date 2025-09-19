@@ -135,18 +135,9 @@ export class FindReplaceView extends ItemView {
         const resultsToolbar = this.containerEl.createDiv('find-replace-results-toolbar');
         resultsToolbar.classList.add('hidden'); // Hide until we have results
 
-        // Count display showing "X results in Y files"
-        const resultsCountEl = resultsToolbar.createDiv({
-            cls: 'find-replace-results-count',
-            text: '0 results'
-        });
+        // Results count moved to adaptive toolbar section
 
-        // Expand/collapse all results button
-        const toolbarBtn = resultsToolbar.createEl('button', {
-            cls: 'collapse-toggle clickable-icon hidden',
-            attr: { 'aria-label': 'Expand all' }
-        });
-        setIcon(toolbarBtn, 'copy-plus'); // Set initial icon to "expand" since we start collapsed
+        // Expand/collapse button moved to adaptive toolbar
 
         // === RESULTS CONTAINER ===
         // Container where all search results will be displayed
@@ -163,32 +154,52 @@ export class FindReplaceView extends ItemView {
         setIcon(replaceAllVaultBtn, 'replace-all');
         replaceAllVaultBtn.style.display = 'none'; // Hidden until results exist
 
-        // === BOTTOM ACTION BAR ===
-        // Create modern bottom toolbar for selections and global actions
-        const bottomActionBar = this.containerEl.createDiv('find-replace-bottom-bar');
+        // === ADAPTIVE RESULTS TOOLBAR ===
+        // Contextual toolbar section that appears when results exist (integrated into searchToolbar)
+        const adaptiveToolbar = searchToolbar.createDiv('find-replace-adaptive-toolbar hidden');
 
-        // Selected results display
-        const selectedCountEl = bottomActionBar.createEl('span', {
-            cls: 'selected-count-display',
-            text: '0 selected'
+        // Results summary and count
+        const resultsSummary = adaptiveToolbar.createDiv('adaptive-results-summary');
+        const resultsCountEl = resultsSummary.createEl('span', {
+            cls: 'adaptive-results-count',
+            text: '0 results'
+        });
+
+        // Selection status (shows when items are selected)
+        const selectedCountEl = resultsSummary.createEl('span', {
+            cls: 'adaptive-selected-count hidden',
+            text: '• 0 selected'
         });
 
         // Action buttons container
-        const actionButtons = bottomActionBar.createDiv('bottom-action-buttons');
+        const adaptiveActions = adaptiveToolbar.createDiv('adaptive-action-buttons');
 
-        // Replace selected button
-        const replaceSelectedBtn = actionButtons.createEl('button', {
-            cls: 'bottom-action-btn',
-            text: 'Replace selected',
-            attr: { 'disabled': true } // Start disabled (no selections)
+        // Replace selected button (shows when items are selected)
+        const replaceSelectedBtn = adaptiveActions.createEl('button', {
+            cls: 'adaptive-action-btn clickable-icon hidden',
+            attr: {
+                'disabled': true, // Start disabled (no selections)
+                'aria-label': 'Replace selected matches'
+            }
         });
+        setIcon(replaceSelectedBtn, 'check-circle');
 
-        // Replace all in vault button (duplicate in bottom bar for easy access)
-        const replaceAllVaultBtnBottom = actionButtons.createEl('button', {
-            cls: 'bottom-action-btn bottom-action-btn-primary',
-            text: 'Replace all in vault',
-            attr: { 'disabled': true } // Start disabled (no results)
+        // Replace all in vault button
+        const replaceAllVaultBtnBottom = adaptiveActions.createEl('button', {
+            cls: 'adaptive-action-btn clickable-icon adaptive-action-btn-primary',
+            attr: {
+                'disabled': true, // Start disabled (no results)
+                'aria-label': 'Replace all in vault'
+            }
         });
+        setIcon(replaceAllVaultBtnBottom, 'vault');
+
+        // Move expand/collapse button to adaptive toolbar
+        const expandCollapseBtn = adaptiveActions.createEl('button', {
+            cls: 'adaptive-action-btn clickable-icon hidden',
+            attr: { 'aria-label': 'Expand all' }
+        });
+        setIcon(expandCollapseBtn, 'copy-plus'); // Set initial icon to "expand" since we start collapsed
 
         // Store UI elements for component access
         this.elements = {
@@ -203,10 +214,11 @@ export class FindReplaceView extends ItemView {
             replaceSelectedBtn: replaceSelectedBtn as HTMLButtonElement,
             replaceAllVaultBtn: replaceAllVaultBtn as HTMLButtonElement,
             resultsToolbar,
-            toolbarBtn: toolbarBtn as HTMLButtonElement,
+            toolbarBtn: expandCollapseBtn as HTMLButtonElement, // Now in adaptive toolbar
             resultsCountEl,
             clearAllBtn, // Global clear button
-            replaceAllVaultBtnBottom: replaceAllVaultBtnBottom as HTMLButtonElement // Bottom bar duplicate
+            replaceAllVaultBtnBottom: replaceAllVaultBtnBottom as HTMLButtonElement, // Adaptive toolbar duplicate
+            adaptiveToolbar // Contextual results toolbar
         };
 
         // Initialize remaining components now that we have UI elements

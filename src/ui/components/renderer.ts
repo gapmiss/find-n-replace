@@ -333,7 +333,7 @@ export class UIRenderer {
         // Update results count display
         this.elements.resultsCountEl?.setText(resultText);
 
-        // Configure expand/collapse toolbar button
+        // Configure expand/collapse button in adaptive toolbar
         if (this.elements.toolbarBtn) {
             this.elements.toolbarBtn.classList.toggle('hidden', !hasResults);
 
@@ -346,6 +346,9 @@ export class UIRenderer {
         // Enable/disable replace all buttons based on results
         this.elements.replaceAllVaultBtn?.toggleAttribute('disabled', !hasResults);
         this.elements.replaceAllVaultBtnBottom?.toggleAttribute('disabled', !hasResults);
+
+        // Show/hide adaptive toolbar based on whether we have results
+        this.elements.adaptiveToolbar?.classList.toggle('hidden', !hasResults);
 
         // Show/hide results toolbar based on whether we have results
         this.elements.resultsToolbar?.classList.toggle('hidden', !hasResults);

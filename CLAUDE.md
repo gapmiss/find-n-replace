@@ -161,6 +161,47 @@ src/
   - Smooth transitions and hover effects
 - **User Benefits:** Familiar UX for VSCode users, cleaner interface, better mobile support
 
+#### 8. **Regex Replacement Preview with Capture Group Expansion** (Critical Bug Fix)
+- **Problem:** Regex replacement previews were non-functional - capture groups like `$1`, `$2` were not being expanded
+- **Root Cause:** Hard-coded `false` values were passed to `buildSearchRegex` instead of actual search options
+- **Solution Implementation:**
+  - **New Method:** `expandReplacementString()` handles all capture group substitution
+  - **Capture Group Support:** `$1`, `$2`, etc. for numbered groups; `$&` for full match; `$$` for literal `$`
+  - **Method Signature Updates:** `highlightMatchText()`, `renderResults()`, `createResultLine()` now receive search options
+  - **Call Chain Fix:** All callers now pass current search options via `getSearchOptions()`
+- **Technical Details:**
+  - Fixed TypeScript compilation errors around variable scoping
+  - Resolved "used before declaration" issue in `updateResultsAfterReplacement`
+  - Maintains backward compatibility for non-regex replacements
+  - Enhanced error handling for invalid regex patterns
+- **User Impact:** Regex replacements now show accurate previews (e.g., `(typescript)` → `🚧🚧$1🚧🚧` correctly previews as `🚧🚧typescript🚧🚧`)
+- **File Changes:** `src/ui/components/renderer.ts` (86 line changes), `src/ui/views/findReplaceView.ts` (16 line changes)
+
+#### 9. **Adaptive Icon-Based Results Toolbar** (UI/UX Enhancement)
+- **Problem:** Bottom toolbar felt disconnected and "ugly" with large text buttons that cluttered the interface
+- **Solution:** Replaced with elegant adaptive toolbar integrated into main search area
+- **Design Approach:**
+  - **Contextual Visibility:** Toolbar only appears when search results exist
+  - **Icon-Based Actions:** Replaced text buttons with intuitive icons (✓ check-circle, 🏛️ vault, ⚏ expand/collapse)
+  - **Smart Layout:** Results summary on left, compact actions on right
+  - **Progressive Disclosure:** "Replace selected" only shows when items are selected
+- **Technical Implementation:**
+  - Moved all result actions into `find-replace-adaptive-toolbar` within main search toolbar
+  - Icon buttons use `clickable-icon` class with 24x24px dimensions
+  - Adaptive visibility logic in `renderer.ts` and `selectionManager.ts`
+  - Responsive design maintains icon clarity on mobile (32x32px)
+- **User Benefits:**
+  - **Cleaner Interface:** No more disconnected bottom bars floating in UI
+  - **VSCode-Like Feel:** Actions appear contextually where and when needed
+  - **Better Information Hierarchy:** Clear separation between search config and result actions
+  - **Mobile Friendly:** Touch-optimized icon buttons with proper spacing
+- **File Changes:**
+  - `src/ui/views/findReplaceView.ts` (replaced bottom toolbar with adaptive section)
+  - `src/ui/components/renderer.ts` (updated visibility logic)
+  - `src/ui/components/selectionManager.ts` (adaptive selection display)
+  - `styles.css` (removed bottom-bar CSS, added adaptive-toolbar styling)
+  - `src/types/ui.ts` (updated interface for adaptiveToolbar reference)
+
 ## Development Guidelines
 
 ### Code Quality Standards

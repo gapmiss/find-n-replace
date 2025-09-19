@@ -18,7 +18,8 @@ export interface FindReplaceElements {
     toolbarBtn: HTMLButtonElement;
     resultsCountEl: HTMLElement;
     clearAllBtn: HTMLButtonElement; // Global clear button
-    replaceAllVaultBtnBottom: HTMLButtonElement; // Bottom toolbar duplicate
+    replaceAllVaultBtnBottom: HTMLButtonElement; // Adaptive toolbar duplicate
+    adaptiveToolbar: HTMLElement; // Contextual results toolbar
 }
 
 /**
