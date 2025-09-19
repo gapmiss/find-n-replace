@@ -21,40 +21,6 @@
     color: var(--text-muted);
 }
 
-/* --- Clear button ("×") --- */
-.clear-btn {
-    position: absolute;
-    right: 10px;
-    background: transparent !important;
-    border: unset !important;
-    box-shadow: unset !important;
-    cursor: pointer;
-    padding: 0 !important;
-    width: var(--search-clear-button-size);
-    height: var(--search-clear-button-size);
-    display: none;
-    /* hidden until input has value */
-    border-radius: 50px;
-}
-
-.clear-btn:after {
-    content: '';
-    height: var(--search-clear-button-size);
-    width: var(--search-clear-button-size);
-    display: block;
-    background-color: var(--text-muted);
-    -webkit-mask-image: url("data:image/svg+xml,<svg viewBox=%270 0 12 12%27 fill=%27none%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cpath fill-rule=%27evenodd%27 clip-rule=%27evenodd%27 d=%27M6 12C9.31371 12 12 9.31371 12 6C12 2.68629 9.31371 0 6 0C2.68629 0 0 2.68629 0 6C0 9.31371 2.68629 12 6 12ZM3.8705 3.09766L6.00003 5.22718L8.12955 3.09766L8.9024 3.8705L6.77287 6.00003L8.9024 8.12955L8.12955 8.9024L6.00003 6.77287L3.8705 8.9024L3.09766 8.12955L5.22718 6.00003L3.09766 3.8705L3.8705 3.09766Z%27 fill=%27currentColor%27/></svg>");
-    -webkit-mask-repeat: no-repeat;
-}
-
-.clear-btn:focus {
-    /* box-shadow: 0 0 0 3px var(--background-modifier-border-focus) !important; */
-}
-
-.find-replace-input:not(:placeholder-shown)+.clear-btn {
-    display: block;
-}
-
 /* compact input row behavior (if you want inputs side-by-side) */
 .find-replace-container>.find-replace-input:nth-child(1),
 .find-replace-container>.find-replace-input:nth-child(2) {
@@ -83,14 +49,6 @@
     font-size: var(--font-smallest);
 }
 
-.find-replace-results-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 6px;
-    margin: 0 !important;
-}
-
 /* --- Results count and top toolbar --- */
 .find-replace-results-count {
     color: var(--text-muted);
@@ -102,7 +60,6 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    /* max-height: 360px; */
     overflow: auto;
     padding: 0 .25em;
     border-radius: 6px;
@@ -221,16 +178,14 @@
 
 /* selected / active states similar to VSCode */
 .line-result.selected {
-    background: linear-gradient(180deg, rgba(53, 12, 74, 0.06), rgba(181, 31, 231, 0.06));
-    outline: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 6px;
+    background: linear-gradient(180deg, rgba(87, 32, 115, 0.16), rgba(198, 68, 241, 0.16));
 }
 
-.line-result.active {
+/* .line-result.active {
     background: linear-gradient(180deg, rgba(70, 80, 95, 0.12), rgba(40, 45, 55, 0.12));
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
     border-radius: 6px;
-}
+} */
 
 .line-result mark {
     color: var(--text-normal);
@@ -298,10 +253,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--size-4-1);
-    padding: var(--size-4-2);
-    /* background: var(--background-primary); */
-    /* border-radius: var(--radius-s); */
-    /* border: 1px solid var(--background-modifier-border); */
+    padding: var(--size-4-2) var(--size-4-2) 0 var(--size-4-2);
 }
 
 /* --- Search Row (input + inline options + actions) --- */
@@ -315,6 +267,7 @@
     display: flex;
     align-items: center;
     gap: var(--size-4-1);
+    margin-top: .3em;
 }
 
 /* --- Input Containers with Icons --- */
@@ -344,17 +297,6 @@
     padding-left: 32px !important; /* Make room for icon */
     padding-right: 8px !important;
     width: 100%;
-    /* border: 1px solid var(--background-modifier-border); */
-    /* border-radius: var(--radius-s); */
-    /* background: var(--background-primary); */
-    /* color: var(--text-normal); */
-    /* font-size: var(--font-ui-small); */
-}
-
-.find-replace-input-container .find-replace-input:focus {
-    /* border-color: var(--interactive-accent); */
-    /* outline: none; */
-    /* box-shadow: 0 0 0 2px var(--interactive-accent-hover); */
 }
 
 /* --- Inline Option Toggles (VSCode-style) --- */
@@ -438,6 +380,12 @@
     color: var(--text-muted);
 }
 
+
+
+
+
+
+
 /* --- Selected Count and Actions in Results Toolbar --- */
 .selected-count {
     color: var(--text-muted);
@@ -517,39 +465,8 @@
     opacity: 1;
 }
 
-/* --- Icon Improvements --- */
-/* .clickable-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    border-radius: var(--radius-s);
-    transition: all 0.15s ease;
-}
-
-.clickable-icon:hover {
-    background: var(--background-modifier-hover);
-}
-
-.clickable-icon:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
-} */
-
 .file-group-header .clickable-icon {
     padding: var(--size-2-1) var(--size-2-2);
-}
-
-/* --- Input Focus Improvements --- */
-.find-replace-input:focus {
-    /* border-color: var(--interactive-accent) !important; */
-    /* box-shadow: 0 0 0 2px var(--interactive-accent-hover) !important; */
-}
-
-/* --- Legacy Clear Button Removal --- */
-.clear-btn {
-    display: none !important;
 }
 
 /* --- Adaptive Results Toolbar --- */
@@ -557,10 +474,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--size-4-2) var(--size-4-3);
-    background: var(--background-modifier-hover);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
+    padding: var(--size-4-1) var(--size-4-2);
     margin-top: var(--size-4-1);
     transition: all 0.2s ease;
 }

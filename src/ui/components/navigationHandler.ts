@@ -21,7 +21,6 @@ export class NavigationHandler {
      */
     setupKeyboardNavigation(): void {
         this.setupEnterKeyHandlers();
-        this.setupClearButtonHandlers();
         this.setupInputChangeHandlers();
         this.setupGlobalKeyboardShortcuts();
     }
@@ -43,28 +42,6 @@ export class NavigationHandler {
                 if (evt.key === 'Enter') {
                     await this.performSearchCallback();
                 }
-            });
-        });
-    }
-
-    /**
-     * Sets up clear button functionality for input fields
-     */
-    private setupClearButtonHandlers(): void {
-        const clearBtns = this.elements.containerEl.querySelectorAll<HTMLButtonElement>(".clear-btn");
-        clearBtns.forEach(btn => {
-            btn.addEventListener("click", () => {
-                const input = btn.previousElementSibling;
-
-                if (!(input instanceof HTMLInputElement)) {
-                    this.logger.warn('Clear button clicked but previous sibling is not an input element');
-                    return;
-                }
-
-                this.logger.debug('Clearing input field');
-                input.value = "";
-                input.dispatchEvent(new Event("input"));
-                input.focus();
             });
         });
     }

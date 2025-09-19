@@ -14,7 +14,6 @@ export interface FindReplaceElements {
     selectedCountEl: HTMLElement;
     replaceSelectedBtn: HTMLButtonElement;
     replaceAllVaultBtn: HTMLButtonElement;
-    resultsToolbar: HTMLElement;
     toolbarBtn: HTMLButtonElement;
     resultsCountEl: HTMLElement;
     clearAllBtn: HTMLButtonElement; // Global clear button

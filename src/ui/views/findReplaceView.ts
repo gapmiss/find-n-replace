@@ -152,17 +152,6 @@ export class FindReplaceView extends ItemView {
             attr: { 'tabindex': '2' }
         }) as HTMLInputElement;
 
-        // Skip old options section - now using inline toggles
-
-        // === RESULTS TOOLBAR SECTION ===
-        // Create toolbar that appears above results (initially hidden)
-        const resultsToolbar = this.containerEl.createDiv('find-replace-results-toolbar');
-        resultsToolbar.classList.add('hidden'); // Hide until we have results
-
-        // Results count moved to adaptive toolbar section
-
-        // Expand/collapse button moved to adaptive toolbar
-
         // === RESULTS CONTAINER ===
         // Container where all search results will be displayed
         const resultsContainer = this.containerEl.createDiv('find-replace-results');
@@ -254,7 +243,6 @@ export class FindReplaceView extends ItemView {
             selectedCountEl,
             replaceSelectedBtn: replaceSelectedBtn as HTMLButtonElement,
             replaceAllVaultBtn: replaceAllVaultBtn as HTMLButtonElement,
-            resultsToolbar,
             toolbarBtn: expandCollapseBtn as HTMLButtonElement, // Now in adaptive toolbar
             resultsCountEl,
             clearAllBtn, // Global clear button

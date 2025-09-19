@@ -358,9 +358,6 @@ export class UIRenderer {
 
         // Show/hide adaptive toolbar based on whether we have results
         this.elements.adaptiveToolbar?.classList.toggle('hidden', !hasResults);
-
-        // Show/hide results toolbar based on whether we have results
-        this.elements.resultsToolbar?.classList.toggle('hidden', !hasResults);
     }
 
     /**
