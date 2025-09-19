@@ -26,9 +26,10 @@ export class UIRenderer {
      * Groups results by file and creates collapsible sections
      * @param results - Array of search results to render
      * @param replaceText - Current replacement text for preview
+     * @param searchOptions - Current search options (for regex replacement preview)
      * @returns Array of line elements for selection management
      */
-    renderResults(results: SearchResult[], replaceText: string): HTMLDivElement[] {
+    renderResults(results: SearchResult[], replaceText: string, searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean }): HTMLDivElement[] {
         // Clear previous results
         this.elements.resultsContainer.empty();
         const lineElements: HTMLDivElement[] = [];
@@ -69,7 +70,7 @@ export class UIRenderer {
 
             // Create individual result lines
             fileResults.forEach((res) => {
-                const lineDiv = this.createResultLine(fileDiv, res, replaceText, globalIndex);
+                const lineDiv = this.createResultLine(fileDiv, res, replaceText, globalIndex, searchOptions);
                 lineElements.push(lineDiv);
                 globalIndex++;
             });
@@ -156,13 +157,15 @@ export class UIRenderer {
      * @param result - The search result to render
      * @param replaceText - Current replacement text for preview
      * @param index - Global index of this result
+     * @param searchOptions - Current search options (for regex replacement preview)
      * @returns The created line element
      */
     private createResultLine(
         container: HTMLElement,
         result: SearchResult,
         replaceText: string,
-        index: number
+        index: number,
+        searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean }
     ): HTMLDivElement {
         const lineDiv = container.createDiv({ cls: 'line-result' });
 
@@ -194,7 +197,7 @@ export class UIRenderer {
         span.setAttribute('data-match-text', result.matchText);
 
         // Highlight the matched text within the line context
-        this.highlightMatchText(span, result.content, result.matchText, result.col, replaceText, result.pattern);
+        this.highlightMatchText(span, result.content, result.matchText, result.col, replaceText, result.pattern, searchOptions);
 
         // "Replace this match" button
         const replaceBtn = lineDiv.createEl('button', {
@@ -220,6 +223,7 @@ export class UIRenderer {
      * @param col - Column position of the match (optional)
      * @param replaceText - Current replacement text for preview
      * @param pattern - Original search pattern
+     * @param searchOptions - Current search options (for regex handling)
      */
     private highlightMatchText(
         container: HTMLElement,
@@ -227,7 +231,8 @@ export class UIRenderer {
         matchText: string,
         col: number | undefined,
         replaceText: string,
-        pattern: string
+        pattern: string,
+        searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean }
     ): void {
         container.empty(); // Clear any existing content
 
@@ -274,29 +279,37 @@ export class UIRenderer {
         // Show what the replacement will look like if replacement text is provided
         if (replaceText) {
             try {
-                const regex = this.searchEngine.buildSearchRegex(pattern, {
-                    matchCase: false, // Will be set properly by caller
-                    wholeWord: false,
-                    useRegex: false
-                });
-                regex.lastIndex = 0; // Reset regex state
+                let preview: string;
 
-                // Test the replacement on just the matched text
-                const fakeMatch = regex.exec(mid);
-                if (fakeMatch) {
-                    // For now, just show simple replacement (will be enhanced with proper expansion)
-                    const preview = replaceText;
+                if (searchOptions.useRegex) {
+                    // For regex mode, we need to properly expand capture groups
+                    const regex = this.searchEngine.buildSearchRegex(pattern, searchOptions);
+                    regex.lastIndex = 0; // Reset regex state
 
-                    // Only show preview if it's different from the original
-                    if (preview !== mid) {
-                        const previewSpan = document.createElement("span");
-                        previewSpan.className = "replace-preview";
-                        previewSpan.textContent = `${preview}`;
-                        container.appendChild(previewSpan);
+                    // Test the replacement on just the matched text
+                    const fakeMatch = regex.exec(mid);
+                    if (fakeMatch) {
+                        // Expand regex replacement string with capture groups
+                        preview = this.expandReplacementString(replaceText, fakeMatch);
+                    } else {
+                        // Fallback if regex doesn't match (shouldn't happen)
+                        preview = replaceText;
                     }
+                } else {
+                    // For simple text search, replacement is literal
+                    preview = replaceText;
+                }
+
+                // Only show preview if it's different from the original
+                if (preview !== mid) {
+                    const previewSpan = document.createElement("span");
+                    previewSpan.className = "replace-preview";
+                    previewSpan.textContent = `${preview}`;
+                    container.appendChild(previewSpan);
                 }
             } catch (error) {
                 // Ignore regex errors in preview
+                this.logger.debug('Error generating replacement preview:', error);
             }
         }
 
@@ -448,6 +461,31 @@ export class UIRenderer {
             return key === 'Enter' || key === ' ' || key === 'Spacebar';
         }
         return false;
+    }
+
+    /**
+     * Expands a replacement string with regex capture groups
+     * @param replaceText - The replacement pattern (e.g., "🚧🚧$1🚧🚧")
+     * @param match - The regex match result containing capture groups
+     * @returns The expanded replacement string
+     */
+    private expandReplacementString(replaceText: string, match: RegExpExecArray): string {
+        let result = replaceText;
+
+        // Replace $& with the full match
+        result = result.replace(/\$&/g, match[0]);
+
+        // Replace $n with capture groups (where n is 1-99)
+        for (let i = 1; i < match.length; i++) {
+            const captureGroup = match[i] || ''; // Use empty string if capture group is undefined
+            const regex = new RegExp(`\\$${i}`, 'g');
+            result = result.replace(regex, captureGroup);
+        }
+
+        // Replace $$ with literal $
+        result = result.replace(/\$\$/g, '$');
+
+        return result;
     }
 
     /**

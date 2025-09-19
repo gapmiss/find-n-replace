@@ -109,10 +109,10 @@ export class FindReplaceView extends ItemView {
 
         // Global clear button
         const clearAllBtn = toolbarActions.createEl('button', {
-            cls: 'inline-toggle-btn toolbar-action',
+            cls: 'inline-toggle-btn toolbar-action clickable-icon',
             attr: { 'aria-label': 'Clear Search' }
         });
-        setIcon(clearAllBtn, 'trash-2');
+        setIcon(clearAllBtn, 'search-x');
 
         // Replace input row
         const replaceRow = searchToolbar.createDiv('find-replace-replace-row');
@@ -154,7 +154,7 @@ export class FindReplaceView extends ItemView {
 
         // Global replace all button (appears in toolbar when results exist)
         const replaceAllVaultBtn = toolbarActions.createEl('button', {
-            cls: 'inline-toggle-btn toolbar-action',
+            cls: 'inline-toggle-btn toolbar-action clickable-icon',
             attr: {
                 'disabled': true, // Start disabled (no results)
                 'aria-label': 'Replace All in Vault'
@@ -451,7 +451,8 @@ export class FindReplaceView extends ItemView {
      */
     private renderResults(): void {
         const replaceText = this.elements.replaceInput.value;
-        const lineElements = this.uiRenderer.renderResults(this.state.results, replaceText);
+        const searchOptions = this.getSearchOptions();
+        const lineElements = this.uiRenderer.renderResults(this.state.results, replaceText, searchOptions);
 
         // Update state and set up selection
         this.state.lineElements = lineElements;
@@ -974,6 +975,9 @@ export class FindReplaceView extends ItemView {
                 this.state.results.splice(index, 1);
             }
 
+            // Get current search options for revalidation and rendering
+            const searchOptions = this.getSearchOptions();
+
             // Re-validate results in modified lines to see if they still match
             await this.revalidateModifiedResults(affectedResults, searchOptions);
 
@@ -983,7 +987,7 @@ export class FindReplaceView extends ItemView {
             // TODO: Update UI incrementally instead of full rebuild
             // For now, use existing render method as fallback
             const replaceText = this.elements.replaceInput.value;
-            this.uiRenderer.renderResults(this.state.results, replaceText);
+            this.uiRenderer.renderResults(this.state.results, replaceText, searchOptions);
 
             // Update search statistics
             this.updateSearchStatistics();
@@ -1101,7 +1105,7 @@ export class FindReplaceView extends ItemView {
      */
     private createInlineToggle(container: HTMLElement, id: string, icon: string, label: string): HTMLElement {
         const toggleBtn = container.createEl('button', {
-            cls: 'inline-toggle-btn',
+            cls: 'inline-toggle-btn clickable-icon',
             attr: {
                 'data-toggle': id,
                 'aria-label': label,

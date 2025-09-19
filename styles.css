@@ -48,7 +48,7 @@
 }
 
 .clear-btn:focus {
-    box-shadow: 0 0 0 3px var(--background-modifier-border-focus) !important;
+    /* box-shadow: 0 0 0 3px var(--background-modifier-border-focus) !important; */
 }
 
 .find-replace-input:not(:placeholder-shown)+.clear-btn {
@@ -232,6 +232,7 @@
 .line-result mark:has(+ span.replace-preview) {
     margin-right: 1px;
     background-color: rgba(var(--background-modifier-error-rgb), 0.2) !important;
+    text-decoration: line-through;
 }
 
 .line-result .replace-preview {
@@ -290,9 +291,9 @@
     flex-direction: column;
     gap: var(--size-4-1);
     padding: var(--size-4-2);
-    background: var(--background-primary);
-    border-radius: var(--radius-s);
-    border: 1px solid var(--background-modifier-border);
+    /* background: var(--background-primary); */
+    /* border-radius: var(--radius-s); */
+    /* border: 1px solid var(--background-modifier-border); */
 }
 
 /* --- Search Row (input + inline options + actions) --- */
@@ -335,17 +336,17 @@
     padding-left: 32px !important; /* Make room for icon */
     padding-right: 8px !important;
     width: 100%;
-    border: 1px solid var(--background-modifier-border);
-    border-radius: var(--radius-s);
-    background: var(--background-primary);
-    color: var(--text-normal);
-    font-size: var(--font-ui-small);
+    /* border: 1px solid var(--background-modifier-border); */
+    /* border-radius: var(--radius-s); */
+    /* background: var(--background-primary); */
+    /* color: var(--text-normal); */
+    /* font-size: var(--font-ui-small); */
 }
 
 .find-replace-input-container .find-replace-input:focus {
-    border-color: var(--interactive-accent);
-    outline: none;
-    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+    /* border-color: var(--interactive-accent); */
+    /* outline: none; */
+    /* box-shadow: 0 0 0 2px var(--interactive-accent-hover); */
 }
 
 /* --- Inline Option Toggles (VSCode-style) --- */
@@ -359,7 +360,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
+    /* width: 24px;
     height: 24px;
     border: 1px solid transparent;
     border-radius: var(--radius-s);
@@ -368,7 +369,7 @@
     cursor: pointer;
     transition: all 0.15s ease;
     font-size: 14px;
-    padding: 0;
+    padding: 0; */
 }
 
 .inline-toggle-btn:hover {
@@ -377,14 +378,14 @@
 }
 
 .inline-toggle-btn.is-active {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border-color: var(--interactive-accent);
+    /* background: var(--interactive-accent); */
+    /* color: var(--text-on-accent); */
+    /* border-color: var(--interactive-accent); */
 }
 
 .inline-toggle-btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+    /* outline: none; */
+    /* box-shadow: 0 0 0 2px var(--interactive-accent-hover); */
 }
 
 /* --- Toolbar Actions --- */
@@ -395,14 +396,14 @@
 }
 
 .toolbar-action {
-    width: 24px;
+    /* width: 24px;
     height: 24px;
     padding: 0;
     border: 1px solid transparent;
     border-radius: var(--radius-s);
     background: transparent;
     color: var(--text-muted);
-    cursor: pointer;
+    cursor: pointer; */
     transition: all 0.15s ease;
     display: flex;
     align-items: center;
@@ -410,13 +411,13 @@
 }
 
 .toolbar-action:hover {
-    background: var(--background-modifier-hover);
-    color: var(--text-normal);
+    /* background: var(--background-modifier-hover);
+    color: var(--text-normal); */
 }
 
 .toolbar-action:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+    /* outline: none; */
+    /* box-shadow: 0 0 0 2px var(--interactive-accent-hover); */
 }
 
 .toolbar-action:disabled {
@@ -453,8 +454,8 @@
 }
 
 .inline-action-btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+    /* outline: none; */
+    /* box-shadow: 0 0 0 2px var(--interactive-accent-hover); */
 }
 
 .inline-action-btn:disabled {
@@ -509,7 +510,7 @@
 }
 
 /* --- Icon Improvements --- */
-.clickable-icon {
+/* .clickable-icon {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -526,12 +527,16 @@
 .clickable-icon:focus {
     outline: none;
     box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+} */
+
+.file-group-header .clickable-icon {
+    padding: var(--size-2-1) var(--size-2-2);
 }
 
 /* --- Input Focus Improvements --- */
 .find-replace-input:focus {
-    border-color: var(--interactive-accent) !important;
-    box-shadow: 0 0 0 2px var(--interactive-accent-hover) !important;
+    /* border-color: var(--interactive-accent) !important; */
+    /* box-shadow: 0 0 0 2px var(--interactive-accent-hover) !important; */
 }
 
 /* --- Legacy Clear Button Removal --- */
@@ -545,9 +550,9 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--size-4-2) var(--size-4-3);
-    background: var(--background-secondary);
-    border-top: 1px solid var(--background-modifier-border);
-    border-radius: 0 0 var(--radius-s) var(--radius-s);
+    /* background: var(--background-secondary); */
+    /* border-top: 1px solid var(--background-modifier-border); */
+    /* border-radius: 0 0 var(--radius-s) var(--radius-s); */
     margin-top: var(--size-4-2);
 }
 
@@ -581,8 +586,8 @@
 }
 
 .bottom-action-btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+    /* outline: none; */
+    /* box-shadow: 0 0 0 2px var(--interactive-accent-hover); */
 }
 
 .bottom-action-btn:disabled {
