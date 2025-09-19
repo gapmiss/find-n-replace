@@ -27,9 +27,11 @@ export class UIRenderer {
      * @param results - Array of search results to render
      * @param replaceText - Current replacement text for preview
      * @param searchOptions - Current search options (for regex replacement preview)
+     * @param totalResults - Total results found (before limiting)
+     * @param isLimited - Whether results are limited
      * @returns Array of line elements for selection management
      */
-    renderResults(results: SearchResult[], replaceText: string, searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean }): HTMLDivElement[] {
+    renderResults(results: SearchResult[], replaceText: string, searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean }, totalResults?: number, isLimited?: boolean): HTMLDivElement[] {
         // Clear previous results
         this.elements.resultsContainer.empty();
         const lineElements: HTMLDivElement[] = [];
@@ -79,7 +81,7 @@ export class UIRenderer {
         });
 
         // Update UI elements with current results
-        this.updateResultsUI(results.length, fileCount);
+        this.updateResultsUI(results.length, fileCount, totalResults, isLimited);
 
         // Clean up saved states for files that no longer exist (run periodically)
         this.cleanupFileGroupStates(Object.keys(resultsByFile));
@@ -319,16 +321,23 @@ export class UIRenderer {
 
     /**
      * Updates UI elements based on current results state
-     * @param resultCount - Number of search results
+     * @param resultCount - Number of search results (displayed)
      * @param fileCount - Number of files containing results
+     * @param totalResults - Total results found (before limiting)
+     * @param isLimited - Whether results are limited
      */
-    updateResultsUI(resultCount: number, fileCount: number = 0): void {
+    updateResultsUI(resultCount: number, fileCount: number = 0, totalResults?: number, isLimited?: boolean): void {
         const hasResults = resultCount > 0;
 
         // Create descriptive text for result count
-        const resultText = hasResults
-            ? `${resultCount} result${resultCount !== 1 ? 's' : ''} in ${fileCount} file${fileCount > 1 ? 's' : ''}`
-            : '0 results';
+        let resultText: string;
+        if (!hasResults) {
+            resultText = '0 results';
+        } else if (isLimited && totalResults) {
+            resultText = `${resultCount} of ${totalResults} result${totalResults !== 1 ? 's' : ''} in ${fileCount} file${fileCount > 1 ? 's' : ''} (limited)`;
+        } else {
+            resultText = `${resultCount} result${resultCount !== 1 ? 's' : ''} in ${fileCount} file${fileCount > 1 ? 's' : ''}`;
+        }
 
         // Update results count display
         this.elements.resultsCountEl?.setText(resultText);

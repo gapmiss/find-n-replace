@@ -28,8 +28,10 @@ export interface FindReplaceElements {
 export interface ViewState {
     isCollapsed: boolean;           // Whether result groups are collapsed
     selectedIndices: Set<number>;   // Selected result indices
-    results: SearchResult[];        // Current search results
+    results: SearchResult[];        // Current search results (limited)
     lineElements: HTMLDivElement[]; // DOM elements for result lines
+    totalResults?: number;          // Total results found (before limiting)
+    isLimited?: boolean;            // Whether results are limited
 }
 
 /**

@@ -330,7 +330,7 @@ export class FindReplaceView extends ItemView {
                     if (query.length > 0) {
                         this.performSearch();
                     }
-                }, 100); // Short debounce to prevent rapid firing
+                }, this.plugin.settings.searchDebounceDelay); // Use settings-based debounce timing
 
                 toggleBtn.addEventListener('click', debouncedToggleSearch);
             }
@@ -397,8 +397,8 @@ export class FindReplaceView extends ItemView {
         });
 
         // Manual search is handled by setupBasicNavigation Enter key handlers
-        // Enable auto-search with result limiting
-        this.setupLimitedAutoSearch();
+        // Enable auto-search
+        this.setupAutoSearch();
     }
 
     /**
@@ -474,8 +474,21 @@ export class FindReplaceView extends ItemView {
 
             this.logger.info(`Search completed: found ${results.length} results for "${query}"`);
 
+            // Apply consistent result limiting based on settings
+            const maxResults = this.plugin.settings.maxResults;
+            let finalResults = results;
+            let isLimited = false;
+
+            if (results.length > maxResults) {
+                finalResults = results.slice(0, maxResults);
+                isLimited = true;
+                this.logger.info(`Results limited to ${maxResults} of ${results.length} total results`);
+            }
+
             // Update state and render results
-            this.state.results = results;
+            this.state.results = finalResults;
+            this.state.totalResults = results.length; // Store total for UI feedback
+            this.state.isLimited = isLimited;
             this.renderResults();
 
             this.logger.timeEnd(timerName);
@@ -505,7 +518,13 @@ export class FindReplaceView extends ItemView {
     private renderResults(): void {
         const replaceText = this.elements.replaceInput.value;
         const searchOptions = this.getSearchOptions();
-        const lineElements = this.uiRenderer.renderResults(this.state.results, replaceText, searchOptions);
+        const lineElements = this.uiRenderer.renderResults(
+            this.state.results,
+            replaceText,
+            searchOptions,
+            this.state.totalResults,
+            this.state.isLimited
+        );
 
         // Update state and set up selection
         this.state.lineElements = lineElements;
@@ -915,58 +934,13 @@ export class FindReplaceView extends ItemView {
                 this.state.results = [];
                 this.selectionManager.reset();
             }
-        }, 300);
+        }, this.plugin.settings.searchDebounceDelay);
 
         this.elements.searchInput.addEventListener("input", debouncedSearch);
     }
 
 
-    /**
-     * Auto-search with result limiting to prevent UI freeze
-     */
-    private setupLimitedAutoSearch(): void {
-        const debouncedLimitedSearch = debounce(async () => {
-            const query = this.elements.searchInput.value.trim();
-            if (query.length > 0) {
-                console.log('Auto-search with limiting for:', query);
-                await this.performLimitedSearch(query);
-            } else {
-                // Clear results if search is empty
-                this.uiRenderer.clearResults();
-                this.state.results = [];
-                this.selectionManager.reset();
-            }
-        }, 300);
 
-        this.elements.searchInput.addEventListener("input", debouncedLimitedSearch);
-    }
-
-    /**
-     * Performs search with result limiting for auto-search
-     */
-    private async performLimitedSearch(query: string): Promise<void> {
-        try {
-            const searchOptions = this.getSearchOptions();
-            const results = await this.searchEngine.performSearch(query, searchOptions);
-
-            console.log(`Found ${results.length} total results`);
-
-            // Limit results to prevent UI freeze
-            const MAX_AUTO_SEARCH_RESULTS = 500;
-            const limitedResults = results.slice(0, MAX_AUTO_SEARCH_RESULTS);
-
-            if (results.length > MAX_AUTO_SEARCH_RESULTS) {
-                console.log(`Limited to ${MAX_AUTO_SEARCH_RESULTS} results for auto-search`);
-            }
-
-            // Update state and render limited results
-            this.state.results = limitedResults;
-            this.renderResults();
-
-        } catch (error) {
-            console.error('Auto-search failed:', error);
-        }
-    }
 
     /**
      * Gets the current state of search options from inline toggles
@@ -1029,7 +1003,10 @@ export class FindReplaceView extends ItemView {
         searchOptions: SearchOptions
     ): Promise<void> {
         try {
+            const originalResultCount = this.state.results.length;
+
             this.logger.debug('Starting incremental result update', {
+                originalResultCount,
                 replacedCount: affectedResults.replacedResultIndices.length,
                 modifiedFiles: affectedResults.modifiedFiles.size,
                 requiresFullRevalidation: affectedResults.requiresFullRevalidation
@@ -1054,8 +1031,39 @@ export class FindReplaceView extends ItemView {
             // Get current search options for revalidation and rendering
             const searchOptions = this.getSearchOptions();
 
+            const resultsBeforeRevalidation = this.state.results.length;
+
             // Re-validate results in modified lines to see if they still match
             await this.revalidateModifiedResults(affectedResults, searchOptions);
+
+            const resultsAfterRevalidation = this.state.results.length;
+            const revalidationRemoved = resultsBeforeRevalidation - resultsAfterRevalidation;
+
+            // Sanity check: warn if we removed significantly more results than expected
+            if (revalidationRemoved > affectedResults.replacedResultIndices.length * 5) {
+                this.logger.warn(`Suspicious result removal detected:`, {
+                    originalCount: originalResultCount,
+                    directlyReplaced: affectedResults.replacedResultIndices.length,
+                    revalidationRemoved,
+                    finalCount: resultsAfterRevalidation,
+                    modifiedFiles: affectedResults.modifiedFiles.size
+                });
+
+                // Consider falling back to full search if removal seems excessive
+                if (revalidationRemoved > affectedResults.replacedResultIndices.length * 10) {
+                    this.logger.warn('Excessive result removal detected, falling back to full search');
+                    await this.performSearch();
+                    return;
+                }
+            }
+
+            this.logger.debug('Incremental update result counts:', {
+                original: originalResultCount,
+                afterDirectRemoval: resultsBeforeRevalidation,
+                afterRevalidation: resultsAfterRevalidation,
+                directlyRemoved: affectedResults.replacedResultIndices.length,
+                revalidationRemoved
+            });
 
             // TODO: Update selection manager to account for removed results
             // this.selectionManager.adjustForRemovedResults(affectedResults.replacedResultIndices);
@@ -1063,7 +1071,13 @@ export class FindReplaceView extends ItemView {
             // TODO: Update UI incrementally instead of full rebuild
             // For now, use existing render method as fallback
             const replaceText = this.elements.replaceInput.value;
-            const lineElements = this.uiRenderer.renderResults(this.state.results, replaceText, searchOptions);
+            const lineElements = this.uiRenderer.renderResults(
+                this.state.results,
+                replaceText,
+                searchOptions,
+                this.state.totalResults,
+                this.state.isLimited
+            );
 
             // Re-setup selection manager with new DOM elements and restore visual state
             this.state.lineElements = lineElements;
@@ -1109,6 +1123,7 @@ export class FindReplaceView extends ItemView {
                 );
 
                 // Re-validate each result
+                let removedCount = 0;
                 for (let i = resultsToCheck.length - 1; i >= 0; i--) {
                     const result = resultsToCheck[i];
                     const lineText = lines[result.line] || '';
@@ -1126,9 +1141,22 @@ export class FindReplaceView extends ItemView {
                             )
                         );
                         if (mainIndex !== -1) {
+                            this.logger.debug(`Removing invalid result after revalidation:`, {
+                                file: result.file.path,
+                                line: result.line,
+                                col: result.col,
+                                originalText: result.matchText,
+                                newLineText: lineText,
+                                mainIndex
+                            });
                             this.state.results.splice(mainIndex, 1);
+                            removedCount++;
                         }
                     }
+                }
+
+                if (removedCount > 0) {
+                    this.logger.debug(`Revalidation removed ${removedCount} results from ${file.path}`);
                 }
 
             } catch (error) {
@@ -1140,6 +1168,7 @@ export class FindReplaceView extends ItemView {
 
     /**
      * Checks if a specific line still contains the search match after replacement
+     * Uses content-based validation instead of strict position matching
      */
     private doesLineStillMatch(
         lineText: string,
@@ -1148,17 +1177,30 @@ export class FindReplaceView extends ItemView {
         searchOptions: SearchOptions,
         query: string
     ): boolean {
+        // For revalidation, we should check if the match content still exists anywhere on the line
+        // rather than requiring exact position match (since positions shift after replacements)
+
         if ((searchOptions.useRegex || searchOptions.wholeWord) && regex) {
-            // Use regex matching
+            // Use regex matching - check if any match exists on the line
             regex.lastIndex = 0; // Reset regex state
-            const match = regex.exec(lineText);
-            return match !== null && match.index === originalResult.col;
+
+            // Find all matches on the line
+            const matches: RegExpExecArray[] = [];
+            let match;
+            while ((match = regex.exec(lineText)) !== null) {
+                matches.push(match);
+                if (!regex.global) break; // Prevent infinite loop for non-global regex
+            }
+
+            // Check if any match has the same content as the original
+            return matches.some(m => m[0] === originalResult.matchText);
         } else {
-            // Use simple string matching
+            // Use simple string matching - check if the exact match text still exists
             const haystack = searchOptions.matchCase ? lineText : lineText.toLowerCase();
-            const needle = searchOptions.matchCase ? query : query.toLowerCase();
-            const index = haystack.indexOf(needle, originalResult.col);
-            return index === originalResult.col;
+            const needle = searchOptions.matchCase ? originalResult.matchText : originalResult.matchText.toLowerCase();
+
+            // Check if the original match text still exists anywhere on the line
+            return haystack.includes(needle);
         }
     }
 
