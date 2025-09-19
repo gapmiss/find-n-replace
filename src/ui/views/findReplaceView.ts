@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, TFile, type App, Notice, setIcon, debounce } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, type App, Notice, setIcon, debounce, Menu } from 'obsidian';
 import { ConfirmModal } from "../../modals";
 import VaultFindReplacePlugin from "../../main";
 import { SearchResult, FindReplaceElements, SearchOptions, ViewState, ReplacementMode, ReplacementTarget, AffectedResults } from '../../types';
@@ -105,11 +105,24 @@ export class FindReplaceView extends ItemView {
         const wholeWordBtn = this.createInlineToggle(searchOptions, 'whole-word', 'whole-word', 'Match Whole Word', 4);
         const regexBtn = this.createInlineToggle(searchOptions, 'regex', 'regex', 'Use Regular Expression', 5);
 
-        // Toolbar actions (clear, settings, etc.)
-        const toolbarActions = searchRow.createDiv('find-replace-toolbar-actions');
+        // Replace input row
+        const replaceRow = searchToolbar.createDiv('find-replace-replace-row');
 
-        // Global clear button
-        const clearAllBtn = toolbarActions.createEl('button', {
+        // Replace input with icon
+        const replaceInputContainer = replaceRow.createDiv('find-replace-input-container');
+        const replaceIcon = replaceInputContainer.createSpan('replace-input-icon');
+        setIcon(replaceIcon, 'replace');
+
+        const replaceInput = replaceInputContainer.createEl('input', {
+            type: 'text',
+            cls: 'find-replace-input',
+            placeholder: 'Replace',
+            attr: { 'tabindex': '2' }
+        }) as HTMLInputElement;
+
+        // Clear button moved to replace row
+        const replaceRowActions = replaceRow.createDiv('find-replace-toolbar-actions');
+        const clearAllBtn = replaceRowActions.createEl('button', {
             cls: 'inline-toggle-btn toolbar-action clickable-icon',
             attr: {
                 'aria-label': 'Clear Search',
@@ -137,35 +150,9 @@ export class FindReplaceView extends ItemView {
             }
         });
 
-        // Replace input row
-        const replaceRow = searchToolbar.createDiv('find-replace-replace-row');
-
-        // Replace input with icon
-        const replaceInputContainer = replaceRow.createDiv('find-replace-input-container');
-        const replaceIcon = replaceInputContainer.createSpan('replace-input-icon');
-        setIcon(replaceIcon, 'replace');
-
-        const replaceInput = replaceInputContainer.createEl('input', {
-            type: 'text',
-            cls: 'find-replace-input',
-            placeholder: 'Replace',
-            attr: { 'tabindex': '2' }
-        }) as HTMLInputElement;
-
         // === RESULTS CONTAINER ===
         // Container where all search results will be displayed
         const resultsContainer = this.containerEl.createDiv('find-replace-results');
-
-        // Global replace all button (appears in toolbar when results exist)
-        const replaceAllVaultBtn = toolbarActions.createEl('button', {
-            cls: 'inline-toggle-btn toolbar-action clickable-icon',
-            attr: {
-                'disabled': true, // Start disabled (no results)
-                'aria-label': 'Replace All in Vault'
-            }
-        });
-        setIcon(replaceAllVaultBtn, 'replace-all');
-        replaceAllVaultBtn.style.display = 'none'; // Hidden until results exist
 
         // === ADAPTIVE RESULTS TOOLBAR ===
         // Contextual toolbar section that appears when results exist (integrated into searchToolbar)
@@ -187,24 +174,40 @@ export class FindReplaceView extends ItemView {
         // Action buttons container
         const adaptiveActions = adaptiveToolbar.createDiv('adaptive-action-buttons');
 
-        // Replace selected button (shows when items are selected)
-        const replaceSelectedBtn = adaptiveActions.createEl('button', {
-            cls: 'adaptive-action-btn clickable-icon hidden',
+        // Selection count gap element for mobile spacing
+        const actionGap = adaptiveActions.createDiv('adaptive-action-gap');
+
+        // Ellipsis menu container for replace actions
+        const ellipsisMenuContainer = adaptiveActions.createDiv('ellipsis-menu-container');
+
+        // Ellipsis menu button using Obsidian's Menu class
+        const ellipsisMenuBtn = ellipsisMenuContainer.createEl('button', {
+            cls: 'adaptive-action-btn clickable-icon ellipsis-menu-btn',
             attr: {
-                'disabled': true, // Start disabled (no selections)
-                'aria-label': 'Replace selected matches',
+                'disabled': true, // Start disabled (no results)
+                'aria-label': 'Replace actions menu',
                 'tabindex': '7'
+            }
+        });
+        setIcon(ellipsisMenuBtn, 'more-horizontal');
+
+        // Keep direct action buttons for desktop (will be hidden on mobile via CSS)
+        const replaceSelectedBtn = adaptiveActions.createEl('button', {
+            cls: 'adaptive-action-btn clickable-icon desktop-only hidden',
+            attr: {
+                'disabled': true,
+                'aria-label': 'Replace selected matches',
+                'tabindex': '8'
             }
         });
         setIcon(replaceSelectedBtn, 'check-circle');
 
-        // Replace all in vault button
         const replaceAllVaultBtnBottom = adaptiveActions.createEl('button', {
-            cls: 'adaptive-action-btn clickable-icon adaptive-action-btn-primary',
+            cls: 'adaptive-action-btn clickable-icon adaptive-action-btn-primary desktop-only',
             attr: {
-                'disabled': true, // Start disabled (no results)
+                'disabled': true,
                 'aria-label': 'Replace all in vault',
-                'tabindex': '8'
+                'tabindex': '9'
             }
         });
         setIcon(replaceAllVaultBtnBottom, 'vault');
@@ -214,10 +217,45 @@ export class FindReplaceView extends ItemView {
             cls: 'adaptive-action-btn clickable-icon hidden',
             attr: {
                 'aria-label': 'Expand all',
-                'tabindex': '9'
+                'tabindex': '10'
             }
         });
         setIcon(expandCollapseBtn, 'copy-plus'); // Set initial icon to "expand" since we start collapsed
+
+        // Add Obsidian Menu functionality
+        ellipsisMenuBtn.addEventListener('click', (e: MouseEvent) => {
+            e.stopPropagation();
+            const menu = new Menu();
+
+            // Add "Replace Selected" menu item
+            menu.addItem((item) => {
+                item.setTitle('Replace Selected')
+                    .setIcon('check-circle')
+                    .setDisabled(this.selectionManager.getSelectedIndices().size === 0)
+                    .onClick(async () => {
+                        try {
+                            await this.replaceSelectedMatches();
+                        } catch (error) {
+                            this.logger.error('Replace selected menu item error', error, true);
+                        }
+                    });
+            });
+
+            // Add "Replace All in Vault" menu item
+            menu.addItem((item) => {
+                item.setTitle('Replace All in Vault')
+                    .setIcon('vault')
+                    .onClick(async () => {
+                        try {
+                            await this.replaceAllInVault();
+                        } catch (error) {
+                            this.logger.error('Replace all vault menu item error', error, true);
+                        }
+                    });
+            });
+
+            menu.showAtMouseEvent(e);
+        });
 
         // Handle tab navigation from last adaptive button to results
         expandCollapseBtn.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -242,12 +280,13 @@ export class FindReplaceView extends ItemView {
             resultsContainer,
             selectedCountEl,
             replaceSelectedBtn: replaceSelectedBtn as HTMLButtonElement,
-            replaceAllVaultBtn: replaceAllVaultBtn as HTMLButtonElement,
+            replaceAllVaultBtn: replaceAllVaultBtnBottom as HTMLButtonElement, // Use adaptive toolbar button as primary
             toolbarBtn: expandCollapseBtn as HTMLButtonElement, // Now in adaptive toolbar
             resultsCountEl,
             clearAllBtn, // Global clear button
             replaceAllVaultBtnBottom: replaceAllVaultBtnBottom as HTMLButtonElement, // Adaptive toolbar duplicate
-            adaptiveToolbar // Contextual results toolbar
+            adaptiveToolbar, // Contextual results toolbar
+            ellipsisMenuBtn: ellipsisMenuBtn as HTMLButtonElement
         };
 
         // Initialize remaining components now that we have UI elements
@@ -395,6 +434,8 @@ export class FindReplaceView extends ItemView {
                 this.logger.error('Replace all vault bottom button error', error, true);
             }
         });
+
+        // Menu event handlers are now handled by Obsidian's Menu class directly in the click handler
 
         // Set up result click handlers (delegated)
         this.registerDomEvent(this.elements.resultsContainer, 'click', async (e) => {

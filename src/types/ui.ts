@@ -19,6 +19,7 @@ export interface FindReplaceElements {
     clearAllBtn: HTMLButtonElement; // Global clear button
     replaceAllVaultBtnBottom: HTMLButtonElement; // Adaptive toolbar duplicate
     adaptiveToolbar: HTMLElement; // Contextual results toolbar
+    ellipsisMenuBtn: HTMLButtonElement; // Ellipsis menu trigger button (uses Obsidian Menu class)
 }
 
 /**

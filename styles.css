@@ -421,8 +421,102 @@
     border-color: var(--background-modifier-border);
 }
 
-/* --- Responsive Design --- */
-@media (max-width: 768px) {
+/* --- Ellipsis Menu Styles --- */
+.ellipsis-menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+.ellipsis-menu-btn {
+    position: relative;
+}
+
+/* Vanilla dropdown styles removed - now using Obsidian's Menu class */
+
+/* --- Gap element for mobile spacing --- */
+.adaptive-action-gap {
+    flex: 1;
+    min-width: 8px;
+}
+
+/* --- Desktop/Mobile Layout Control --- */
+.desktop-only {
+    display: none !important; /* Always hidden - using ellipsis menu instead */
+}
+
+/* --- Enhanced Responsive Design --- */
+/* Mobile phones - 480px and below */
+@media (max-width: 480px) {
+    .find-replace-search-toolbar {
+        padding: var(--size-4-1);
+    }
+
+    .find-replace-search-row {
+        flex-wrap: wrap;
+        gap: var(--size-4-1);
+    }
+
+    .find-replace-replace-row {
+        flex-wrap: wrap;
+        gap: var(--size-4-1);
+    }
+
+    .find-replace-input-container {
+        min-width: 180px;
+        flex: 1;
+    }
+
+    .find-replace-inline-options {
+        order: 3;
+        width: 100%;
+        justify-content: space-around;
+        padding: var(--size-4-1) 0;
+        border-top: 1px solid var(--background-modifier-border);
+        margin-top: var(--size-4-1);
+    }
+
+    .find-replace-toolbar-actions {
+        order: 2;
+        min-width: auto;
+    }
+
+    /* Hide desktop action buttons, show ellipsis menu */
+    .desktop-only {
+        display: none !important;
+    }
+
+    .ellipsis-menu-container {
+        display: flex;
+    }
+
+    /* Larger touch targets for mobile */
+    .inline-toggle-btn,
+    .adaptive-action-btn {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px;
+    }
+
+    /* Stack adaptive toolbar vertically on very small screens */
+    .find-replace-adaptive-toolbar {
+        flex-direction: column;
+        gap: var(--size-4-1);
+        text-align: center;
+    }
+
+    .adaptive-results-summary {
+        justify-content: center;
+    }
+
+    .adaptive-action-buttons {
+        justify-content: center;
+    }
+
+    /* Mobile menu adjustments no longer needed - Obsidian Menu handles this automatically */
+}
+
+/* Tablets and narrow desktop - 481px to 768px */
+@media (max-width: 768px) and (min-width: 481px) {
     .find-replace-search-row {
         flex-wrap: wrap;
     }
@@ -441,6 +535,31 @@
 
     .find-replace-toolbar-actions {
         order: 2;
+    }
+
+    /* Show ellipsis menu only on tablets for cleaner layout */
+    .desktop-only {
+        display: none;
+    }
+
+    .ellipsis-menu-container {
+        display: flex;
+    }
+}
+
+/* Wide desktop - 769px and above */
+@media (min-width: 769px) {
+    /* Always show ellipsis menu, never show desktop buttons */
+    .ellipsis-menu-container {
+        display: flex;
+    }
+
+    .desktop-only {
+        display: none !important; /* Always hidden */
+    }
+
+    .adaptive-action-gap {
+        display: block; /* Keep gap for proper spacing */
     }
 }
 
@@ -569,28 +688,4 @@
     border-color: transparent;
 }
 
-/* --- Mobile Responsive Adaptive Toolbar --- */
-@media (max-width: 768px) {
-    .find-replace-adaptive-toolbar {
-        flex-direction: column;
-        gap: var(--size-4-2);
-        align-items: stretch;
-        text-align: center;
-    }
-
-    .adaptive-results-summary {
-        justify-content: center;
-        flex: none;
-    }
-
-    .adaptive-action-buttons {
-        justify-content: center;
-        width: 100%;
-    }
-
-    .adaptive-action-btn {
-        width: 32px;
-        height: 32px;
-        flex: none;
-    }
-}
+/* Mobile responsive styles are now handled above in the enhanced responsive design section */

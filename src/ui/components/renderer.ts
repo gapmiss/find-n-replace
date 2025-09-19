@@ -356,6 +356,9 @@ export class UIRenderer {
         this.elements.replaceAllVaultBtn?.toggleAttribute('disabled', !hasResults);
         this.elements.replaceAllVaultBtnBottom?.toggleAttribute('disabled', !hasResults);
 
+        // Enable/disable ellipsis menu button based on results (Menu items are handled dynamically)
+        this.elements.ellipsisMenuBtn?.toggleAttribute('disabled', !hasResults);
+
         // Show/hide adaptive toolbar based on whether we have results
         this.elements.adaptiveToolbar?.classList.toggle('hidden', !hasResults);
     }

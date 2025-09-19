@@ -134,6 +134,8 @@ export class SelectionManager {
             this.elements.replaceSelectedBtn.toggleAttribute('disabled', !hasSelections);
             this.elements.replaceSelectedBtn.classList.toggle('hidden', !hasSelections);
         }
+
+        // Menu items are dynamically enabled/disabled when menu is created (no longer needed)
     }
 
     /**

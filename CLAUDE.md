@@ -355,6 +355,72 @@ src/
   - **Clean Development:** No more console spam during normal development work
   - **User-Friendly Defaults:** Plugin ships with clean console experience
 
+#### 16. **Mobile-First UI Redesign with Universal Ellipsis Menu** (UX Enhancement & Code Consolidation)
+- **Goal:** Improve mobile responsiveness and consolidate replace actions into cleaner, universal UI
+- **Problem:** Toolbar layout cramped on mobile devices with separate action buttons cluttering interface
+- **Solution Implementation:**
+  - **Layout Reorganization:** Moved clear button from search row to replace row for better visual balance
+  - **Action Consolidation:** Replaced individual "Replace Selected" and "Replace All in Vault" buttons with single ellipsis menu
+  - **Progressive Responsive Design:** 3-tier breakpoints (480px mobile, 768px tablet, 769px+ desktop)
+  - **Universal Interface:** Ellipsis menu used on ALL platforms instead of mobile-only approach
+- **Technical Implementation:**
+  - **Enhanced CSS:** Complete responsive redesign with mobile-first approach
+    - 480px breakpoint: Aggressive mobile optimization with touch targets (44px minimum)
+    - 768px breakpoint: Tablet layout with improved spacing
+    - All breakpoints: Ellipsis menu as primary interface (no desktop-only buttons)
+  - **Layout Structure Changes:**
+    ```
+    BEFORE: [find] [options] [clear] → [replace] → [results] [selected] [replace selected] [replace all] [expand]
+    AFTER:  [find] [options] → [replace] [clear] → [results] [selected] ← gap → [⋯ menu] [expand]
+    ```
+  - **Space Efficiency:** Reduced toolbar footprint while maintaining full functionality
+- **User Experience:**
+  - **Mobile Users:** Touch-optimized interface with larger targets and cleaner layout
+  - **Desktop Users:** Consolidated actions reduce visual clutter while maintaining functionality
+  - **Universal Design:** Consistent experience across all device sizes
+- **File Changes:**
+  - `src/ui/views/findReplaceView.ts` (toolbar reorganization, ellipsis menu implementation)
+  - `styles.css` (comprehensive responsive CSS overhaul with 3-tier breakpoints)
+  - `src/types/ui.ts` (interface updates for new button structure)
+
+#### 17. **Native Obsidian Menu Integration** (Platform Integration & Code Quality)
+- **Problem:** Vanilla dropdown menu implementation didn't match Obsidian's design patterns and required manual styling/behavior
+- **Solution:** Complete replacement with Obsidian's built-in `Menu` class for native integration
+- **Technical Implementation:**
+  - **Menu Class Integration:** Replaced 80+ lines of vanilla dropdown CSS and DOM manipulation with native Menu API
+  - **Dynamic State Management:** Menu items created fresh on each click with current selection state
+    ```typescript
+    const menu = new Menu();
+    menu.addItem((item) => {
+        item.setTitle('Replace Selected')
+            .setIcon('check-circle')
+            .setDisabled(this.selectionManager.getSelectedIndices().size === 0)
+            .onClick(async () => await this.replaceSelectedMatches());
+    });
+    menu.showAtMouseEvent(e);
+    ```
+  - **Event Handler Cleanup:** Removed manual document click listeners and menu state management
+  - **CSS Cleanup:** Eliminated custom dropdown styling (handled automatically by Obsidian)
+- **User Benefits:**
+  - **Native Styling:** Menu automatically matches user's current Obsidian theme
+  - **Keyboard Navigation:** Arrow keys, Enter, Escape work automatically with Obsidian's focus management
+  - **Smart Positioning:** Menu automatically repositions to avoid screen edges
+  - **Accessibility:** Full screen reader support and ARIA compliance built-in
+- **Developer Benefits:**
+  - **Code Reduction:** Removed ~120 lines of vanilla dropdown implementation
+  - **Maintenance:** No custom CSS to maintain across theme updates
+  - **Consistency:** Follows Obsidian's established patterns and conventions
+  - **Reliability:** Leverages Obsidian's robust, tested menu infrastructure
+- **File Changes:**
+  - `src/ui/views/findReplaceView.ts` (Menu class integration, event handler cleanup)
+  - `src/types/ui.ts` (removed vanilla menu element references)
+  - `src/ui/components/selectionManager.ts` (simplified state management)
+  - `src/ui/components/renderer.ts` (removed manual menu item state handling)
+  - `styles.css` (removed 40+ lines of vanilla dropdown CSS)
+- **Bug Fixes:**
+  - **JavaScript Error Resolution:** Clean rebuild eliminated stale `ellipsisMenu is not defined` references
+  - **State Synchronization:** Menu items now properly reflect current selection state on every open
+
 ## Development Guidelines
 
 ### Code Quality Standards
