@@ -292,6 +292,35 @@ src/
   - **Self-Service Support:** Comprehensive troubleshooting reduces support burden
   - **Contributor Enablement:** Architecture documentation facilitates community contributions
 
+#### 13. **Test Vault Generator** (Development Tool)
+- **Purpose:** Comprehensive testing infrastructure for Find & Replace functionality
+- **Implementation:** Standalone HTML file generating 5000 diverse markdown files
+- **Features:**
+  - **Content Diversity:** 3x expanded template arrays with realistic technical content
+  - **Cross-File Links:** Wikilinks `[[filename]]` referencing actual generated files
+  - **External URLs:** Real documentation links to MDN, React, AWS, Node.js, etc.
+  - **Multiple Patterns:** TODO items, regex patterns, code snippets, dates, emails
+  - **Programming Languages:** JavaScript, TypeScript, Python, Rust, Go, SQL examples
+- **Usage:** Open `tests/test-vault-generator.html` in browser, click generate, get ZIP file
+- **Benefits:** Realistic test environment with interconnected files for comprehensive plugin testing
+
+#### 14. **AbortController Null Reference Fix** (Critical Bug Fix)
+- **Problem:** `TypeError: Cannot read properties of null (reading 'signal')` during rapid typing
+- **Root Cause:** Search cancellation set `currentSearchController = null` but code still accessed `.signal`
+- **Solution:** Create new AbortController immediately after cancelling instead of nullification
+- **Technical Fix:**
+  ```typescript
+  // Before (buggy):
+  this.currentSearchController.abort();
+  this.currentSearchController = null;  // ❌ Caused null reference
+
+  // After (fixed):
+  this.currentSearchController.abort();
+  this.currentSearchController = new AbortController();  // ✅ Always valid
+  ```
+- **Impact:** Eliminates JavaScript errors while preserving all search concurrency controls
+- **File Changed:** `src/ui/views/findReplaceView.ts` (lines 435-439)
+
 ## Development Guidelines
 
 ### Code Quality Standards
