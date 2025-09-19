@@ -234,7 +234,7 @@ export class SelectionManager {
         const newSelection = new Set<number>();
 
         // For each selected index, calculate its new position after removals
-        for (const selectedIndex of this.selectedIndices) {
+        for (const selectedIndex of Array.from(this.selectedIndices)) {
             // Count how many indices were removed before this selected index
             const removedBeforeCount = removedIndices.filter(removedIndex => removedIndex < selectedIndex).length;
 

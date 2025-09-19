@@ -93,7 +93,7 @@ export class SearchEngine {
 
                     if ((options.useRegex || options.wholeWord) && regex) {
                         // Use regex matching for regex mode or whole word mode
-                        for (const m of lineText.matchAll(regex)) {
+                        for (const m of Array.from(lineText.matchAll(regex))) {
                             if (!m[0]) continue; // Skip empty matches
                             results.push({
                                 file,

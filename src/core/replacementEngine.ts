@@ -68,7 +68,7 @@ export class ReplacementEngine {
 
             case "selected": {
                 // Replace all user-selected matches
-                for (const idx of selectedIndices) {
+                for (const idx of Array.from(selectedIndices)) {
                     const res = results[idx];
                     if (!grouped.has(res.file)) grouped.set(res.file, []);
                     grouped.get(res.file)!.push(res);
@@ -117,7 +117,7 @@ export class ReplacementEngine {
         let total = 0;
         const errors: string[] = [];
 
-        for (const [file, matches] of grouped) {
+        for (const [file, matches] of Array.from(grouped)) {
             try {
                 const replaceAllInFile = mode === "file" || mode === "vault";
                 await this.applyReplacements(file, matches, replaceText, searchOptions, replaceAllInFile);

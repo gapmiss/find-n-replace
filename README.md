@@ -192,11 +192,12 @@ Result: Replace multiple consecutive spaces with single space
 - Search operation serialization to prevent concurrency issues
 
 ### UI Components
-- **Search Input**: Debounced input with validation
-- **Options Toggles**: Inline toggle buttons for search options
-- **Results Container**: Virtualized result display with file grouping
-- **Selection Manager**: Multi-selection state management
-- **Adaptive Toolbar**: Context-sensitive action buttons
+- **Search Toolbar**: UI creation and layout management with toggle button states
+- **Action Handler**: Event processing and replace operation coordination
+- **Search Controller**: Search execution, state management, and result processing
+- **Results Renderer**: Virtualized result display with file grouping
+- **Selection Manager**: Multi-selection state management with keyboard navigation
+- **Adaptive Toolbar**: Context-sensitive action buttons with ellipsis menu
 
 ### State Management
 - Centralized view state with immutable updates

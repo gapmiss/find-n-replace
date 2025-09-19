@@ -28,9 +28,12 @@ src/
 │   └── fileOperations.ts   # File system operations and navigation
 ├── ui/                 # User interface layer
 │   ├── views/
-│   │   └── findReplaceView.ts # Main plugin view (732 lines)
+│   │   └── findReplaceView.ts # Main plugin coordinator (~800 lines)
 │   └── components/
-│       ├── renderer.ts      # UI rendering and DOM manipulation
+│       ├── searchToolbar.ts   # UI creation and layout (358 lines)
+│       ├── actionHandler.ts   # Event handling and replace operations (300+ lines)
+│       ├── searchController.ts # Search logic and state management (285 lines)
+│       ├── renderer.ts        # UI rendering and DOM manipulation
 │       ├── selectionManager.ts # Multi-selection functionality
 │       └── navigationHandler.ts # Keyboard navigation
 ├── types/              # TypeScript type definitions
@@ -420,6 +423,68 @@ src/
 - **Bug Fixes:**
   - **JavaScript Error Resolution:** Clean rebuild eliminated stale `ellipsisMenu is not defined` references
   - **State Synchronization:** Menu items now properly reflect current selection state on every open
+
+#### 18. **Major Architecture Refactoring: Component Extraction** (Code Quality & Maintainability)
+- **Problem:** Monolithic `findReplaceView.ts` file had grown to 1,511 lines, making maintenance difficult
+- **Goal:** Extract focused components with clear separation of concerns while maintaining all functionality
+- **Refactoring Strategy:**
+  - **Phase 1:** Extract UI creation logic → `SearchToolbar` component (358 lines)
+  - **Phase 2:** Extract event handling → `ActionHandler` component (300+ lines)
+  - **Phase 3:** Extract search logic → `SearchController` component (285 lines)
+  - **Phase 4:** Clean up main view as coordinator (~800 lines)
+- **Technical Implementation:**
+  - **SearchToolbar:** Creates all UI elements (search input, replace input, toggle buttons, adaptive toolbar)
+    - Handles toggle button visual states with proper aria-pressed and is-active class management
+    - Manages ellipsis menu with Obsidian's native Menu class
+    - Sets up keyboard navigation handlers
+  - **ActionHandler:** Manages all event handling and replace operations
+    - Toggle button click handling with debounced search triggering
+    - Clear button functionality with toggle state reset
+    - Replace operations (selected matches, all in vault) with proper state callbacks
+    - Keyboard shortcuts (Ctrl+Enter, Alt+Enter)
+  - **SearchController:** Centralizes search logic and state management
+    - Complete search execution with cancellation and race condition prevention
+    - Search option management with frozen state during execution
+    - Auto-search and manual search with proper debouncing
+    - Search validation and error handling
+  - **Dependency Injection:** Components communicate through callbacks and interfaces
+    - State access callbacks for current results and selected indices
+    - UI update callbacks for rendering and clearing results
+    - Event delegation for expand/collapse functionality
+- **Component Architecture:**
+  ```
+  FindReplaceView (coordinator) ~800 lines
+  ├── SearchToolbar (UI creation) 358 lines
+  ├── ActionHandler (event handling) 300+ lines
+  ├── SearchController (search logic) 285 lines
+  ├── UIRenderer (results rendering)
+  └── SelectionManager (multi-selection)
+  ```
+- **Functionality Preservation:**
+  - ✅ All toggle buttons work with visual feedback
+  - ✅ Expand/collapse functionality maintained
+  - ✅ Clear button resets all toggle states
+  - ✅ Search and replace operations unchanged
+  - ✅ Keyboard navigation and accessibility preserved
+  - ✅ Mobile responsiveness maintained
+- **Bug Fixes During Refactoring:**
+  - **Toggle Button Visual States:** Fixed missing CSS styling for active states
+  - **ES5 Iteration Compatibility:** Fixed Set/Map iteration for older JavaScript targets
+  - **Event Handler Conflicts:** Resolved multiple event handlers on same elements
+  - **State Management:** Proper callback injection for component communication
+- **Developer Benefits:**
+  - **Maintainability:** Components can be modified independently
+  - **Testability:** Each component has focused responsibilities
+  - **Debugging:** Easier to isolate issues to specific functionality
+  - **Extensibility:** New features can be added to appropriate components
+- **File Changes:**
+  - `src/ui/components/searchToolbar.ts` (NEW FILE - 358 lines)
+  - `src/ui/components/actionHandler.ts` (NEW FILE - 300+ lines)
+  - `src/ui/components/searchController.ts` (NEW FILE - 285 lines)
+  - `src/ui/views/findReplaceView.ts` (reduced from 1,511 to ~800 lines)
+  - `src/ui/components/index.ts` (updated exports)
+  - `styles.css` (fixed toggle button active state styling)
+- **Result:** Clean, maintainable architecture with focused components while preserving 100% of functionality
 
 ## Development Guidelines
 

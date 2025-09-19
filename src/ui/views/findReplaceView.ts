@@ -3,8 +3,9 @@ import { ConfirmModal } from "../../modals";
 import VaultFindReplacePlugin from "../../main";
 import { SearchResult, FindReplaceElements, SearchOptions, ViewState, ReplacementMode, ReplacementTarget, AffectedResults } from '../../types';
 import { SearchEngine, ReplacementEngine, FileOperations } from '../../core';
-import { UIRenderer, SelectionManager } from '../components';
+import { UIRenderer, SelectionManager, SearchController } from '../components';
 import { SearchToolbar } from '../components/searchToolbar';
+import { ActionHandler } from '../components/actionHandler';
 import { Logger, safeQuerySelector, isNotNull } from '../../utils';
 
 // Define the unique identifier for this view type - used by Obsidian to track and manage this view
@@ -22,6 +23,8 @@ export class FindReplaceView extends ItemView {
     private selectionManager: SelectionManager;
     private fileOperations: FileOperations;
     private searchToolbar: SearchToolbar;
+    private actionHandler: ActionHandler;
+    private searchController: SearchController;
 
     // UI Element references
     private elements: FindReplaceElements;
@@ -35,9 +38,7 @@ export class FindReplaceView extends ItemView {
     // Logger instance
     private logger: Logger;
 
-    // Search state management
-    private currentSearchController: AbortController | null = null;
-    private isSearching: boolean = false;
+    // Search state management is now handled by SearchController
 
     /**
      * Constructor - initializes the view with required Obsidian components
@@ -94,233 +95,93 @@ export class FindReplaceView extends ItemView {
         // Create search input row using SearchToolbar
         const searchElements = this.searchToolbar.createSearchInputRow(searchToolbar);
 
-        // Replace input row
-        const replaceRow = searchToolbar.createDiv('find-replace-replace-row');
-
-        // Replace input with icon
-        const replaceInputContainer = replaceRow.createDiv('find-replace-input-container');
-        const replaceIcon = replaceInputContainer.createSpan('replace-input-icon');
-        setIcon(replaceIcon, 'replace');
-
-        const replaceInput = replaceInputContainer.createEl('input', {
-            type: 'text',
-            cls: 'find-replace-input',
-            placeholder: 'Replace',
-            attr: { 'tabindex': '2' }
-        }) as HTMLInputElement;
-
-        // Clear button moved to replace row
-        const replaceRowActions = replaceRow.createDiv('find-replace-toolbar-actions');
-        const clearAllBtn = replaceRowActions.createEl('button', {
-            cls: 'inline-toggle-btn toolbar-action clickable-icon',
-            attr: {
-                'aria-label': 'Clear Search',
-                'tabindex': '6'
-            }
-        });
-        setIcon(clearAllBtn, 'search-x');
-
-        // Handle tab navigation from clear button to adaptive toolbar
-        clearAllBtn.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key === 'Tab' && !e.shiftKey) {
-                // Tab forward to first adaptive toolbar button (if visible), then to results
-                const firstAdaptiveButton = this.elements.adaptiveToolbar.querySelector('.adaptive-action-btn:not(.hidden)') as HTMLElement;
-                if (firstAdaptiveButton) {
-                    e.preventDefault();
-                    firstAdaptiveButton.focus();
-                } else {
-                    // If no adaptive toolbar visible, go to first result
-                    const firstFocusableResult = this.elements.resultsContainer.querySelector('.snippet, [role="button"]') as HTMLElement;
-                    if (firstFocusableResult) {
-                        e.preventDefault();
-                        firstFocusableResult.focus();
-                    }
-                }
-            }
-        });
+        // Create replace input row using SearchToolbar
+        const replaceElements = this.searchToolbar.createReplaceInputRow(searchToolbar);
 
         // === RESULTS CONTAINER ===
         // Container where all search results will be displayed
-        const resultsContainer = this.containerEl.createDiv('find-replace-results');
+        const resultsContainer = this.searchToolbar.createResultsContainer(this.containerEl);
 
         // === ADAPTIVE RESULTS TOOLBAR ===
-        // Contextual toolbar section that appears when results exist (integrated into searchToolbar)
-        const adaptiveToolbar = searchToolbar.createDiv('find-replace-adaptive-toolbar hidden');
+        // Create adaptive toolbar using SearchToolbar
+        const adaptiveElements = this.searchToolbar.createAdaptiveToolbar(searchToolbar);
 
-        // Results summary and count
-        const resultsSummary = adaptiveToolbar.createDiv('adaptive-results-summary');
-        const resultsCountEl = resultsSummary.createEl('span', {
-            cls: 'adaptive-results-count',
-            text: '0 results'
-        });
+        // Set up clear button navigation using SearchToolbar
+        this.searchToolbar.setupClearButtonNavigation(replaceElements.clearAllBtn, adaptiveElements.adaptiveToolbar, resultsContainer);
 
-        // Selection status (shows when items are selected)
-        const selectedCountEl = resultsSummary.createEl('span', {
-            cls: 'adaptive-selected-count hidden',
-            text: '• 0 selected'
-        });
-
-        // Action buttons container
-        const adaptiveActions = adaptiveToolbar.createDiv('adaptive-action-buttons');
-
-        // Selection count gap element for mobile spacing
-        const actionGap = adaptiveActions.createDiv('adaptive-action-gap');
-
-        // Ellipsis menu container for replace actions
-        const ellipsisMenuContainer = adaptiveActions.createDiv('ellipsis-menu-container');
-
-        // Ellipsis menu button using Obsidian's Menu class
-        const ellipsisMenuBtn = ellipsisMenuContainer.createEl('button', {
-            cls: 'adaptive-action-btn clickable-icon ellipsis-menu-btn',
-            attr: {
-                'disabled': true, // Start disabled (no results)
-                'aria-label': 'Replace actions menu',
-                'tabindex': '7'
-            }
-        });
-        setIcon(ellipsisMenuBtn, 'more-horizontal');
-
-        // // Keep direct action buttons for desktop (will be hidden on mobile via CSS)
-        // const replaceSelectedBtn = adaptiveActions.createEl('button', {
-        //     cls: 'adaptive-action-btn clickable-icon desktop-only hidden',
-        //     attr: {
-        //         'disabled': true,
-        //         'aria-label': 'Replace selected matches',
-        //         'tabindex': '8'
-        //     }
-        // });
-        // setIcon(replaceSelectedBtn, 'check-circle');
-
-        // const replaceAllVaultBtnBottom = adaptiveActions.createEl('button', {
-        //     cls: 'adaptive-action-btn clickable-icon adaptive-action-btn-primary desktop-only',
-        //     attr: {
-        //         'disabled': true,
-        //         'aria-label': 'Replace all in vault',
-        //         'tabindex': '9'
-        //     }
-        // });
-        // setIcon(replaceAllVaultBtnBottom, 'vault');
-
-        // Move expand/collapse button to adaptive toolbar
-        const expandCollapseBtn = adaptiveActions.createEl('button', {
-            cls: 'adaptive-action-btn clickable-icon hidden',
-            attr: {
-                'aria-label': 'Expand all',
-                'tabindex': '10'
-            }
-        });
-        setIcon(expandCollapseBtn, 'copy-plus'); // Set initial icon to "expand" since we start collapsed
-
-        // Create menu function for both mouse and keyboard events
-        const showEllipsisMenu = (e: MouseEvent | KeyboardEvent) => {
-            e.stopPropagation();
-            const menu = new Menu();
-
-            // Add "Replace Selected" menu item
-            menu.addItem((item) => {
-                item.setTitle('Replace Selected')
-                    .setIcon('replace')
-                    .setDisabled(this.selectionManager.getSelectedIndices().size === 0)
-                    .onClick(async () => {
-                        try {
-                            await this.replaceSelectedMatches();
-                        } catch (error) {
-                            this.logger.error('Replace selected menu item error', error, true);
-                        }
-                    });
-            });
-
-            // Add "Replace All in Vault" menu item
-            menu.addItem((item) => {
-                item.setTitle('Replace All in Vault')
-                    .setIcon('replace-all')
-                    .onClick(async () => {
-                        try {
-                            await this.replaceAllInVault();
-                        } catch (error) {
-                            this.logger.error('Replace all vault menu item error', error, true);
-                        }
-                    });
-            });
-
-            // Show menu at proper position based on event type
-            if (e instanceof MouseEvent) {
-                menu.showAtMouseEvent(e);
-            } else {
-                // For keyboard events, show at button position
-                const rect = ellipsisMenuBtn.getBoundingClientRect();
-                menu.showAtPosition({ x: rect.left, y: rect.bottom });
-            }
-        };
-
-        // Add mouse click handler
-        ellipsisMenuBtn.addEventListener('click', showEllipsisMenu);
-
-        // Add keyboard handler for Space and Enter
-        ellipsisMenuBtn.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                showEllipsisMenu(e);
-            }
-        });
-
-        // Add custom event listeners for keyboard shortcuts
-        ellipsisMenuBtn.addEventListener('replace-all-vault', async () => {
-            try {
-                await this.replaceAllInVault();
-            } catch (error) {
-                this.logger.error('Replace all vault keyboard shortcut error', error, true);
-            }
-        });
-
-        ellipsisMenuBtn.addEventListener('replace-selected', async () => {
-            try {
-                await this.replaceSelectedMatches();
-            } catch (error) {
-                this.logger.error('Replace selected keyboard shortcut error', error, true);
-            }
-        });
-
-        // Handle tab navigation from last adaptive button to results
-        expandCollapseBtn.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key === 'Tab' && !e.shiftKey) {
-                // Tab forward to first result
-                const firstFocusableResult = this.elements.resultsContainer.querySelector('.snippet, [role="button"]') as HTMLElement;
-                if (firstFocusableResult) {
-                    e.preventDefault();
-                    firstFocusableResult.focus();
-                }
-            }
-        });
+        // Set up expand/collapse button navigation using SearchToolbar
+        this.searchToolbar.setupExpandCollapseNavigation(adaptiveElements.toolbarBtn, resultsContainer);
 
         // Store UI elements for component access
         this.elements = {
             containerEl: this.containerEl,
             searchInput: searchElements.searchInput,
-            replaceInput,
+            replaceInput: replaceElements.replaceInput,
             matchCaseCheckbox: searchElements.matchCaseBtn,
             wholeWordCheckbox: searchElements.wholeWordBtn,
             regexCheckbox: searchElements.regexBtn,
             resultsContainer,
-            selectedCountEl,
-            // replaceSelectedBtn: replaceSelectedBtn as HTMLButtonElement,
-            // replaceAllVaultBtn: replaceAllVaultBtnBottom as HTMLButtonElement, // Use adaptive toolbar button as primary
-            toolbarBtn: expandCollapseBtn as HTMLButtonElement, // Now in adaptive toolbar
-            resultsCountEl,
-            clearAllBtn, // Global clear button
-            // replaceAllVaultBtnBottom: replaceAllVaultBtnBottom as HTMLButtonElement, // Adaptive toolbar duplicate
-            adaptiveToolbar, // Contextual results toolbar
-            ellipsisMenuBtn: ellipsisMenuBtn as HTMLButtonElement
+            selectedCountEl: adaptiveElements.selectedCountEl,
+            toolbarBtn: adaptiveElements.toolbarBtn,
+            resultsCountEl: adaptiveElements.resultsCountEl,
+            clearAllBtn: replaceElements.clearAllBtn,
+            adaptiveToolbar: adaptiveElements.adaptiveToolbar,
+            ellipsisMenuBtn: adaptiveElements.ellipsisMenuBtn
         };
 
         // Initialize remaining components now that we have UI elements
         this.replacementEngine = new ReplacementEngine(this.app, this.searchEngine);
         this.uiRenderer = new UIRenderer(this.elements, this.searchEngine, this.plugin);
         this.selectionManager = new SelectionManager(this.elements);
-        // NavigationHandler no longer needed for basic functionality
 
-        // Set up all event handlers
-        this.setupEventHandlers();
+        // Now that we have selectionManager, update the SearchToolbar reference
+        // @ts-ignore - Temporarily bypass readonly to set the reference
+        (this.searchToolbar as any).selectionManager = this.selectionManager;
+
+        // Initialize SearchController for search logic
+        this.searchController = new SearchController(
+            this.plugin,
+            this.elements,
+            this.searchEngine,
+            this.state,
+            (searchOptions) => this.renderResultsWithOptions(searchOptions),
+            () => this.clearResults()
+        );
+
+        // Initialize ActionHandler for event handling
+        this.actionHandler = new ActionHandler(
+            this.plugin,
+            this.elements,
+            this.searchEngine,
+            this.replacementEngine,
+            () => this.searchController.performSearch(),
+            () => this.renderResults()
+        );
+
+        // Set up state callbacks for ActionHandler
+        this.actionHandler.setStateCallbacks(
+            () => this.state.results,
+            () => this.selectionManager.getSelectedIndices()
+        );
+
+        // Set up expand/collapse callback for ActionHandler
+        this.actionHandler.setExpandCollapseCallback(() => {
+            this.uiRenderer.toggleExpandCollapseAll();
+        });
+
+        // Set up search functionality using SearchController
+        this.searchController.setupBasicNavigation();
+        this.searchController.setupAutoSearch();
+
+        // Set up all event handlers using ActionHandler
+        this.actionHandler.setupEventHandlers();
+        this.actionHandler.setupKeyboardShortcuts();
+        this.actionHandler.setSearchingState(this.searchController.getSearchingState());
+
+        // Set up result click handling (not handled by ActionHandler)
+        this.setupResultClickHandlers();
+
+        // Navigation and auto-search are now handled by SearchController
 
         // Focus the search input after a short delay
         setTimeout(() => {
@@ -332,14 +193,9 @@ export class FindReplaceView extends ItemView {
      * Called when the view is closed - cleanup resources
      */
     async onClose(): Promise<void> {
-        // Cancel any ongoing search
-        if (this.currentSearchController) {
-            this.currentSearchController.abort();
-            this.currentSearchController = null;
-        }
-        this.isSearching = false;
-
         // Cleanup component instances
+        this.searchController?.cleanup();
+        this.actionHandler?.cleanup();
         this.searchEngine?.dispose();
         this.fileOperations?.dispose();
         this.selectionManager?.dispose();
@@ -355,112 +211,9 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
-     * Sets up all event handlers for the UI
+     * Sets up result click handlers (delegated) - other event handling is now done by ActionHandler
      */
-    private setupEventHandlers(): void {
-        // Enable basic navigation with Enter key search
-        this.setupBasicNavigation();
-
-        // Enable replace input changes for preview updates
-        this.elements.replaceInput.addEventListener('input', () => {
-            this.renderResults();
-        });
-
-        // Set up inline toggle handlers to update search results
-        const toggleButtons = [
-            this.elements.matchCaseCheckbox,
-            this.elements.wholeWordCheckbox,
-            this.elements.regexCheckbox
-        ];
-
-        toggleButtons.forEach(toggleBtn => {
-            if (toggleBtn) {
-                const toggleName = toggleBtn.getAttribute('aria-label') || 'unknown';
-                const debouncedToggleSearch = debounce(() => {
-                    const query = this.elements.searchInput.value.trim();
-                    this.logger.debug(`[Toggle:${toggleName}] Click triggered for query: "${query}"`);
-
-                    // Check if search is already in progress
-                    if (this.isSearching) {
-                        this.logger.warn(`[Toggle:${toggleName}] Search in progress, option change may cause inconsistency`);
-                        // Cancel current search to prevent inconsistent results
-                        if (this.currentSearchController) {
-                            this.currentSearchController.abort();
-                            this.logger.debug(`[Toggle:${toggleName}] Cancelled ongoing search due to option change`);
-                        }
-                    }
-
-                    // Clear SearchEngine cache when options change to prevent stale regex
-                    this.searchEngine.clearCache();
-                    this.logger.debug(`[Toggle:${toggleName}] Cleared SearchEngine cache due to option change`);
-
-                    // Only re-search if there's an active query
-                    if (query.length > 0) {
-                        this.logger.debug(`[Toggle:${toggleName}] Calling performSearch for: "${query}"`);
-                        this.performSearch();
-                    } else {
-                        this.logger.debug(`[Toggle:${toggleName}] No query, skipping search`);
-                    }
-                }, this.plugin.settings.searchDebounceDelay); // Use settings-based debounce timing
-
-                this.logger.debug(`[Toggle:${toggleName}] Setting up click listener with debounce: ${this.plugin.settings.searchDebounceDelay}ms`);
-                toggleBtn.addEventListener('click', debouncedToggleSearch);
-            }
-        });
-
-        // Set up global clear button
-        this.elements.clearAllBtn.addEventListener('click', () => {
-            this.elements.searchInput.value = '';
-            this.elements.replaceInput.value = '';
-
-            // Clear search results
-            this.uiRenderer.clearResults();
-            this.state.results = [];
-            this.selectionManager.reset();
-
-            // Reset toggle states
-            toggleButtons.forEach(btn => {
-                btn.setAttribute('aria-pressed', 'false');
-                btn.classList.remove('is-active');
-            });
-
-            // Focus back to search input
-            this.elements.searchInput.focus();
-        });
-
-        // Set up expand/collapse all functionality
-        this.elements.toolbarBtn.addEventListener('click', () => {
-            this.uiRenderer.toggleExpandCollapseAll();
-        });
-
-        // // Set up replace button handlers
-        // this.registerDomEvent(this.elements.replaceSelectedBtn, 'click', async () => {
-        //     try {
-        //         await this.replaceSelectedMatches();
-        //     } catch (error) {
-        //         this.logger.error('Replace selected button error', error, true);
-        //     }
-        // });
-
-        // this.registerDomEvent(this.elements.replaceAllVaultBtn, 'click', async () => {
-        //     try {
-        //         await this.replaceAllInVault();
-        //     } catch (error) {
-        //         this.logger.error('Replace all vault button error', error, true);
-        //     }
-        // });
-
-        // // Set up bottom toolbar button handlers (duplicates for easy access)
-        // this.registerDomEvent(this.elements.replaceAllVaultBtnBottom, 'click', async () => {
-        //     try {
-        //         await this.replaceAllInVault();
-        //     } catch (error) {
-        //         this.logger.error('Replace all vault bottom button error', error, true);
-        //     }
-        // });
-
-        // Menu event handlers are now handled by Obsidian's Menu class directly in the click handler
-
+    private setupResultClickHandlers(): void {
         // Set up result click handlers (delegated)
         this.registerDomEvent(this.elements.resultsContainer, 'click', async (e) => {
             try {
@@ -469,147 +222,22 @@ export class FindReplaceView extends ItemView {
                 this.logger.error('Result click handler error', error, true);
             }
         });
-
-        // Manual search is handled by setupBasicNavigation Enter key handlers
-        // Enable auto-search
-        this.setupAutoSearch();
     }
 
     /**
-     * Main search function - restored functionality
+     * Clears search results and resets UI state
+     */
+    private clearResults(): void {
+        this.uiRenderer.clearResults();
+        this.state.results = [];
+        this.selectionManager.reset();
+    }
+
+    /**
+     * Main search function - now delegated to SearchController
      */
     async performSearch(): Promise<void> {
-        const callId = Date.now().toString();
-        this.logger.debug(`[${callId}] ===== SEARCH START =====`);
-
-        // FORCE CANCEL ANY RUNNING SEARCH IMMEDIATELY
-        if (this.currentSearchController) {
-            this.logger.debug(`[${callId}] FORCE CANCELLING previous search controller`);
-            this.currentSearchController.abort();
-        }
-
-        // Create new controller for this search
-        this.currentSearchController = new AbortController();
-
-        // FORCE CLEAR SearchEngine cache to prevent stale state
-        this.searchEngine.clearCache();
-        this.logger.debug(`[${callId}] Cleared SearchEngine cache`);
-
-        // WAIT for any previous search to fully complete before starting new one
-        if (this.isSearching) {
-            this.logger.error(`[${callId}] CONCURRENT SEARCH DETECTED! Waiting for completion...`);
-            let waitCount = 0;
-            while (this.isSearching && waitCount < 100) { // Max 1000ms wait
-                await new Promise(resolve => setTimeout(resolve, 10));
-                waitCount++;
-            }
-            if (this.isSearching) {
-                this.logger.error(`[${callId}] Previous search FAILED to complete, FORCE RESETTING`);
-                this.isSearching = false;
-            }
-        }
-
-        // NOW we can safely start the new search
-        this.currentSearchController = new AbortController();
-        const searchId = callId;
-        const timerName = `performSearch-${searchId}`;
-        this.isSearching = true;
-
-        this.logger.debug(`[${searchId}] Search lock acquired, starting execution`);
-
-        this.logger.time(timerName);
-
-        try {
-            const query = this.elements.searchInput?.value;
-            this.logger.debug(`[${searchId}] Query: "${query}"`);
-
-            // Read search options ONCE at the start and FREEZE them for entire search
-            // This PREVENTS race conditions from option changes during search
-            const searchOptions = this.readSearchOptionsOnce();
-            this.logger.debug(`[${searchId}] Search options FROZEN:`, searchOptions);
-
-            if (!query || query.trim().length === 0) {
-                this.logger.debug(`[${searchId}] Empty query, clearing results`);
-                this.uiRenderer.clearResults();
-                this.state.results = [];
-                return;
-            }
-
-            // Check if search was cancelled
-            if (this.currentSearchController.signal.aborted) {
-                this.logger.debug(`[${searchId}] Search cancelled before starting`);
-                return;
-            }
-
-            // Validate regex if regex mode is enabled (ONLY validation here, not in SearchEngine)
-            if (searchOptions.useRegex) {
-                try {
-                    new RegExp(query.trim());
-                    this.logger.debug(`[${searchId}] Regex validation passed`);
-                } catch (regexError) {
-                    this.logger.error(`[${searchId}] Invalid regex pattern`, regexError, true);
-                    return;
-                }
-            }
-
-            // Check if search was cancelled before performing search
-            if (this.currentSearchController.signal.aborted) {
-                this.logger.debug(`[${searchId}] Search cancelled before execution`);
-                return;
-            }
-
-            this.logger.debug(`[${searchId}] Starting SearchEngine.performSearch`);
-            // Perform the actual search
-            const results = await this.searchEngine.performSearch(query, searchOptions);
-            this.logger.debug(`[${searchId}] SearchEngine.performSearch completed: ${results.length} results`);
-
-            // Check if search was cancelled after completion
-            if (this.currentSearchController.signal.aborted) {
-                this.logger.debug(`[${searchId}] Search cancelled after completion, not updating UI`);
-                return;
-            }
-
-            this.logger.info(`[${searchId}] Search completed: found ${results.length} results for "${query}"`);
-
-            // Apply consistent result limiting based on settings
-            const maxResults = this.plugin.settings.maxResults;
-            let finalResults = results;
-            let isLimited = false;
-
-            if (results.length > maxResults) {
-                finalResults = results.slice(0, maxResults);
-                isLimited = true;
-                this.logger.info(`Results limited to ${maxResults} of ${results.length} total results`);
-            }
-
-            // Update state and render results using FROZEN search options
-            this.state.results = finalResults;
-            this.state.totalResults = results.length; // Store total for UI feedback
-            this.state.isLimited = isLimited;
-            this.renderResultsWithOptions(searchOptions);
-
-            this.logger.timeEnd(timerName);
-            this.logger.debug(`[${searchId}] ===== SEARCH COMPLETED SUCCESSFULLY =====`);
-
-        } catch (error) {
-            if (error instanceof Error && error.name === 'AbortError') {
-                this.logger.warn(`[${searchId}] Search was CANCELLED (AbortError)`);
-            } else {
-                this.logger.error(`[${searchId}] Search operation FAILED`, error, true);
-            }
-            // Safe timeEnd - only call if timer exists
-            try {
-                this.logger.timeEnd(timerName);
-            } catch (timerError) {
-                // Timer may not exist if error occurred early
-                this.logger.debug('Timer cleanup failed (expected in some cases)');
-            }
-        } finally {
-            // CRITICAL: Always reset the search state
-            this.isSearching = false;
-            this.currentSearchController = null;
-            this.logger.debug(`[${searchId}] ===== SEARCH LOCK RELEASED =====`);
-        }
+        await this.searchController.performSearch();
     }
 
     /**
@@ -636,7 +264,7 @@ export class FindReplaceView extends ItemView {
      */
     private renderResults(): void {
         const replaceText = this.elements.replaceInput.value;
-        const searchOptions = this.getSearchOptions(); // WARNING: Race condition risk!
+        const searchOptions = this.searchController.getSearchOptions(); // WARNING: Race condition risk!
         const lineElements = this.uiRenderer.renderResults(
             this.state.results,
             replaceText,
@@ -762,7 +390,7 @@ export class FindReplaceView extends ItemView {
                 r.matchText === result.matchText
             );
 
-            const searchOptions = this.getSearchOptions();
+            const searchOptions = this.searchController.getSearchOptions();
             const replacementResult = await this.replacementEngine.dispatchReplace(
                 'one',
                 this.state.results,
@@ -811,7 +439,7 @@ export class FindReplaceView extends ItemView {
             const confirmed = await this.confirmReplaceEmpty(confirmMessage);
             if (!confirmed) return;
 
-            const searchOptions = this.getSearchOptions();
+            const searchOptions = this.searchController.getSearchOptions();
             const replacementResult = await this.replacementEngine.dispatchReplace(
                 'file',
                 this.state.results,
@@ -838,89 +466,26 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
-     * Replaces all matches across the entire vault
-     * Shows confirmation dialog and performs replacement on all results
+     * Replaces all matches across the entire vault (now delegated to ActionHandler)
+     * This method exists for backward compatibility and delegation
      */
     async replaceAllInVault(): Promise<void> {
-        try {
-            if (!this.state.results || this.state.results.length === 0) {
-                new Notice('No results to replace.');
-                return;
-            }
-
-            const replaceText = this.elements.replaceInput.value;
-
-            // Confirm the vault-wide replacement
-            const confirmMessage = replaceText === ''
-                ? 'Replace all matches across the vault with an empty value? This action cannot be undone.'
-                : 'Replace all matches across the vault? This action cannot be undone.';
-
-            const confirmed = await this.confirmReplaceEmpty(confirmMessage);
-            if (!confirmed) return;
-
-            const searchOptions = this.getSearchOptions();
-            const replacementResult = await this.replacementEngine.dispatchReplace(
-                'vault',
-                this.state.results,
-                this.selectionManager.getSelectedIndices(),
-                replaceText,
-                searchOptions
-            );
-
-            // Use incremental update instead of full re-search
-            if (replacementResult.affectedResults) {
-                await this.updateResultsAfterReplacement(
-                    replacementResult.affectedResults,
-                    replaceText,
-                    searchOptions
-                );
-            } else {
-                // Fallback to full search if no metadata available
-                await this.performSearch();
-            }
-        } catch (error) {
-            this.logger.error('Failed to replace all matches in vault', error, true);
+        if (this.actionHandler) {
+            await this.actionHandler.replaceAllInVault();
+        } else {
+            this.logger.error('ActionHandler not initialized for replace all vault operation');
         }
     }
 
     /**
-     * Replaces only the user-selected matches
-     * Shows confirmation for empty replacements and processes selected results
+     * Replaces only the user-selected matches (now delegated to ActionHandler)
+     * This method exists for backward compatibility and delegation
      */
     private async replaceSelectedMatches(): Promise<void> {
-        try {
-            if (!this.selectionManager.hasSelection()) return;
-
-            const replaceText = this.elements.replaceInput.value;
-
-            // Confirm if replacing with empty string
-            if (!replaceText) {
-                const confirmed = await this.confirmReplaceEmpty('Replace selected matches with empty content? This cannot be undone.');
-                if (!confirmed) return;
-            }
-
-            const searchOptions = this.getSearchOptions();
-            const replacementResult = await this.replacementEngine.dispatchReplace(
-                'selected',
-                this.state.results,
-                this.selectionManager.getSelectedIndices(),
-                replaceText,
-                searchOptions
-            );
-
-            // Use incremental update instead of full re-search
-            if (replacementResult.affectedResults) {
-                await this.updateResultsAfterReplacement(
-                    replacementResult.affectedResults,
-                    replaceText,
-                    searchOptions
-                );
-            } else {
-                // Fallback to full search if no metadata available
-                await this.performSearch();
-            }
-        } catch (error) {
-            this.logger.error('Failed to replace selected matches', error, true);
+        if (this.actionHandler) {
+            await this.actionHandler.replaceSelectedMatches();
+        } else {
+            this.logger.error('ActionHandler not initialized for replace selected operation');
         }
     }
 
@@ -998,153 +563,7 @@ export class FindReplaceView extends ItemView {
         return toggleContainer;
     }
 
-    /**
-     * Sets up basic navigation without auto-search
-     */
-    private setupBasicNavigation(): void {
-        // Set up Enter key handlers for inputs and toggle buttons
-        const elements = [
-            this.elements.searchInput,
-            this.elements.replaceInput,
-        ];
-
-        // Add Enter key search for input elements
-        elements.forEach(el => {
-            el.addEventListener('keydown', async (evt) => {
-                if (evt.key === 'Enter') {
-                    try {
-                        await this.performSearch();
-                    } catch (error) {
-                        this.logger.error('Search on Enter key error', error, true);
-                    }
-                }
-            });
-        });
-
-        // Add Enter/Space key support for toggle buttons
-        const toggleButtons = [
-            this.elements.matchCaseCheckbox,
-            this.elements.wholeWordCheckbox,
-            this.elements.regexCheckbox
-        ];
-
-        toggleButtons.forEach(btn => {
-            btn.addEventListener('keydown', (evt) => {
-                if (evt.key === 'Enter' || evt.key === ' ') {
-                    evt.preventDefault();
-                    btn.click(); // Trigger the toggle
-                }
-            });
-        });
-    }
-
-    /**
-     * Sets up auto-search with proper debouncing
-     */
-    private setupAutoSearch(): void {
-        const debouncedSearch = debounce(async () => {
-            const query = this.elements.searchInput.value.trim();
-            this.logger.debug(`[AutoSearch] Debounced search triggered for query: "${query}"`);
-
-            // Only auto-search if there's actual content
-            if (query.length > 0) {
-                this.logger.debug(`[AutoSearch] Calling performSearch for: "${query}"`);
-                await this.performSearch();
-            } else {
-                this.logger.debug(`[AutoSearch] Empty query, clearing results`);
-                // Clear results if search is empty
-                this.uiRenderer.clearResults();
-                this.state.results = [];
-                this.selectionManager.reset();
-            }
-        }, this.plugin.settings.searchDebounceDelay);
-
-        this.logger.debug(`[AutoSearch] Setting up input listener with debounce: ${this.plugin.settings.searchDebounceDelay}ms`);
-        this.elements.searchInput.addEventListener("input", debouncedSearch);
-    }
-
-
-
-
-    /**
-     * Gets the current state of search options from inline toggles
-     */
-    /**
-     * Reads search options ONCE for freezing during search execution
-     * This method should only be called at the START of a search
-     */
-    private readSearchOptionsOnce(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean } {
-        const matchCase = this.getToggleValue(this.elements.matchCaseCheckbox);
-        const wholeWord = this.getToggleValue(this.elements.wholeWordCheckbox);
-        const useRegex = this.getToggleValue(this.elements.regexCheckbox);
-
-        const optionsSnapshot = { matchCase, wholeWord, useRegex };
-
-        this.logger.debug('readSearchOptionsOnce() creating frozen snapshot:', {
-            matchCase: { value: matchCase, pressed: this.elements.matchCaseCheckbox?.getAttribute('aria-pressed') },
-            wholeWord: { value: wholeWord, pressed: this.elements.wholeWordCheckbox?.getAttribute('aria-pressed') },
-            useRegex: { value: useRegex, pressed: this.elements.regexCheckbox?.getAttribute('aria-pressed') },
-            snapshot: optionsSnapshot
-        });
-
-        return optionsSnapshot;
-    }
-
-    /**
-     * DEPRECATED: Use readSearchOptionsOnce() for search execution
-     * This method is only for non-search operations
-     */
-    private getSearchOptions(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean } {
-        const matchCase = this.getToggleValue(this.elements.matchCaseCheckbox);
-        const wholeWord = this.getToggleValue(this.elements.wholeWordCheckbox);
-        const useRegex = this.getToggleValue(this.elements.regexCheckbox);
-
-        const optionsSnapshot = { matchCase, wholeWord, useRegex };
-
-        // If search is in progress, warn about option state changes
-        if (this.isSearching) {
-            this.logger.error('RACE CONDITION: Search options read while search is in progress!');
-        }
-
-        return optionsSnapshot;
-    }
-
-    /**
-     * Safely gets toggle button value from aria-pressed attribute
-     */
-    private getToggleValue(toggleBtn: HTMLElement): boolean {
-        if (!toggleBtn) {
-            return false;
-        }
-        return toggleBtn.getAttribute('aria-pressed') === 'true';
-    }
-
-    /**
-     * Validates search input and provides visual feedback
-     */
-    private validateSearchInput(query: string, useRegex: boolean): boolean {
-        const input = this.elements.searchInput;
-
-        // Remove any existing validation classes
-        input.classList.remove('invalid-regex', 'empty-search');
-
-        if (!query.trim()) {
-            input.classList.add('empty-search');
-            return false;
-        }
-
-        if (useRegex) {
-            try {
-                new RegExp(query);
-                return true;
-            } catch {
-                input.classList.add('invalid-regex');
-                return false;
-            }
-        }
-
-        return true;
-    }
+    // Search-related methods have been moved to SearchController
 
     /**
      * Updates results incrementally after a replacement operation
@@ -1188,7 +607,7 @@ export class FindReplaceView extends ItemView {
             this.selectionManager.adjustSelectionForRemovedIndices(sortedIndices);
 
             // Get current search options for revalidation and rendering
-            const searchOptions = this.getSearchOptions();
+            const searchOptions = this.searchController.getSearchOptions();
 
             const resultsBeforeRevalidation = this.state.results.length;
 
@@ -1278,7 +697,7 @@ export class FindReplaceView extends ItemView {
         const regex = this.searchEngine.buildSearchRegex(query, searchOptions);
 
         // Check each modified file
-        for (const file of affectedResults.modifiedFiles) {
+        for (const file of Array.from(affectedResults.modifiedFiles)) {
             try {
                 const content = await this.app.vault.read(file);
                 const lines = content.split('\n');

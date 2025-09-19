@@ -256,11 +256,22 @@ export class SearchToolbar {
             attr: {
                 'aria-label': label,
                 'data-toggle': id,
+                'aria-pressed': 'false',
                 'tabindex': tabIndex?.toString() || '0'
             }
         });
 
         setIcon(toggle, icon);
+
+        // Handle toggle state changes
+        toggle.addEventListener('click', () => {
+            const isPressed = toggle.getAttribute('aria-pressed') === 'true';
+            const newPressed = !isPressed;
+            toggle.setAttribute('aria-pressed', newPressed.toString());
+            toggle.classList.toggle('is-active', newPressed);
+
+        });
+
         return toggle;
     }
 
