@@ -10,12 +10,14 @@ import VaultFindReplacePlugin from '../../main';
 export class UIRenderer {
     private elements: FindReplaceElements;
     private searchEngine: SearchEngine;
-    private isCollapsed: boolean = false;
+    private isCollapsed: boolean = true; // Default to collapsed for better UX
+    private plugin: VaultFindReplacePlugin; // Reference to plugin for settings access
     private logger: Logger;
 
     constructor(elements: FindReplaceElements, searchEngine: SearchEngine, plugin: VaultFindReplacePlugin) {
         this.elements = elements;
         this.searchEngine = searchEngine;
+        this.plugin = plugin;
         this.logger = Logger.create(plugin, 'UIRenderer');
     }
 
@@ -53,6 +55,15 @@ export class UIRenderer {
             const fileDiv = fileGroupsContainer.createEl('div');
             fileDiv.addClass('file-group');
 
+            // Set data attribute for file path to track state
+            fileDiv.setAttribute('data-file-path', filePath);
+
+            // Determine collapse state: use saved state or default to collapsed
+            const isFileCollapsed = this.plugin.settings.fileGroupStates[filePath] ?? true; // Default to collapsed
+            if (isFileCollapsed) {
+                fileDiv.addClass('collapsed');
+            }
+
             // Create file group header
             this.createFileGroupHeader(fileDiv, filePath, fileResults);
 
@@ -68,6 +79,9 @@ export class UIRenderer {
 
         // Update UI elements with current results
         this.updateResultsUI(results.length, fileCount);
+
+        // Clean up saved states for files that no longer exist (run periodically)
+        this.cleanupFileGroupStates(Object.keys(resultsByFile));
 
         return lineElements;
     }
@@ -94,8 +108,21 @@ export class UIRenderer {
 
         // Handle clicking on file name to toggle collapse/expand
         fileGroupHeading.addEventListener('click', () => {
-            const group = fileGroupHeading.closest('.file-group');
-            if (group) group.classList.toggle('collapsed');
+            const group = fileGroupHeading.closest('.file-group') as HTMLElement;
+            if (group) {
+                const isCurrentlyCollapsed = group.classList.contains('collapsed');
+                group.classList.toggle('collapsed');
+
+                // Track the new state for this specific file and save to plugin settings
+                const filePath = group.getAttribute('data-file-path');
+                if (filePath) {
+                    this.plugin.settings.fileGroupStates[filePath] = !isCurrentlyCollapsed;
+                    this.plugin.saveSettings(); // Persist the change
+                }
+
+                // Update global toolbar button state based on all file groups
+                this.updateToolbarButtonState();
+            }
         });
 
         // Handle keyboard navigation for file name
@@ -298,11 +325,8 @@ export class UIRenderer {
             this.elements.toolbarBtn.classList.toggle('hidden', !hasResults);
 
             if (hasResults) {
-                setIcon(this.elements.toolbarBtn, 'copy-minus');
-                this.elements.toolbarBtn.setAttr('aria-label', 'Collapse all');
-            } else {
-                setIcon(this.elements.toolbarBtn, 'copy-plus');
-                this.elements.toolbarBtn.setAttr('aria-label', 'Expand all');
+                // Update toolbar button based on current state
+                this.updateToolbarButtonState();
             }
         }
 
@@ -311,38 +335,62 @@ export class UIRenderer {
 
         // Show/hide results toolbar based on whether we have results
         this.elements.resultsToolbar?.classList.toggle('hidden', !hasResults);
+    }
 
-        // Update collapse state tracking
-        this.isCollapsed = !hasResults;
+    /**
+     * Updates the toolbar button state based on current file group states
+     */
+    private updateToolbarButtonState(): void {
+        const fileGroups = this.elements.resultsContainer?.querySelectorAll(".file-group");
+        if (!fileGroups || fileGroups.length === 0) return;
 
-        // Update file group collapse state
-        this.elements.resultsContainer?.querySelectorAll('.file-group').forEach(group => {
-            group.classList.toggle('collapsed', !hasResults);
-        });
+        // Check if all groups are collapsed
+        const allCollapsed = Array.from(fileGroups).every(group => group.classList.contains('collapsed'));
+
+        if (this.elements.toolbarBtn) {
+            if (allCollapsed) {
+                setIcon(this.elements.toolbarBtn, 'copy-plus');
+                this.elements.toolbarBtn.setAttr('aria-label', "Expand all");
+                this.isCollapsed = true;
+            } else {
+                setIcon(this.elements.toolbarBtn, 'copy-minus');
+                this.elements.toolbarBtn.setAttr('aria-label', 'Collapse all');
+                this.isCollapsed = false;
+            }
+        }
     }
 
     /**
      * Toggles expand/collapse state for all file groups
      */
     toggleExpandCollapseAll(): void {
+        const targetState = this.isCollapsed; // If currently collapsed, we want to expand (false), and vice versa
+
         this.elements.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
-            if (!this.isCollapsed) {
-                // Currently expanded, so collapse all
-                group.classList.add("collapsed");
-                if (this.elements.toolbarBtn) {
-                    setIcon(this.elements.toolbarBtn, 'copy-plus');
-                    this.elements.toolbarBtn.setAttr('aria-label', "Expand all");
+            const htmlGroup = group as HTMLElement;
+            const filePath = htmlGroup.getAttribute('data-file-path');
+
+            if (targetState) {
+                // Currently collapsed, so expand all
+                htmlGroup.classList.remove("collapsed");
+                if (filePath) {
+                    this.plugin.settings.fileGroupStates[filePath] = false; // false = expanded
                 }
             } else {
-                // Currently collapsed, so expand all
-                group.classList.remove("collapsed");
-                if (this.elements.toolbarBtn) {
-                    setIcon(this.elements.toolbarBtn, 'copy-minus');
-                    this.elements.toolbarBtn.setAttr('aria-label', 'Collapse all');
+                // Currently expanded, so collapse all
+                htmlGroup.classList.add("collapsed");
+                if (filePath) {
+                    this.plugin.settings.fileGroupStates[filePath] = true; // true = collapsed
                 }
             }
         });
+
+        // Save all the state changes to plugin settings
+        this.plugin.saveSettings();
+
+        // Update the toolbar button state
         this.isCollapsed = !this.isCollapsed;
+        this.updateToolbarButtonState();
     }
 
     /**
@@ -351,6 +399,34 @@ export class UIRenderer {
     clearResults(): void {
         this.elements.resultsContainer.empty();
         this.updateResultsUI(0, 0);
+    }
+
+    /**
+     * Cleans up saved file group states for files that no longer exist in the vault
+     * @param currentFilePaths - Array of file paths that currently have search results
+     */
+    private cleanupFileGroupStates(currentFilePaths: string[]): void {
+        const savedStates = this.plugin.settings.fileGroupStates;
+        const vault = this.plugin.app.vault;
+        let hasChanges = false;
+
+        // Check each saved file path to see if the file still exists
+        for (const filePath in savedStates) {
+            const file = vault.getAbstractFileByPath(filePath);
+
+            // Remove state if file doesn't exist anymore
+            if (!file) {
+                delete savedStates[filePath];
+                hasChanges = true;
+                this.logger.debug(`Cleaned up state for non-existent file: ${filePath}`);
+            }
+        }
+
+        // Save changes if any cleanup was performed
+        if (hasChanges) {
+            this.plugin.saveSettings();
+            this.logger.debug('File group states cleaned up');
+        }
     }
 
     /**

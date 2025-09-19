@@ -14,6 +14,7 @@ export interface VaultFindReplaceSettings {
     showLineNumbers: boolean;
     showFileExtensions: boolean;
     enableDebugLogging: boolean;
+    fileGroupStates: Record<string, boolean>; // Persistent collapse/expand states by file path
 }
 
 /**
@@ -32,4 +33,5 @@ export const DEFAULT_SETTINGS: VaultFindReplaceSettings = {
     showLineNumbers: true,
     showFileExtensions: false,
     enableDebugLogging: false,
+    fileGroupStates: {}, // Start with empty collapse/expand states
 };

@@ -76,7 +76,7 @@ export class FindReplaceView extends ItemView {
         // Clear any existing content and add our main CSS class
         this.containerEl.empty();
         this.containerEl.addClass('find-replace-container');
-        this.state.isCollapsed = false; // Start with results expanded
+        this.state.isCollapsed = true; // Start with results collapsed for better UX
 
         // === SEARCH INPUT SECTION ===
         // Create wrapper div for the search input and its clear button
@@ -126,9 +126,9 @@ export class FindReplaceView extends ItemView {
         // Expand/collapse all results button
         const toolbarBtn = resultsToolbar.createEl('button', {
             cls: 'collapse-toggle clickable-icon hidden',
-            attr: { 'aria-label': 'Collapse all' }
+            attr: { 'aria-label': 'Expand all' }
         });
-        setIcon(toolbarBtn, 'copy-minus'); // Set initial icon to "collapse"
+        setIcon(toolbarBtn, 'copy-plus'); // Set initial icon to "expand" since we start collapsed
 
         // === RESULTS CONTAINER ===
         // Container where all search results will be displayed
