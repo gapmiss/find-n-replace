@@ -4,6 +4,7 @@ import VaultFindReplacePlugin from "../../main";
 import { SearchResult, FindReplaceElements, SearchOptions, ViewState, ReplacementMode, ReplacementTarget, AffectedResults } from '../../types';
 import { SearchEngine, ReplacementEngine, FileOperations } from '../../core';
 import { UIRenderer, SelectionManager } from '../components';
+import { SearchToolbar } from '../components/searchToolbar';
 import { Logger, safeQuerySelector, isNotNull } from '../../utils';
 
 // Define the unique identifier for this view type - used by Obsidian to track and manage this view
@@ -20,6 +21,7 @@ export class FindReplaceView extends ItemView {
     private uiRenderer: UIRenderer;
     private selectionManager: SelectionManager;
     private fileOperations: FileOperations;
+    private searchToolbar: SearchToolbar;
 
     // UI Element references
     private elements: FindReplaceElements;
@@ -78,32 +80,19 @@ export class FindReplaceView extends ItemView {
         this.containerEl.addClass('find-replace-container');
         this.state.isCollapsed = true; // Start with results collapsed for better UX
 
-        // === MAIN SEARCH TOOLBAR ===
-        // VSCode-style search toolbar with inputs and inline controls
-        const searchToolbar = this.containerEl.createDiv('find-replace-search-toolbar');
+        // Initialize SearchToolbar (selectionManager will be set after elements are created)
+        this.searchToolbar = new SearchToolbar(
+            this.plugin,
+            null as any, // Temporary - will be set after SelectionManager is created
+            () => this.replaceSelectedMatches(),
+            () => this.replaceAllInVault()
+        );
 
-        // Search input row with inline options
-        const searchRow = searchToolbar.createDiv('find-replace-search-row');
+        // Create main toolbar container using SearchToolbar
+        const searchToolbar = this.searchToolbar.createMainToolbar(this.containerEl);
 
-        // Search input with icon
-        const searchInputContainer = searchRow.createDiv('find-replace-input-container');
-        const searchIcon = searchInputContainer.createSpan('search-input-icon');
-        setIcon(searchIcon, 'search');
-
-        const searchInput = searchInputContainer.createEl('input', {
-            type: 'text',
-            cls: 'find-replace-input',
-            placeholder: 'Find',
-            attr: { 'tabindex': '1' }
-        }) as HTMLInputElement;
-
-        // Inline search options (VSCode-style)
-        const searchOptions = searchRow.createDiv('find-replace-inline-options');
-
-        // Create inline toggle buttons for search options
-        const matchCaseBtn = this.createInlineToggle(searchOptions, 'match-case', 'case-sensitive', 'Match Case', 3);
-        const wholeWordBtn = this.createInlineToggle(searchOptions, 'whole-word', 'whole-word', 'Match Whole Word', 4);
-        const regexBtn = this.createInlineToggle(searchOptions, 'regex', 'regex', 'Use Regular Expression', 5);
+        // Create search input row using SearchToolbar
+        const searchElements = this.searchToolbar.createSearchInputRow(searchToolbar);
 
         // Replace input row
         const replaceRow = searchToolbar.createDiv('find-replace-replace-row');
@@ -307,11 +296,11 @@ export class FindReplaceView extends ItemView {
         // Store UI elements for component access
         this.elements = {
             containerEl: this.containerEl,
-            searchInput,
+            searchInput: searchElements.searchInput,
             replaceInput,
-            matchCaseCheckbox: matchCaseBtn, // Now using inline toggle
-            wholeWordCheckbox: wholeWordBtn, // Now using inline toggle
-            regexCheckbox: regexBtn, // Now using inline toggle
+            matchCaseCheckbox: searchElements.matchCaseBtn,
+            wholeWordCheckbox: searchElements.wholeWordBtn,
+            regexCheckbox: searchElements.regexBtn,
             resultsContainer,
             selectedCountEl,
             // replaceSelectedBtn: replaceSelectedBtn as HTMLButtonElement,
