@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vault Find Replace - Test Vault Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .features {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .features h3 {
+            color: #2d3748;
+            margin-bottom: 16px;
+            font-size: 1.3em;
+        }
+
+        .features ul {
+            list-style: none;
+            color: #4a5568;
+        }
+
+        .features li {
+            margin: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .features li::before {
+            content: "✓";
+            color: #48bb78;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 32px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .generate-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            color: #4a5568;
+            font-size: 0.9em;
+        }
+
+        .info {
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            color: #2b6cb0;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Vault Generator</h1>
+        <p class="subtitle">Generate a comprehensive test vault for Vault Find Replace plugin</p>
+
+        <div class="features">
+            <h3>What's Included</h3>
+            <ul>
+                <li><strong>5000 markdown files</strong> with varied content and naming</li>
+                <li><strong>Diverse text patterns</strong> for comprehensive search testing</li>
+                <li><strong>Multiple content types:</strong> articles, notes, code snippets, lists</li>
+                <li><strong>Common search targets:</strong> repeated phrases, technical terms, dates</li>
+                <li><strong>Folder structure:</strong> organized into logical categories</li>
+                <li><strong>Special characters:</strong> regex-testable patterns and edge cases</li>
+                <li><strong>Real-world scenarios:</strong> duplicated content, similar phrases</li>
+                <li><strong>Interconnected files:</strong> realistic wikilinks and external URLs</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <strong>Note:</strong> Generation may take 30-60 seconds. The resulting ZIP file will be approximately 5-8MB and ready for immediate testing in Obsidian.
+        </div>
+
+        <button id="generateBtn" class="generate-btn">Generate Test Vault</button>
+
+        <div id="progress" class="progress">
+            <div class="progress-text" id="progressText">Preparing...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        class TestVaultGenerator {
+            constructor() {
+                // Track generated filenames for realistic wikilinks
+                this.generatedFiles = [];
+
+                this.subjects = {
+                    technology: [
+                        'javascript', 'typescript', 'python', 'react', 'nodejs', 'database', 'api', 'frontend', 'backend', 'devops',
+                        'kubernetes', 'docker', 'microservices', 'serverless', 'cloud', 'aws', 'azure', 'gcp', 'terraform', 'ansible',
+                        'machine-learning', 'artificial-intelligence', 'blockchain', 'cryptocurrency', 'cybersecurity', 'encryption', 'authentication', 'authorization',
+                        'graphql', 'rest', 'websockets', 'grpc', 'mongodb', 'postgresql', 'redis', 'elasticsearch', 'kafka', 'rabbitmq',
+                        'jenkins', 'github-actions', 'ci-cd', 'monitoring', 'logging', 'metrics', 'observability', 'distributed-systems', 'load-balancing', 'caching'
+                    ],
+                    nature: [
+                        'forest', 'mountain', 'ocean', 'wildlife', 'ecosystem', 'biodiversity', 'conservation', 'climate', 'environment', 'sustainability',
+                        'rainforest', 'desert', 'tundra', 'savanna', 'wetlands', 'coral-reef', 'mangrove', 'prairie', 'taiga', 'alpine',
+                        'photosynthesis', 'pollination', 'migration', 'hibernation', 'symbiosis', 'predation', 'adaptation', 'evolution', 'natural-selection', 'genetics',
+                        'renewable-energy', 'solar-power', 'wind-energy', 'hydroelectric', 'geothermal', 'carbon-footprint', 'greenhouse-gases', 'global-warming', 'deforestation', 'reforestation',
+                        'endangered-species', 'habitat-restoration', 'wildlife-corridor', 'protected-areas', 'national-parks', 'marine-sanctuaries', 'ecological-balance', 'food-chain', 'water-cycle', 'nitrogen-cycle'
+                    ],
+                    science: [
+                        'physics', 'chemistry', 'biology', 'astronomy', 'quantum', 'genetics', 'molecular', 'research', 'experiment', 'hypothesis',
+                        'thermodynamics', 'electromagnetism', 'relativity', 'quantum-mechanics', 'particle-physics', 'nuclear-physics', 'astrophysics', 'cosmology', 'black-holes', 'dark-matter',
+                        'organic-chemistry', 'inorganic-chemistry', 'biochemistry', 'analytical-chemistry', 'physical-chemistry', 'catalysis', 'reaction-kinetics', 'stoichiometry', 'periodic-table', 'molecular-structure',
+                        'cell-biology', 'molecular-biology', 'developmental-biology', 'evolutionary-biology', 'ecology', 'botany', 'zoology', 'microbiology', 'immunology', 'neuroscience',
+                        'statistical-analysis', 'peer-review', 'scientific-method', 'data-analysis', 'laboratory-techniques', 'microscopy', 'spectroscopy', 'chromatography', 'crystallography', 'bioinformatics'
+                    ],
+                    history: [
+                        'ancient', 'medieval', 'renaissance', 'revolution', 'empire', 'civilization', 'culture', 'archaeology', 'timeline', 'heritage',
+                        'mesopotamia', 'egypt', 'greece', 'rome', 'byzantium', 'feudalism', 'crusades', 'mongol-empire', 'silk-road', 'viking-age',
+                        'industrial-revolution', 'french-revolution', 'american-revolution', 'world-war', 'cold-war', 'colonialism', 'imperialism', 'nationalism', 'enlightenment', 'reformation',
+                        'paleolithic', 'neolithic', 'bronze-age', 'iron-age', 'classical-antiquity', 'dark-ages', 'high-middle-ages', 'early-modern', 'modern-era', 'contemporary',
+                        'historiography', 'primary-sources', 'secondary-sources', 'historical-method', 'chronology', 'periodization', 'cultural-history', 'social-history', 'political-history', 'economic-history'
+                    ],
+                    business: [
+                        'strategy', 'management', 'marketing', 'finance', 'startup', 'innovation', 'leadership', 'operations', 'growth', 'analysis',
+                        'entrepreneurship', 'venture-capital', 'private-equity', 'ipo', 'merger', 'acquisition', 'due-diligence', 'valuation', 'roi', 'kpi',
+                        'digital-marketing', 'content-marketing', 'social-media', 'seo', 'sem', 'email-marketing', 'conversion-rate', 'customer-acquisition', 'retention', 'lifetime-value',
+                        'supply-chain', 'logistics', 'inventory-management', 'quality-control', 'lean-manufacturing', 'six-sigma', 'process-optimization', 'automation', 'efficiency', 'productivity',
+                        'human-resources', 'talent-acquisition', 'performance-management', 'organizational-culture', 'change-management', 'project-management', 'agile', 'scrum', 'kanban', 'risk-management'
+                    ],
+                    education: [
+                        'learning', 'teaching', 'curriculum', 'pedagogy', 'assessment', 'research', 'academic', 'knowledge', 'skills', 'development',
+                        'instructional-design', 'learning-objectives', 'bloom-taxonomy', 'differentiation', 'scaffolding', 'formative-assessment', 'summative-assessment', 'rubrics', 'feedback', 'reflection',
+                        'e-learning', 'blended-learning', 'online-education', 'distance-learning', 'mooc', 'lms', 'educational-technology', 'digital-literacy', 'media-literacy', 'information-literacy',
+                        'constructivism', 'behaviorism', 'cognitivism', 'social-learning', 'experiential-learning', 'collaborative-learning', 'inquiry-based', 'problem-based', 'project-based', 'competency-based',
+                        'special-education', 'inclusive-education', 'universal-design', 'accessibility', 'equity', 'diversity', 'multicultural-education', 'global-education', 'sustainability-education', 'stem-education'
+                    ]
+                };
+
+                this.commonPhrases = [
+                    'TODO: implement this feature',
+                    'TODO: add error handling',
+                    'TODO: optimize performance',
+                    'TODO: write unit tests',
+                    'TODO: update documentation',
+                    'TODO: refactor this code',
+                    'TODO: add validation',
+                    'TODO: implement caching',
+                    'FIXME: broken implementation',
+                    'FIXME: memory leak here',
+                    'FIXME: race condition',
+                    'FIXME: incorrect calculation',
+                    'FIXME: handle edge case',
+                    'FIXME: security vulnerability',
+                    'FIXME: performance bottleneck',
+                    'FIXME: browser compatibility',
+                    'NOTE: important consideration',
+                    'NOTE: this approach is experimental',
+                    'NOTE: breaking change in v2.0',
+                    'NOTE: requires special permissions',
+                    'NOTE: deprecated in favor of new API',
+                    'NOTE: thread-safe implementation',
+                    'NOTE: performance critical section',
+                    'NOTE: third-party dependency',
+                    'HACK: temporary solution',
+                    'HACK: workaround for browser bug',
+                    'HACK: legacy code compatibility',
+                    'HACK: quick fix for production',
+                    'HACK: avoid circular dependency',
+                    'HACK: bypass validation',
+                    'HACK: inline styles for email',
+                    'HACK: manual memory management',
+                    'BUG: needs investigation',
+                    'BUG: intermittent failure',
+                    'BUG: data corruption issue',
+                    'BUG: timeout not working',
+                    'BUG: incorrect state management',
+                    'BUG: memory usage spike',
+                    'BUG: authentication bypass',
+                    'BUG: database deadlock',
+                    'REVIEW: requires approval',
+                    'REVIEW: security implications',
+                    'REVIEW: performance impact',
+                    'REVIEW: breaking change',
+                    'REVIEW: architectural decision',
+                    'REVIEW: third-party license',
+                    'REVIEW: accessibility compliance',
+                    'REVIEW: code quality standards',
+                    'DEPRECATED: use new method',
+                    'DEPRECATED: will be removed in v3.0',
+                    'DEPRECATED: migrate to REST API',
+                    'DEPRECATED: legacy browser support',
+                    'DEPRECATED: use async/await instead',
+                    'DEPRECATED: replaced by TypeScript',
+                    'DEPRECATED: security concerns',
+                    'DEPRECATED: performance issues',
+                    'ENHANCEMENT: future improvement',
+                    'ENHANCEMENT: add mobile support',
+                    'ENHANCEMENT: improve accessibility',
+                    'ENHANCEMENT: add internationalization',
+                    'ENHANCEMENT: optimize bundle size',
+                    'ENHANCEMENT: add dark mode',
+                    'ENHANCEMENT: implement offline mode',
+                    'ENHANCEMENT: add real-time updates'
+                ];
+
+                this.technicalTerms = [
+                    'async/await', 'promise', 'callback', 'closure', 'prototype', 'inheritance',
+                    'polymorphism', 'encapsulation', 'abstraction', 'interface', 'implementation',
+                    'algorithm', 'data structure', 'complexity', 'optimization', 'refactoring',
+                    'dependency injection', 'inversion of control', 'single responsibility', 'open-closed principle', 'liskov substitution',
+                    'interface segregation', 'dependency inversion', 'solid principles', 'design patterns', 'observer pattern',
+                    'singleton pattern', 'factory pattern', 'builder pattern', 'adapter pattern', 'decorator pattern',
+                    'strategy pattern', 'command pattern', 'state pattern', 'template method', 'visitor pattern',
+                    'model-view-controller', 'model-view-presenter', 'model-view-viewmodel', 'flux architecture', 'redux pattern',
+                    'event-driven architecture', 'microservices', 'service-oriented architecture', 'domain-driven design', 'test-driven development',
+                    'behavior-driven development', 'continuous integration', 'continuous deployment', 'infrastructure as code', 'containerization',
+                    'orchestration', 'service mesh', 'api gateway', 'load balancer', 'reverse proxy',
+                    'caching layer', 'content delivery network', 'database sharding', 'replication', 'eventual consistency',
+                    'acid properties', 'cap theorem', 'base consistency', 'two-phase commit', 'saga pattern',
+                    'circuit breaker', 'bulkhead pattern', 'retry mechanism', 'exponential backoff', 'rate limiting',
+                    'authentication', 'authorization', 'oauth2', 'jwt tokens', 'session management',
+                    'cross-site scripting', 'sql injection', 'cross-site request forgery', 'content security policy', 'same-origin policy',
+                    'public key cryptography', 'symmetric encryption', 'hash functions', 'digital signatures', 'certificate authority',
+                    'transport layer security', 'secure socket layer', 'https protocol', 'certificate pinning', 'perfect forward secrecy'
+                ];
+
+                this.dates = [
+                    '2024-01-15', '2024-02-28', '2024-03-10', '2024-04-22', '2024-05-08',
+                    '2023-12-25', '2023-11-30', '2023-10-15', '2023-09-05', '2023-08-20',
+                    '2024-06-12', '2024-07-19', '2024-08-03', '2024-09-27', '2024-10-14',
+                    '2023-01-08', '2023-02-14', '2023-03-22', '2023-04-17', '2023-05-29',
+                    '2024-11-05', '2024-12-31', '2023-06-11', '2023-07-04', '2022-12-18',
+                    '2022-11-26', '2022-10-09', '2022-09-13', '2022-08-21', '2022-07-07'
+                ];
+
+                this.folders = [
+                    'Technology/Frontend',
+                    'Technology/Backend',
+                    'Technology/DevOps',
+                    'Nature/Ecosystems',
+                    'Nature/Wildlife',
+                    'Nature/Conservation',
+                    'Science/Physics',
+                    'Science/Biology',
+                    'Science/Chemistry',
+                    'History/Ancient',
+                    'History/Modern',
+                    'History/Cultural',
+                    'Business/Strategy',
+                    'Business/Operations',
+                    'Business/Innovation',
+                    'Education/Teaching',
+                    'Education/Research',
+                    'Education/Development',
+                    'Projects/Active',
+                    'Projects/Completed',
+                    'Projects/Archive',
+                    'Notes/Daily',
+                    'Notes/Meeting',
+                    'Notes/Ideas',
+                    'Reference/Documentation',
+                    'Reference/Tutorials',
+                    'Reference/Examples'
+                ];
+            }
+
+            generateContent(index, folder, filename) {
+                const category = folder.split('/')[0].toLowerCase();
+                const subcategory = folder.split('/')[1]?.toLowerCase() || '';
+
+                let content = `# ${filename.replace('.md', '').replace(/[-_]/g, ' ')}\n\n`;
+
+                // Add metadata
+                content += `**Created:** ${this.randomDate()}\n`;
+                content += `**Category:** ${category}\n`;
+                content += `**Tags:** #${category} #${subcategory}\n\n`;
+
+                // Add common phrases for testing
+                if (Math.random() < 0.3) {
+                    content += `${this.randomElement(this.commonPhrases)}\n\n`;
+                }
+
+                // Generate main content based on category
+                content += this.generateCategoryContent(category, subcategory);
+
+                // Add technical terms
+                if (Math.random() < 0.4) {
+                    content += `\n## Technical Notes\n\n`;
+                    const terms = this.randomElements(this.technicalTerms, 3);
+                    terms.forEach(term => {
+                        content += `- **${term}**: ${this.generateSentence()}\n`;
+                    });
+                }
+
+                // Add code blocks for some files
+                if (Math.random() < 0.2) {
+                    content += `\n## Code Example\n\n`;
+                    content += '```javascript\n';
+                    content += this.generateCodeSnippet();
+                    content += '\n```\n\n';
+                }
+
+                // Add links and references
+                if (Math.random() < 0.5) {
+                    content += `\n## References\n\n`;
+
+                    // Add realistic wikilinks to other files
+                    if (this.generatedFiles.length > 0 && Math.random() < 0.8) {
+                        const linkedFile = this.randomElement(this.generatedFiles);
+                        content += `- [[${linkedFile.replace('.md', '')}]]\n`;
+                    }
+
+                    // Add more wikilinks
+                    if (Math.random() < 0.6) {
+                        const relatedTopic = this.randomElement(this.subjects[category] || this.subjects.technology);
+                        content += `- [[${relatedTopic}-${Math.floor(Math.random() * 100)}]]\n`;
+                    }
+
+                    // Add external URLs to real websites
+                    const realUrls = [
+                        'https://developer.mozilla.org/en-US/docs/Web/JavaScript',
+                        'https://reactjs.org/docs/getting-started.html',
+                        'https://nodejs.org/en/docs/',
+                        'https://docs.python.org/3/',
+                        'https://kubernetes.io/docs/',
+                        'https://docs.docker.com/',
+                        'https://aws.amazon.com/documentation/',
+                        'https://cloud.google.com/docs',
+                        'https://docs.microsoft.com/en-us/azure/',
+                        'https://github.com/microsoft/TypeScript',
+                        'https://stackoverflow.com/questions/tagged/javascript',
+                        'https://www.typescriptlang.org/docs/',
+                        'https://nextjs.org/docs',
+                        'https://vuejs.org/guide/',
+                        'https://angular.io/docs',
+                        'https://webpack.js.org/concepts/',
+                        'https://vitejs.dev/guide/',
+                        'https://www.postgresql.org/docs/',
+                        'https://docs.mongodb.com/',
+                        'https://redis.io/documentation'
+                    ];
+
+                    if (Math.random() < 0.7) {
+                        content += `- [External Documentation](${this.randomElement(realUrls)})\n`;
+                    }
+
+                    // Add markdown links to internal files
+                    if (Math.random() < 0.4 && this.generatedFiles.length > 0) {
+                        const linkedFile = this.randomElement(this.generatedFiles);
+                        const linkText = linkedFile.replace('.md', '').replace(/[-_]/g, ' ');
+                        content += `- [${linkText}](${linkedFile})\n`;
+                    }
+                }
+
+                // Add dates for testing
+                if (Math.random() < 0.4) {
+                    content += `\n## Timeline\n\n`;
+                    content += `Started: ${this.randomElement(this.dates)}\n`;
+                    content += `Updated: ${this.randomElement(this.dates)}\n`;
+                }
+
+                // Add special characters and patterns for regex testing
+                if (Math.random() < 0.1) {
+                    content += `\n## Special Patterns\n\n`;
+                    content += `Email: test@example.com\n`;
+                    content += `Phone: (555) 123-4567\n`;
+                    content += `URL: https://www.example.com/path?param=value\n`;
+                    content += `Version: v1.2.3-beta\n`;
+                    content += `UUID: 123e4567-e89b-12d3-a456-426614174000\n`;
+                }
+
+                return content;
+            }
+
+            generateCategoryContent(category, subcategory) {
+                const subjects = this.subjects[category] || this.subjects.technology;
+                let content = '';
+
+                // Generate 2-4 paragraphs
+                const paragraphs = 2 + Math.floor(Math.random() * 3);
+                for (let i = 0; i < paragraphs; i++) {
+                    content += this.generateParagraph(subjects) + '\n\n';
+                }
+
+                // Add a list
+                if (Math.random() < 0.5) {
+                    content += `## Key Points\n\n`;
+                    const items = 3 + Math.floor(Math.random() * 5);
+                    for (let i = 0; i < items; i++) {
+                        content += `- ${this.generateSentence(subjects)}\n`;
+                    }
+                    content += '\n';
+                }
+
+                return content;
+            }
+
+            generateParagraph(subjects) {
+                const sentences = 3 + Math.floor(Math.random() * 4);
+                let paragraph = '';
+                for (let i = 0; i < sentences; i++) {
+                    paragraph += this.generateSentence(subjects) + ' ';
+                }
+                return paragraph.trim();
+            }
+
+            generateSentence(subjects = []) {
+                const templates = [
+                    `The ${this.randomElement(subjects)} demonstrates ${this.randomElement(['significant', 'remarkable', 'outstanding', 'innovative', 'complex'])} characteristics.`,
+                    `Understanding ${this.randomElement(subjects)} requires ${this.randomElement(['careful', 'thorough', 'detailed', 'comprehensive', 'systematic'])} analysis.`,
+                    `Recent developments in ${this.randomElement(subjects)} have ${this.randomElement(['transformed', 'revolutionized', 'enhanced', 'improved', 'optimized'])} the field.`,
+                    `The relationship between ${this.randomElement(subjects)} and ${this.randomElement(subjects)} is ${this.randomElement(['crucial', 'fundamental', 'essential', 'vital', 'important'])}.`,
+                    `Implementing ${this.randomElement(subjects)} solutions provides ${this.randomElement(['substantial', 'significant', 'measurable', 'tangible', 'concrete'])} benefits.`,
+                    `Advanced ${this.randomElement(subjects)} techniques enable ${this.randomElement(['efficient', 'scalable', 'robust', 'flexible', 'maintainable'])} implementations.`,
+                    `The ${this.randomElement(subjects)} methodology focuses on ${this.randomElement(['performance', 'reliability', 'security', 'usability', 'accessibility'])} optimization.`,
+                    `Contemporary ${this.randomElement(subjects)} practices emphasize ${this.randomElement(['collaboration', 'innovation', 'sustainability', 'quality', 'efficiency'])}.`,
+                    `Researchers have identified ${this.randomElement(['key factors', 'critical elements', 'important variables', 'significant patterns', 'emerging trends'])} in ${this.randomElement(subjects)}.`,
+                    `The evolution of ${this.randomElement(subjects)} reflects ${this.randomElement(['technological progress', 'changing requirements', 'industry standards', 'user expectations', 'market demands'])}.`,
+                    `Effective ${this.randomElement(subjects)} strategies incorporate ${this.randomElement(['best practices', 'proven methodologies', 'innovative approaches', 'established frameworks', 'cutting-edge tools'])}.`,
+                    `Modern ${this.randomElement(subjects)} architectures prioritize ${this.randomElement(['modularity', 'testability', 'extensibility', 'reusability', 'maintainability'])}.`,
+                    `The impact of ${this.randomElement(subjects)} on ${this.randomElement(['productivity', 'efficiency', 'quality', 'performance', 'outcomes'])} has been ${this.randomElement(['substantial', 'remarkable', 'significant', 'measurable', 'transformative'])}.`,
+                    `Future ${this.randomElement(subjects)} developments will likely focus on ${this.randomElement(['automation', 'intelligence', 'integration', 'personalization', 'optimization'])}.`,
+                    `Organizations adopting ${this.randomElement(subjects)} report ${this.randomElement(['improved outcomes', 'increased efficiency', 'better results', 'enhanced performance', 'greater success'])}.`,
+                    `The ${this.randomElement(subjects)} framework provides ${this.randomElement(['comprehensive support', 'robust functionality', 'flexible options', 'powerful capabilities', 'extensive features'])} for complex scenarios.`
+                ];
+                return this.randomElement(templates);
+            }
+
+            generateCodeSnippet() {
+                const snippets = [
+                    `function calculate${this.randomElement(['Sum', 'Average', 'Total', 'Result'])}(data) {\n    return data.reduce((acc, val) => acc + val, 0);\n}`,
+                    `const ${this.randomElement(['config', 'settings', 'options', 'params'])} = {\n    timeout: 5000,\n    retries: 3,\n    debug: true\n};`,
+                    `async function fetch${this.randomElement(['Data', 'Results', 'Information', 'Content'])}() {\n    try {\n        const response = await fetch('/api/data');\n        return await response.json();\n    } catch (error) {\n        console.error('Error:', error);\n    }\n}`,
+                    `class ${this.randomElement(['Manager', 'Handler', 'Controller', 'Service'])} {\n    constructor(options) {\n        this.options = options;\n    }\n\n    process() {\n        // Implementation here\n    }\n}`,
+                    `const ${this.randomElement(['validator', 'parser', 'transformer', 'analyzer'])} = (input) => {\n    if (!input || typeof input !== 'string') {\n        throw new Error('Invalid input provided');\n    }\n    return input.trim().toLowerCase();\n};`,
+                    `export default class ${this.randomElement(['DataProcessor', 'EventEmitter', 'StateManager', 'ResourceLoader'])} {\n    #privateField = new Map();\n\n    async initialize() {\n        this.#privateField.set('status', 'initialized');\n    }\n\n    get status() {\n        return this.#privateField.get('status');\n    }\n}`,
+                    `interface ${this.randomElement(['ApiResponse', 'UserConfig', 'DatabaseRecord', 'EventPayload'])} {\n    id: string;\n    timestamp: Date;\n    data: Record<string, unknown>;\n    metadata?: {\n        version: string;\n        source: string;\n    };\n}`,
+                    `const use${this.randomElement(['Cache', 'Storage', 'Logger', 'Monitor'])} = () => {\n    const [state, setState] = useState(null);\n    const [loading, setLoading] = useState(false);\n\n    useEffect(() => {\n        setLoading(true);\n        // Async operation here\n        setLoading(false);\n    }, []);\n\n    return { state, loading };\n};`,
+                    `function* generate${this.randomElement(['Sequence', 'Range', 'Pattern', 'Series'])}(start, end) {\n    for (let i = start; i <= end; i++) {\n        yield i * Math.random();\n    }\n}`,
+                    `const ${this.randomElement(['debounce', 'throttle', 'memoize', 'curry'])} = (fn, delay) => {\n    let timeoutId;\n    return (...args) => {\n        clearTimeout(timeoutId);\n        timeoutId = setTimeout(() => fn.apply(this, args), delay);\n    };\n};`,
+                    `@Component({\n    selector: 'app-${this.randomElement(['dashboard', 'profile', 'settings', 'report'])}',\n    template: \`\n        <div class=\"container\">\n            <h2>{{ title }}</h2>\n            <ng-content></ng-content>\n        </div>\n    \`\n})\nexport class ${this.randomElement(['Dashboard', 'Profile', 'Settings', 'Report'])}Component {\n    title = '${this.randomElement(['Dashboard', 'Profile', 'Settings', 'Report'])}';\n}`,
+                    `def process_${this.randomElement(['data', 'results', 'records', 'items'])}(input_list):\n    \"\"\"Process and transform input data\"\"\"\n    return [\n        item.strip().lower()\n        for item in input_list\n        if item and isinstance(item, str)\n    ]`,
+                    `struct ${this.randomElement(['Config', 'Settings', 'Options', 'Parameters'])} {\n    pub timeout: u64,\n    pub max_retries: usize,\n    pub debug_mode: bool,\n}\n\nimpl Default for ${this.randomElement(['Config', 'Settings', 'Options', 'Parameters'])} {\n    fn default() -> Self {\n        Self {\n            timeout: 5000,\n            max_retries: 3,\n            debug_mode: false,\n        }\n    }\n}`,
+                    `package main\n\nimport (\n    \"fmt\"\n    \"time\"\n)\n\nfunc process${this.randomElement(['Data', 'Request', 'Response', 'Event'])}(input chan string) {\n    for data := range input {\n        fmt.Printf(\"Processing: %s\\n\", data)\n        time.Sleep(100 * time.Millisecond)\n    }\n}`,
+                    `SELECT \n    ${this.randomElement(['u.id', 'p.name', 'o.total', 'c.email'])},\n    COUNT(*) as record_count,\n    AVG(${this.randomElement(['amount', 'score', 'rating', 'value'])}) as average\nFROM ${this.randomElement(['users', 'products', 'orders', 'customers'])} ${this.randomElement(['u', 'p', 'o', 'c'])}\nWHERE ${this.randomElement(['created_at', 'updated_at', 'date_added', 'timestamp'])} >= '2024-01-01'\nGROUP BY ${this.randomElement(['u.id', 'p.category', 'o.status', 'c.region'])}\nORDER BY record_count DESC\nLIMIT 100;`
+                ];
+                return this.randomElement(snippets);
+            }
+
+            generateFilename(index, category, subcategory) {
+                const formats = [
+                    `${category}-${subcategory}-${index}`,
+                    `${this.randomElement(this.subjects[category] || ['topic'])}-notes-${index}`,
+                    `${category}_${subcategory}_${this.randomDate().replace(/-/g, '')}`,
+                    `${index.toString().padStart(4, '0')}-${category}-${subcategory}`,
+                    `${category} ${subcategory} Research ${index}`,
+                    `${this.randomElement(['Analysis', 'Review', 'Study', 'Guide', 'Overview'])}-${category}-${index}`
+                ];
+
+                let filename = this.randomElement(formats);
+
+                // Sometimes add special characters for testing
+                if (Math.random() < 0.1) {
+                    filename += ` (${Math.floor(Math.random() * 100)})`;
+                }
+
+                return filename.replace(/\s+/g, '-').toLowerCase() + '.md';
+            }
+
+            randomElement(array) {
+                return array[Math.floor(Math.random() * array.length)];
+            }
+
+            randomElements(array, count) {
+                const shuffled = [...array].sort(() => 0.5 - Math.random());
+                return shuffled.slice(0, count);
+            }
+
+            randomDate() {
+                const start = new Date(2023, 0, 1);
+                const end = new Date(2024, 11, 31);
+                const date = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+                return date.toISOString().split('T')[0];
+            }
+
+
+
+            updateProgress(current, total, message) {
+                const progress = (current / total) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('progressText').textContent = message;
+            }
+
+            async addPluginFiles(zip) {
+                // Create minimal .obsidian structure
+                zip.folder('.obsidian');
+
+                // Add README for the test vault
+                const testVaultReadme = `# Vault Find Replace Test Vault
+
+This test vault contains 5000 markdown files designed to thoroughly test the **Vault Find Replace** plugin.
+
+## Plugin Installation
+
+To use this test vault with the Vault Find Replace plugin:
+
+1. Copy this vault to your Obsidian vaults directory
+2. Open it in Obsidian
+3. Install the **Vault Find Replace** plugin from:
+   - **GitHub Repository**: https://github.com/your-username/vault-find-replace
+   - **Obsidian Community Plugins**: Search for "Vault Find Replace"
+
+## Test Content Features
+
+- **5000 markdown files** across 27 organized folders
+- **Interconnected wikilinks**: Files reference each other with \`[[filename]]\` patterns
+- **External URLs**: Real documentation and website links
+- **Markdown links**: \`[text](url)\` patterns linking to internal files
+- **Common search patterns**: TODO, FIXME, NOTE, HACK, BUG, REVIEW, DEPRECATED, ENHANCEMENT
+- **Technical terms**: Programming concepts, frameworks, and tools
+- **Regex-testable patterns**: dates, emails, phone numbers, URLs, UUIDs, version numbers
+- **Multiple content types**: articles, notes, code snippets, lists, and documentation
+
+## Folder Structure
+
+- **Technology/** Frontend, Backend, DevOps
+- **Nature/** Ecosystems, Wildlife, Conservation
+- **Science/** Physics, Biology, Chemistry
+- **History/** Ancient, Modern, Cultural
+- **Business/** Strategy, Operations, Innovation
+- **Education/** Teaching, Research, Development
+- **Projects/** Active, Completed, Archive
+- **Notes/** Daily, Meeting, Ideas
+- **Reference/** Documentation, Tutorials, Examples
+
+## Testing Scenarios
+
+### Basic Text Search
+- Find all TODO items: \`TODO\`
+- Find deprecated features: \`DEPRECATED\`
+- Locate security issues: \`BUG.*security\`
+- Search for programming languages: \`javascript\`, \`python\`, \`typescript\`
+
+### Regex Pattern Matching
+- Convert date formats: \`(\\\\d{4})-(\\\\d{2})-(\\\\d{2})\` → \`$2/$3/$1\`
+- Find email addresses: \`\\\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Z|a-z]{2,}\\\\b\`
+- Extract version numbers: \`v\\\\d+\\\\.\\\\d+\\\\.\\\\d+(-\\\\w+)?\`
+- Find UUIDs: \`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\`
+- Match phone numbers: \`\\\\(\\\\d{3}\\\\) \\\\d{3}-\\\\d{4}\`
+- Find URLs: \`https?://[^\\\\s]+\`
+
+### Link Operations
+- Replace markdown links with wikilinks: \`\\\\[([^\\\\]]+)\\\\]\\\\(([^)]+)\\\\.md\\\\)\` → \`[[$1]]\`
+- Find broken wikilinks: \`\\\\[\\\\[([^\\\\]]+)\\\\]\\\\]\`
+- Update external URLs: Replace old domains with new domains
+- Convert tags to links: \`#([\\\\w-]+)\` → \`[[Tags/$1]]\`
+
+### Advanced Operations
+- Standardize heading formats: \`^#+\\\\s*(.+?)\\\\s*#+\\\\s*$\` → \`## $1\`
+- Clean up multiple spaces: \`\\\\s{2,}\` → \` \` (single space)
+- Format code blocks: Single backticks to triple backticks
+- Find and replace function names: \`function ([\\\\w]+)\` → \`const $1 = \`
+
+### Multi-Selection Tests
+- Search for "function" and test multi-selection across files
+- Search for "async" and test bulk replacement
+- Search for common words and test file-level replacement
+- Select specific files and replace within those files only
+
+### Performance Tests
+- Search for very common words like "the", "and", "is"
+- Test with complex regex patterns
+- Test replacement operations on large result sets (1000+ matches)
+- Test with long replacement strings
+
+## File Content Patterns
+
+Each generated file contains:
+- **Metadata**: Creation date, category, tags
+- **Main content**: 2-4 paragraphs of category-relevant text
+- **Technical notes**: Programming terms and concepts (40% of files)
+- **Code examples**: JavaScript, TypeScript, Python, SQL, etc. (20% of files)
+- **References**: Wikilinks to other files and external URLs (50% of files)
+- **Special patterns**: Email addresses, phone numbers, UUIDs (10% of files)
+- **Timeline data**: Dates and version numbers (40% of files)
+
+## Cross-References
+
+Files are interconnected with:
+- **Wikilinks**: \`[[other-file-name]]\` linking to actual generated files
+- **Markdown links**: \`[Link Text](filename.md)\` with descriptive text
+- **External links**: Real URLs to documentation sites
+- **Tag references**: \`#technology\`, \`#research\`, etc.
+
+This creates a realistic network of connections for testing link-related find and replace operations.
+
+Happy testing with the Vault Find Replace plugin!
+`;
+
+                zip.file('README.md', testVaultReadme);
+            }
+
+            async generateVault() {
+                const button = document.getElementById('generateBtn');
+                const progress = document.getElementById('progress');
+
+                button.disabled = true;
+                progress.style.display = 'block';
+
+                try {
+                    const zip = new JSZip();
+
+                    // Add plugin files
+                    this.updateProgress(0, 5000, 'Adding plugin files...');
+                    await this.addPluginFiles(zip);
+
+                    // Generate markdown files
+                    let fileCount = 0;
+                    const totalFiles = 5000;
+
+                    for (const folder of this.folders) {
+                        const filesPerFolder = Math.floor(totalFiles / this.folders.length);
+                        const extraFiles = fileCount < totalFiles % this.folders.length ? 1 : 0;
+                        const folderFileCount = filesPerFolder + extraFiles;
+
+                        for (let i = 0; i < folderFileCount && fileCount < totalFiles; i++) {
+                            const category = folder.split('/')[0].toLowerCase();
+                            const subcategory = folder.split('/')[1]?.toLowerCase() || '';
+                            const filename = this.generateFilename(fileCount + 1, category, subcategory);
+
+                            // Track generated filenames for cross-referencing
+                            this.generatedFiles.push(filename);
+
+                            const content = this.generateContent(fileCount + 1, folder, filename);
+
+                            zip.file(`${folder}/${filename}`, content);
+                            fileCount++;
+
+                            if (fileCount % 100 === 0) {
+                                this.updateProgress(fileCount, totalFiles, `Generated ${fileCount}/${totalFiles} files...`);
+                                await new Promise(resolve => setTimeout(resolve, 1));
+                            }
+                        }
+                    }
+
+                    this.updateProgress(totalFiles, totalFiles, 'Creating ZIP file...');
+
+                    const blob = await zip.generateAsync({
+                        type: 'blob',
+                        compression: 'DEFLATE',
+                        compressionOptions: { level: 6 }
+                    });
+
+                    // Download the ZIP file
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'vault-find-replace-test-vault.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    this.updateProgress(totalFiles, totalFiles, 'Complete! Download started.');
+
+                } catch (error) {
+                    console.error('Error generating vault:', error);
+                    alert('Error generating vault: ' + error.message);
+                } finally {
+                    button.disabled = false;
+                    setTimeout(() => {
+                        progress.style.display = 'none';
+                    }, 3000);
+                }
+            }
+
+            async addPluginFiles(zip) {
+                // Create minimal .obsidian structure
+                zip.folder('.obsidian');
+
+                // Add README for the test vault
+                const testVaultReadme = `# Vault Find Replace Test Vault
+
+This test vault contains 5000 markdown files designed to thoroughly test the **Vault Find Replace** plugin.
+
+## Plugin Installation
+
+To use this test vault with the Vault Find Replace plugin:
+
+1. Copy this vault to your Obsidian vaults directory
+2. Open it in Obsidian
+3. Install the **Vault Find Replace** plugin from:
+   - **GitHub Repository**: https://github.com/your-username/vault-find-replace
+   - **Obsidian Community Plugins**: Search for "Vault Find Replace"
+
+## Test Content Features
+
+- **5000 markdown files** across 27 organized folders
+- **Interconnected wikilinks**: Files reference each other with \`[[filename]]\` patterns
+- **External URLs**: Real documentation and website links
+- **Markdown links**: \`[text](url)\` patterns linking to internal files
+- **Common search patterns**: TODO, FIXME, NOTE, HACK, BUG, REVIEW, DEPRECATED, ENHANCEMENT
+- **Technical terms**: Programming concepts, frameworks, and tools
+- **Regex-testable patterns**: dates, emails, phone numbers, URLs, UUIDs, version numbers
+- **Multiple content types**: articles, notes, code snippets, lists, and documentation
+
+## Folder Structure
+
+- **Technology/** Frontend, Backend, DevOps
+- **Nature/** Ecosystems, Wildlife, Conservation
+- **Science/** Physics, Biology, Chemistry
+- **History/** Ancient, Modern, Cultural
+- **Business/** Strategy, Operations, Innovation
+- **Education/** Teaching, Research, Development
+- **Projects/** Active, Completed, Archive
+- **Notes/** Daily, Meeting, Ideas
+- **Reference/** Documentation, Tutorials, Examples
+
+## Testing Scenarios
+
+### Basic Text Search
+- Find all TODO items: \`TODO\`
+- Find deprecated features: \`DEPRECATED\`
+- Locate security issues: \`BUG.*security\`
+- Search for programming languages: \`javascript\`, \`python\`, \`typescript\`
+
+### Regex Pattern Matching
+- Convert date formats: \`(\\\\d{4})-(\\\\d{2})-(\\\\d{2})\` → \`$2/$3/$1\`
+- Find email addresses: \`\\\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Z|a-z]{2,}\\\\b\`
+- Extract version numbers: \`v\\\\d+\\\\.\\\\d+\\\\.\\\\d+(-\\\\w+)?\`
+- Find UUIDs: \`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\`
+- Match phone numbers: \`\\\\(\\\\d{3}\\\\) \\\\d{3}-\\\\d{4}\`
+- Find URLs: \`https?://[^\\\\s]+\`
+
+### Link Operations
+- Replace markdown links with wikilinks: \`\\\\[([^\\\\]]+)\\\\]\\\\(([^)]+)\\\\.md\\\\)\` → \`[[$1]]\`
+- Find broken wikilinks: \`\\\\[\\\\[([^\\\\]]+)\\\\]\\\\]\`
+- Update external URLs: Replace old domains with new domains
+- Convert tags to links: \`#([\\\\w-]+)\` → \`[[Tags/$1]]\`
+
+### Advanced Operations
+- Standardize heading formats: \`^#+\\\\s*(.+?)\\\\s*#+\\\\s*$\` → \`## $1\`
+- Clean up multiple spaces: \`\\\\s{2,}\` → \` \` (single space)
+- Format code blocks: Single backticks to triple backticks
+- Find and replace function names: \`function ([\\\\w]+)\` → \`const $1 = \`
+
+### Multi-Selection Tests
+- Search for "function" and test multi-selection across files
+- Search for "async" and test bulk replacement
+- Search for common words and test file-level replacement
+- Select specific files and replace within those files only
+
+### Performance Tests
+- Search for very common words like "the", "and", "is"
+- Test with complex regex patterns
+- Test replacement operations on large result sets (1000+ matches)
+- Test with long replacement strings
+
+## File Content Patterns
+
+Each generated file contains:
+- **Metadata**: Creation date, category, tags
+- **Main content**: 2-4 paragraphs of category-relevant text
+- **Technical notes**: Programming terms and concepts (40% of files)
+- **Code examples**: JavaScript, TypeScript, Python, SQL, etc. (20% of files)
+- **References**: Wikilinks to other files and external URLs (50% of files)
+- **Special patterns**: Email addresses, phone numbers, UUIDs (10% of files)
+- **Timeline data**: Dates and version numbers (40% of files)
+
+## Cross-References
+
+Files are interconnected with:
+- **Wikilinks**: \`[[other-file-name]]\` linking to actual generated files
+- **Markdown links**: \`[Link Text](filename.md)\` with descriptive text
+- **External links**: Real URLs to documentation sites
+- **Tag references**: \`#technology\`, \`#research\`, etc.
+
+This creates a realistic network of connections for testing link-related find and replace operations.
+
+Happy testing with the Vault Find Replace plugin!
+`;
+
+                zip.file('README.md', testVaultReadme);
+            }
+        }
+
+        // Initialize the generator
+        const generator = new TestVaultGenerator();
+
+        document.getElementById('generateBtn').addEventListener('click', () => {
+            generator.generateVault();
+        });
+    </script>
+</body>
+</html>
