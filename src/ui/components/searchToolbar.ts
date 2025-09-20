@@ -2,6 +2,7 @@ import { setIcon, Menu } from 'obsidian';
 import { Logger } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
 import { SelectionManager } from './selectionManager';
+import { HelpModal } from '../../modals/helpModal';
 
 /**
  * Interface for search input elements
@@ -319,6 +320,23 @@ export class SearchToolbar {
                             await this.replaceAllVaultCallback();
                         } catch (error) {
                             this.logger.error('Replace all vault menu item error', error, true);
+                        }
+                    });
+            });
+
+            // Add separator before help item
+            menu.addSeparator();
+
+            // Add "Help" menu item
+            menu.addItem((item) => {
+                item.setTitle('Help')
+                    .setIcon('help-circle')
+                    .onClick(() => {
+                        try {
+                            const helpModal = new HelpModal(this.plugin.app, this.plugin);
+                            helpModal.open();
+                        } catch (error) {
+                            this.logger.error('Help modal error', error, true);
                         }
                     });
             });

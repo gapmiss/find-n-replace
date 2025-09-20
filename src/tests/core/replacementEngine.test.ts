@@ -202,7 +202,7 @@ describe('ReplacementEngine', () => {
 
             // Should contain literal $ not variable substitution
             const hasLiteralDollar = Array.from(mockApp.vault.getAllFiles().values())
-                .some(content => content.includes('cost$'));
+                .some(content => (content as string).includes('cost$'));
             expect(hasLiteralDollar).toBe(true);
         });
     });
@@ -252,8 +252,8 @@ describe('ReplacementEngine', () => {
             const file2Content = mockApp.vault.getContent('multiple-matches.md');
 
             // Should have same number of replacements
-            const count1 = (file1Content.match(/REPLACED/g) || []).length;
-            const count2 = (file2Content.match(/REPLACED/g) || []).length;
+            const count1 = ((file1Content as string).match(/REPLACED/g) || []).length;
+            const count2 = ((file2Content as string).match(/REPLACED/g) || []).length;
             expect(count1).toBeGreaterThan(0);
         });
 

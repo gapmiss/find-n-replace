@@ -50,6 +50,7 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 - Adaptive toolbar that shows relevant controls contextually
 - Full keyboard navigation with proper tab order
 - Accessible design with screen reader support
+- **Built-in Help System**: Comprehensive help modal accessible via toolbar menu (⋯) showing all keyboard shortcuts, usage tips, and your personal hotkey configurations
 
 ### Performance Optimizations
 - Incremental result updates after replacements (avoids full re-search)
@@ -77,6 +78,14 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 Access via Command Palette: `Vault Find Replace: Open`
 
 The plugin opens in a dedicated pane that can be docked anywhere in your workspace.
+
+### Getting Help
+Click the **⋯** (ellipsis) button in the toolbar and select **Help** to open the comprehensive help modal. This shows:
+- All 12 available plugin commands with descriptions
+- Your configured keyboard shortcuts (if any)
+- Recommended hotkey combinations
+- Usage tips for efficient workflows
+- Direct link to hotkey configuration in Obsidian settings
 
 ### Basic Search Workflow
 1. Enter search term in the search input field

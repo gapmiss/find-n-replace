@@ -651,6 +651,42 @@ src/
   - **Comprehensive Coverage:** All core algorithms, edge cases, and performance scenarios tested
   - **Future-Proof Development:** New features can be developed with confidence using test-driven approach
 
+#### 22. **Comprehensive Help Modal with Hotkey Detection** (User Experience & Discoverability)
+- **Goal:** Provide in-plugin help system with personalized keyboard shortcuts for improved discoverability
+- **Problem:** Users need to reference external documentation to learn about plugin commands and recommended hotkeys
+- **Solution Implementation:**
+  - **Help Modal Component:** Complete modal interface showing all 12 plugin commands with descriptions
+  - **Smart Hotkey Detection:** Multi-method approach to detect user's configured hotkeys from Obsidian settings
+  - **Categorized Display:** Commands organized by function (Primary, Navigation, Search Options, Replace Actions, etc.)
+  - **Visual Differentiation:** Color-coded display showing configured vs. recommended vs. unset hotkeys
+  - **Usage Tips Section:** Practical advice for efficient plugin usage and workflow optimization
+- **Technical Implementation:**
+  - **HelpModal Class:** (`src/modals/helpModal.ts`) - 280+ lines with comprehensive hotkey detection
+  - **Ellipsis Menu Integration:** Added help item to toolbar menu with separator and help-circle icon
+  - **Multiple Detection Methods:** Checks hotkeyManager, scope registry, and commands registry for user hotkeys
+  - **Professional Styling:** 90+ lines of CSS using Obsidian design tokens for consistent theming
+  - **Table Layout:** Clean command display with hover effects and responsive design
+- **Hotkey Detection Features:**
+  - **Method 1:** `hotkeyManager.customKeys` - Standard Obsidian hotkey storage
+  - **Method 2:** `scope.keys` - Active scope registry scanning
+  - **Method 3:** `commands.hotkeys` - Command registry fallback
+  - **Smart Formatting:** Handles modifier keys (Cmd, Ctrl, Alt, Shift) and special keys (Space, etc.)
+- **User Benefits:**
+  - **Self-Service Discovery:** Users can learn all plugin capabilities without external documentation
+  - **Personalized Experience:** Shows their actual configured hotkeys alongside recommendations
+  - **Workflow Optimization:** Usage tips help users maximize plugin efficiency
+  - **Accessibility:** Complete keyboard shortcut reference for keyboard-first workflows
+- **File Changes:**
+  - `src/modals/helpModal.ts` (NEW FILE - comprehensive help system)
+  - `src/ui/components/searchToolbar.ts` (ellipsis menu integration)
+  - `src/modals/index.ts` (export HelpModal)
+  - `styles.css` (professional modal styling with Obsidian design tokens)
+- **Integration Quality:**
+  - **Native Obsidian Menu:** Uses Obsidian's Menu class for consistent UX
+  - **Error Handling:** Comprehensive try-catch blocks around modal operations
+  - **Design Consistency:** Matches Obsidian's modal styling and interaction patterns
+  - **Performance:** Lightweight hotkey detection with graceful fallbacks
+
 ## Development Guidelines
 
 ### Code Quality Standards

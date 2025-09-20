@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { fc } from 'fast-check';
+import fc from 'fast-check';
 import { SearchEngine } from '../../core/searchEngine';
 import { ReplacementEngine } from '../../core/replacementEngine';
 import { createMockApp, createMockPlugin } from '../mocks';
@@ -18,11 +18,11 @@ describe('Property-Based Testing (Fuzzing)', () => {
     });
 
     describe('Search Engine Fuzzing', () => {
-        it('should handle arbitrary Unicode input without crashing', () => {
-            fc.assert(
-                fc.property(
+        it('should handle arbitrary Unicode input without crashing', async () => {
+            await fc.assert(
+                fc.asyncProperty(
                     fc.unicodeString({ minLength: 1, maxLength: 100 }),
-                    async (searchTerm) => {
+                    async (searchTerm: string) => {
                         // Search should never crash, regardless of input
                         const results = await searchEngine.performSearch(searchTerm, {
                             matchCase: false,
@@ -60,11 +60,11 @@ describe('Property-Based Testing (Fuzzing)', () => {
             );
         });
 
-        it('should handle arbitrary regex patterns safely', () => {
-            fc.assert(
-                fc.property(
+        it('should handle arbitrary regex patterns safely', async () => {
+            await fc.assert(
+                fc.asyncProperty(
                     fc.string({ minLength: 1, maxLength: 50 }),
-                    async (pattern) => {
+                    async (pattern: string) => {
                         // Skip obviously malicious patterns for this test
                         if (pattern.includes('(a+)+') || pattern.length > 30) {
                             return;
@@ -95,12 +95,12 @@ describe('Property-Based Testing (Fuzzing)', () => {
             );
         });
 
-        it('should maintain column position accuracy with random content', () => {
-            fc.assert(
-                fc.property(
+        it('should maintain column position accuracy with random content', async () => {
+            await fc.assert(
+                fc.asyncProperty(
                     fc.array(fc.unicodeString({ maxLength: 200 }), { minLength: 1, maxLength: 10 }),
                     fc.unicodeString({ minLength: 1, maxLength: 20 }),
-                    async (contentLines, searchTerm) => {
+                    async (contentLines: string[], searchTerm: string) => {
                         // Create test file with random content
                         const content = contentLines.join('\\n');
                         mockApp.vault.addTestFile('fuzzing-test.md', content);
@@ -136,11 +136,11 @@ describe('Property-Based Testing (Fuzzing)', () => {
     });
 
     describe('Replacement Engine Fuzzing', () => {
-        it('should handle arbitrary replacement text without corruption', () => {
-            fc.assert(
-                fc.property(
+        it('should handle arbitrary replacement text without corruption', async () => {
+            await fc.assert(
+                fc.asyncProperty(
                     fc.unicodeString({ maxLength: 100 }),
-                    async (replacementText) => {
+                    async (replacementText: string) => {
                         const results = await searchEngine.performSearch('test', {
                             matchCase: false,
                             wholeWord: false,
@@ -173,9 +173,9 @@ describe('Property-Based Testing (Fuzzing)', () => {
             );
         });
 
-        it('should maintain file integrity with random operations', () => {
-            fc.assert(
-                fc.property(
+        it('should maintain file integrity with random operations', async () => {
+            await fc.assert(
+                fc.asyncProperty(
                     fc.array(
                         fc.record({
                             searchTerm: fc.string({ minLength: 1, maxLength: 10 }),
@@ -184,7 +184,7 @@ describe('Property-Based Testing (Fuzzing)', () => {
                         }),
                         { minLength: 1, maxLength: 5 }
                     ),
-                    async (operations) => {
+                    async (operations: { searchTerm: string; replacement: string; useRegex: boolean; }[]) => {
                         // Reset to clean state
                         mockApp.vault.reset();
 
@@ -229,12 +229,12 @@ describe('Property-Based Testing (Fuzzing)', () => {
             );
         });
 
-        it('should handle edge case column positions correctly', () => {
-            fc.assert(
-                fc.property(
+        it('should handle edge case column positions correctly', async () => {
+            await fc.assert(
+                fc.asyncProperty(
                     fc.integer({ min: 0, max: 1000 }),
                     fc.string({ minLength: 1, maxLength: 50 }),
-                    async (lineNumber, content) => {
+                    async (lineNumber: number, content: string) => {
                         // Create a file with content at specific line
                         const lines = Array(lineNumber).fill('padding line').concat([content]);
                         const testContent = lines.join('\\n');
@@ -277,11 +277,11 @@ describe('Property-Based Testing (Fuzzing)', () => {
     });
 
     describe('Stress Testing with Random Data', () => {
-        it('should handle high-volume operations without memory leaks', () => {
-            fc.assert(
-                fc.property(
+        it('should handle high-volume operations without memory leaks', async () => {
+            await fc.assert(
+                fc.asyncProperty(
                     fc.array(fc.string({ minLength: 1, maxLength: 5 }), { minLength: 10, maxLength: 50 }),
-                    async (searchTerms) => {
+                    async (searchTerms: string[]) => {
                         const startMemory = process.memoryUsage?.().heapUsed ?? 0;
 
                         // Perform many search operations
@@ -316,13 +316,13 @@ describe('Property-Based Testing (Fuzzing)', () => {
             );
         });
 
-        it('should maintain search result consistency under random inputs', () => {
-            fc.assert(
-                fc.property(
+        it('should maintain search result consistency under random inputs', async () => {
+            await fc.assert(
+                fc.asyncProperty(
                     fc.string({ minLength: 1, maxLength: 10 }),
                     fc.boolean(),
                     fc.boolean(),
-                    async (searchTerm, matchCase, wholeWord) => {
+                    async (searchTerm: string, matchCase: boolean, wholeWord: boolean) => {
                         // Perform same search twice
                         const results1 = await searchEngine.performSearch(searchTerm, {
                             matchCase,

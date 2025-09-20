@@ -29,7 +29,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
         fc.property(
           fc.string({ minLength: 1, maxLength: 50 }),
           fc.string({ minLength: 1, maxLength: 20 }),
-          (content, pattern) => {
+          (content: string, pattern: string) => {
             // Insert pattern into content at random position
             const position = Math.floor(Math.random() * (content.length + 1));
             const testContent = content.slice(0, position) + pattern + content.slice(position);
@@ -53,7 +53,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
         fc.property(
           fc.array(fc.string({ minLength: 1, maxLength: 10 }), { minLength: 1, maxLength: 20 }),
           fc.string({ minLength: 1, maxLength: 5 }),
-          (words, pattern) => {
+          (words: string[], pattern: string) => {
             const content = words.join(' ');
             const matches = findMatches(content, pattern, false);
 
@@ -77,7 +77,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
           fc.string({ minLength: 10, maxLength: 100 }),
           fc.string({ minLength: 1, maxLength: 10 }),
           fc.boolean(),
-          (content, pattern, caseSensitive) => {
+          (content: string, pattern: string, caseSensitive: boolean) => {
             const matches = findMatches(content, pattern, caseSensitive);
 
             matches.forEach(match => {
@@ -103,7 +103,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
           fc.string({ minLength: 10, maxLength: 100 }),
           fc.string({ minLength: 1, maxLength: 5 }),
           fc.string({ minLength: 1, maxLength: 5 }),
-          (content, pattern, replacement) => {
+          (content: string, pattern: string, replacement: string) => {
             fc.pre(pattern.length === replacement.length); // Same length precondition
 
             const originalLength = content.length;
@@ -123,7 +123,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
           fc.string({ minLength: 5, maxLength: 50 }),
           fc.string({ minLength: 1, maxLength: 10 }),
           fc.string({ minLength: 1, maxLength: 10 }),
-          (content, pattern, replacement) => {
+          (content: string, pattern: string, replacement: string) => {
             fc.pre(pattern !== replacement); // Different strings
 
             const result = performReplacement(content, pattern, replacement, false);
@@ -148,7 +148,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
           fc.string({ minLength: 5, maxLength: 50 }),
           fc.string({ minLength: 1, maxLength: 5 }),
           fc.string({ minLength: 1, maxLength: 10 }),
-          (content, pattern, replacement) => {
+          (content: string, pattern: string, replacement: string) => {
             const originalMatches = findMatches(content, pattern, false);
             const result = performReplacement(content, pattern, replacement, false);
 
@@ -167,7 +167,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
         fc.property(
           fc.unicodeString({ minLength: 5, maxLength: 50 }),
           fc.unicodeString({ minLength: 1, maxLength: 10 }),
-          (content, pattern) => {
+          (content: string, pattern: string) => {
             const matches = findMatches(content, pattern, false);
 
             // Every match should be valid Unicode
@@ -190,11 +190,11 @@ describe('Test Data Generators and Property-Based Testing', () => {
         fc.property(
           fc.constantFrom(...emojiPatterns),
           fc.array(fc.constantFrom(...emojiPatterns), { minLength: 1, maxLength: 10 }),
-          (searchEmoji, emojiList) => {
+          (searchEmoji: string, emojiList: string[]) => {
             const content = emojiList.join(' text ');
             const matches = findMatches(content, searchEmoji, true);
 
-            const expectedCount = emojiList.filter(e => e === searchEmoji).length;
+            const expectedCount = emojiList.filter((e: string) => e === searchEmoji).length;
             expect(matches.length).toBe(expectedCount);
           }
         ),
@@ -209,7 +209,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
         fc.property(
           fc.string({ minLength: 100, maxLength: 1000 }),
           fc.string({ minLength: 1, maxLength: 20 }),
-          (content, pattern) => {
+          (content: string, pattern: string) => {
             const startTime = performance.now();
 
             const matches = findMatches(content, pattern, false);
@@ -230,7 +230,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
         fc.property(
           fc.integer({ min: 100, max: 10000 }),
           fc.string({ minLength: 1, maxLength: 5 }),
-          (contentSize, pattern) => {
+          (contentSize: number, pattern: string) => {
             const content = pattern.repeat(Math.floor(contentSize / pattern.length));
             const startMemory = getMemoryUsage();
 
@@ -260,7 +260,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
         fc.property(
           fc.string({ minLength: 1, maxLength: 100 }),
           fc.integer({ min: 0, max: 10 }),
-          (content, insertCount) => {
+          (content: string, insertCount: number) => {
             // Insert pattern at boundaries (start, end, middle)
             const pattern = 'X';
             let testContent = content;
@@ -299,7 +299,7 @@ describe('Test Data Generators and Property-Based Testing', () => {
         fc.property(
           fc.string({ minLength: 1, maxLength: 5 }),
           fc.integer({ min: 2, max: 20 }),
-          (basePattern, repetitions) => {
+          (basePattern: string, repetitions: number) => {
             const content = basePattern.repeat(repetitions);
             const subPattern = basePattern.slice(0, Math.max(1, basePattern.length - 1));
 

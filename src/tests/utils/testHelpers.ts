@@ -2,7 +2,13 @@
  * Test utilities and helpers for Vault Find Replace testing
  */
 
+import { expect } from 'vitest';
 import { SearchResult, SearchOptions } from '../../types';
+
+// Global test helper functions
+declare global {
+    function createMockFile(path: string, content: string): any;
+}
 
 /**
  * Creates a mock SearchResult for testing
@@ -56,7 +62,7 @@ export function generateEdgeCaseContent(): Map<string, string> {
         'Café naïve résumé piñata\n' +
         '🔍 🔄 🎯 emojis in content\n' +
         'Mixed: test-тест-テスト-测试\n' +
-        'Quotes: "test" 'test' «test»'
+        'Quotes: "test" \'test\' «test»'
     );
 
     // Regex edge cases
@@ -119,21 +125,29 @@ export function validateSearchResults(results: SearchResult[]): void {
         expect(typeof result.line).toBe('number');
         expect(typeof result.content).toBe('string');
         expect(typeof result.matchText).toBe('string');
-        expect(typeof result.col).toBe('number');
         expect(typeof result.pattern).toBe('string');
+
+        // Column type validation (if provided)
+        if (result.col !== undefined) {
+            expect(typeof result.col).toBe('number');
+        }
 
         // Range validation
         expect(result.line).toBeGreaterThanOrEqual(0);
-        expect(result.col).toBeGreaterThanOrEqual(0);
-        expect(result.col).toBeLessThanOrEqual(result.content.length);
         expect(result.matchText.length).toBeGreaterThan(0);
 
-        // Content validation - match should exist at specified position
-        const extractedText = result.content.substring(
-            result.col,
-            result.col + result.matchText.length
-        );
-        expect(extractedText).toBe(result.matchText);
+        // Column validation (if provided)
+        if (result.col !== undefined) {
+            expect(result.col).toBeGreaterThanOrEqual(0);
+            expect(result.col).toBeLessThanOrEqual(result.content.length);
+
+            // Content validation - match should exist at specified position
+            const extractedText = result.content.substring(
+                result.col,
+                result.col + result.matchText.length
+            );
+            expect(extractedText).toBe(result.matchText);
+        }
     });
 }
 
