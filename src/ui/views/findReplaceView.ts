@@ -892,35 +892,123 @@ export class FindReplaceView extends ItemView {
         }, 100); // Increased delay for DOM updates
     }
 
+    // ========================================
+    // PUBLIC COMMAND METHODS FOR OBSIDIAN COMMANDS
+    // ========================================
+
     /**
-     * Creates a VSCode-style inline toggle button
-     * @param container - Parent container element
-     * @param id - Unique identifier for the toggle
-     * @param icon - Icon name for the toggle
-     * @param label - Aria label for accessibility
-     * @param tabIndex - Tab order index for keyboard navigation
-     * @returns The toggle button element
+     * Command: Perform search operation
      */
-    private createInlineToggle(container: HTMLElement, id: string, icon: string, label: string, tabIndex?: number): HTMLElement {
-        const toggleBtn = container.createEl('button', {
-            cls: 'inline-toggle-btn clickable-icon',
-            attr: {
-                'data-toggle': id,
-                'aria-label': label,
-                'aria-pressed': 'false',
-                ...(tabIndex && { 'tabindex': tabIndex.toString() })
-            }
-        });
+    async commandPerformSearch(): Promise<void> {
+        await this.searchController.performSearch();
+    }
 
-        setIcon(toggleBtn, icon);
+    /**
+     * Command: Clear all inputs and reset toggles
+     */
+    commandClearAll(): void {
+        this.elements.searchInput.value = '';
+        this.elements.replaceInput.value = '';
 
-        // Handle toggle state
-        toggleBtn.addEventListener('click', () => {
-            const isPressed = toggleBtn.getAttribute('aria-pressed') === 'true';
-            toggleBtn.setAttribute('aria-pressed', (!isPressed).toString());
-            toggleBtn.classList.toggle('is-active', !isPressed);
-        });
+        // Reset toggle states
+        [this.elements.matchCaseCheckbox, this.elements.wholeWordCheckbox, this.elements.regexCheckbox]
+            .forEach(btn => {
+                if (btn) {
+                    btn.setAttribute('aria-pressed', 'false');
+                    btn.classList.remove('is-active');
+                }
+            });
 
-        return toggleBtn;
+        // Clear results
+        this.clearResults();
+        this.elements.searchInput.focus();
+    }
+
+    /**
+     * Command: Focus search input
+     */
+    commandFocusSearch(): void {
+        this.elements.searchInput.focus();
+        this.elements.searchInput.select();
+    }
+
+    /**
+     * Command: Focus replace input
+     */
+    commandFocusReplace(): void {
+        this.elements.replaceInput.focus();
+        this.elements.replaceInput.select();
+    }
+
+    /**
+     * Command: Toggle match case option
+     */
+    commandToggleMatchCase(): void {
+        this.toggleSearchOption(this.elements.matchCaseCheckbox);
+    }
+
+    /**
+     * Command: Toggle whole word option
+     */
+    commandToggleWholeWord(): void {
+        this.toggleSearchOption(this.elements.wholeWordCheckbox);
+    }
+
+    /**
+     * Command: Toggle regex option
+     */
+    commandToggleRegex(): void {
+        this.toggleSearchOption(this.elements.regexCheckbox);
+    }
+
+    /**
+     * Command: Replace selected matches
+     */
+    async commandReplaceSelected(): Promise<void> {
+        if (this.actionHandler) {
+            await this.actionHandler.replaceSelectedMatches();
+        }
+    }
+
+    /**
+     * Command: Replace all matches in vault
+     */
+    async commandReplaceAllVault(): Promise<void> {
+        if (this.actionHandler) {
+            await this.actionHandler.replaceAllInVault();
+        }
+    }
+
+    /**
+     * Command: Toggle expand/collapse all results
+     */
+    commandExpandCollapseAll(): void {
+        this.uiRenderer.toggleExpandCollapseAll();
+    }
+
+    /**
+     * Command: Select all search results
+     */
+    commandSelectAllResults(): void {
+        this.selectionManager.selectAll();
+    }
+
+    /**
+     * Helper: Toggle a search option button
+     */
+    private toggleSearchOption(button: HTMLElement): void {
+        if (!button) return;
+
+        const isPressed = button.getAttribute('aria-pressed') === 'true';
+        button.setAttribute('aria-pressed', (!isPressed).toString());
+        button.classList.toggle('is-active', !isPressed);
+
+        // Trigger search if there's a query
+        const query = this.elements.searchInput.value.trim();
+        if (query.length > 0) {
+            // Clear cache to prevent stale regex
+            this.searchEngine.clearCache();
+            this.searchController.performSearch();
+        }
     }
 }

@@ -20,6 +20,136 @@ export default class VaultFindReplacePlugin extends Plugin {
 		this.addRibbonIcon('text-search', 'Vault Find & Replace', () => {
 			this.activateView();
 		});
+
+		// Register commands for keyboard shortcuts
+		this.addCommand({
+			id: 'open-vault-find-replace',
+			name: 'Open Vault Find & Replace',
+			callback: () => {
+				this.activateView();
+			}
+		});
+
+		this.addCommand({
+			id: 'perform-search',
+			name: 'Perform Search',
+			callback: async () => {
+				const view = await this.getOrCreateView();
+				if (view) {
+					view.commandPerformSearch();
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'clear-all',
+			name: 'Clear Search and Replace',
+			callback: async () => {
+				const view = await this.getOrCreateView();
+				if (view) {
+					view.commandClearAll();
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'focus-search-input',
+			name: 'Focus Search Input',
+			callback: async () => {
+				const view = await this.getOrCreateView();
+				if (view) {
+					view.commandFocusSearch();
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'focus-replace-input',
+			name: 'Focus Replace Input',
+			callback: async () => {
+				const view = await this.getOrCreateView();
+				if (view) {
+					view.commandFocusReplace();
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'toggle-match-case',
+			name: 'Toggle Match Case',
+			callback: async () => {
+				const view = await this.getOrCreateView();
+				if (view) {
+					view.commandToggleMatchCase();
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'toggle-whole-word',
+			name: 'Toggle Whole Word',
+			callback: async () => {
+				const view = await this.getOrCreateView();
+				if (view) {
+					view.commandToggleWholeWord();
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'toggle-regex',
+			name: 'Toggle Regex',
+			callback: async () => {
+				const view = await this.getOrCreateView();
+				if (view) {
+					view.commandToggleRegex();
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'replace-selected',
+			name: 'Replace Selected Matches',
+			callback: async () => {
+				const view = this.getActiveView();
+				if (view) {
+					view.commandReplaceSelected();
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'replace-all-vault',
+			name: 'Replace All in Vault',
+			callback: async () => {
+				const view = this.getActiveView();
+				if (view) {
+					view.commandReplaceAllVault();
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'expand-collapse-all',
+			name: 'Expand/Collapse All Results',
+			callback: async () => {
+				const view = this.getActiveView();
+				if (view) {
+					view.commandExpandCollapseAll();
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'select-all-results',
+			name: 'Select All Results',
+			callback: async () => {
+				const view = this.getActiveView();
+				if (view) {
+					view.commandSelectAllResults();
+				}
+			}
+		});
 	}
 
 	onunload() {
@@ -51,6 +181,37 @@ export default class VaultFindReplacePlugin extends Plugin {
 			console.error("vault-find-replace: failed to activate view:", error);
 			// Don't throw - just log the error so plugin doesn't crash
 		}
+	}
+
+	/**
+	 * Gets the active FindReplaceView instance if it exists
+	 * @returns FindReplaceView instance or null if not open
+	 */
+	getActiveView(): FindReplaceView | null {
+		try {
+			const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_FIND_REPLACE);
+			if (leaves.length > 0) {
+				const view = leaves[0].view;
+				return view instanceof FindReplaceView ? view : null;
+			}
+			return null;
+		} catch (error) {
+			console.error("vault-find-replace: failed to get active view:", error);
+			return null;
+		}
+	}
+
+	/**
+	 * Gets the active view, opening it if it doesn't exist
+	 * @returns FindReplaceView instance after ensuring it's open
+	 */
+	async getOrCreateView(): Promise<FindReplaceView | null> {
+		let view = this.getActiveView();
+		if (!view) {
+			await this.activateView();
+			view = this.getActiveView();
+		}
+		return view;
 	}
 
 	async loadSettings() {

@@ -312,26 +312,17 @@
     justify-content: center;
     width: 24px;
     height: 24px;
-    border: 1px solid transparent;
-    border-radius: var(--radius-s);
-    background: transparent;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.15s ease;
-    font-size: 14px;
     padding: 0;
 }
 
 .inline-toggle-btn:hover {
-    background: var(--background-modifier-hover);
-    color: var(--text-normal);
+    /* background: var(--background-modifier-hover); */
+    /* color: var(--text-normal); */
 }
 
 .inline-toggle-btn.is-active,
 .inline-toggle-btn[aria-pressed="true"] {
-    background: var(--interactive-accent) !important;
-    color: var(--text-on-accent) !important;
-    border-color: var(--interactive-accent) !important;
+    color: var(--interactive-accent) !important;
 }
 
 .inline-toggle-btn:focus {
@@ -350,11 +341,11 @@
     width: 24px;
     height: 24px;
     padding: 0;
-    border: 1px solid transparent;
+    /* border: 1px solid transparent;
     border-radius: var(--radius-s);
     background: transparent;
     color: var(--text-muted);
-    cursor: pointer;
+    cursor: pointer; */
     transition: all 0.15s ease;
     display: flex;
     align-items: center;

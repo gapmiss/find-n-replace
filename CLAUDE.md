@@ -486,6 +486,56 @@ src/
   - `styles.css` (fixed toggle button active state styling)
 - **Result:** Clean, maintainable architecture with focused components while preserving 100% of functionality
 
+#### 19. **Comprehensive Obsidian Commands Implementation** (Keyboard-First Workflow)
+- **Goal:** Add Obsidian command palette integration for all plugin actions, enabling keyboard-first workflows
+- **Problem:** All plugin functionality required mouse interaction, limiting accessibility and power-user efficiency
+- **Implementation:** 12 comprehensive commands covering all major plugin actions
+  - **View Management:** Open view, focus search/replace inputs
+  - **Search Actions:** Perform search, clear all inputs, toggle search options
+  - **Replace Operations:** Replace selected matches, replace all in vault
+  - **Result Management:** Expand/collapse all, select all results
+- **Technical Architecture:**
+  - **Helper Methods:** `getActiveView()` and `getOrCreateView()` for safe view access
+  - **Command Methods:** Public command interface in FindReplaceView for all actions
+  - **Smart View Handling:** Commands that need view open use `getOrCreateView()`, operations-only use `getActiveView()`
+  - **State Preservation:** Toggle operations maintain search options and trigger re-search when needed
+- **Command List:**
+  1. `Open Vault Find & Replace` - Opens plugin view
+  2. `Perform Search` - Executes search with current query
+  3. `Clear Search and Replace` - Clears inputs and resets toggles
+  4. `Focus Search Input` - Focuses search input field
+  5. `Focus Replace Input` - Focuses replace input field
+  6. `Toggle Match Case` - Toggles case-sensitive search
+  7. `Toggle Whole Word` - Toggles whole word matching
+  8. `Toggle Regex` - Toggles regular expression mode
+  9. `Replace Selected Matches` - Replaces only selected results
+  10. `Replace All in Vault` - Replaces all matches vault-wide
+  11. `Expand/Collapse All Results` - Toggles all file group states
+  12. `Select All Results` - Selects all visible search results
+- **User Benefits:**
+  - **Keyboard-First Workflow:** All functionality accessible via command palette (Ctrl/Cmd+P)
+  - **Custom Hotkeys:** Users can assign personal keyboard shortcuts to any command
+  - **Accessibility:** Full plugin operation without mouse dependency
+  - **Power User Efficiency:** Rapid command execution via keyboard shortcuts
+- **File Changes:**
+  - `src/main.ts` (12 command registrations using addCommand API)
+  - `src/ui/views/findReplaceView.ts` (public command methods for all actions)
+  - Helper methods for safe view instance management
+- **Technical Implementation:**
+  ```typescript
+  // Example command registration
+  this.addCommand({
+      id: 'toggle-regex',
+      name: 'Toggle Regex',
+      callback: async () => {
+          const view = await this.getOrCreateView();
+          if (view) {
+              view.commandToggleRegex();
+          }
+      }
+  });
+  ```
+
 ## Development Guidelines
 
 ### Code Quality Standards
@@ -526,6 +576,12 @@ src/
 - **Obsidian API:** Core platform integration
 - **TypeScript:** Type safety and development experience
 - **No External Dependencies:** Self-contained plugin architecture
+
+### Build and Test Commands
+- **Development Build:** `npm run dev` - Continuous development build with watching
+- **Production Build:** `npm run build` - TypeScript compilation + production bundle
+- **Type Checking:** `npx tsc --noEmit --skipLibCheck` - Verify TypeScript types
+- **Release:** `npm run release` - Automated release with version bumping
 
 ## Troubleshooting Guide
 

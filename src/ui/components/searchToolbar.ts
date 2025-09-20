@@ -263,7 +263,7 @@ export class SearchToolbar {
      */
     private createInlineToggle(container: HTMLElement, id: string, icon: string, label: string, tabIndex?: number): HTMLElement {
         const toggle = container.createEl('button', {
-            cls: 'inline-toggle-btn',
+            cls: 'inline-toggle-btn clickable-icon',
             attr: {
                 'aria-label': label,
                 'data-toggle': id,

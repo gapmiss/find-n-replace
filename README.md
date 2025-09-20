@@ -183,6 +183,36 @@ Result: Replace multiple consecutive spaces with single space
 - **Enter** (in search field): Execute manual search
 - **Escape** (in search field): Clear search input
 
+## Obsidian Commands
+
+All plugin functionality is available through Obsidian's Command Palette (Ctrl/Cmd+P) and can be assigned custom hotkeys:
+
+### View Management
+- **Open Vault Find & Replace** - Opens the plugin view
+- **Focus Search Input** - Focuses the search input field
+- **Focus Replace Input** - Focuses the replace input field
+
+### Search Operations
+- **Perform Search** - Executes search with current query
+- **Clear Search and Replace** - Clears inputs and resets all toggle options
+- **Toggle Match Case** - Toggles case-sensitive search mode
+- **Toggle Whole Word** - Toggles whole word matching mode
+- **Toggle Regex** - Toggles regular expression mode
+
+### Replace Operations
+- **Replace Selected Matches** - Replaces only the currently selected results
+- **Replace All in Vault** - Replaces all matches across the entire vault
+
+### Result Management
+- **Select All Results** - Selects all visible search results
+- **Expand/Collapse All Results** - Toggles expand/collapse state for all file groups
+
+### Custom Hotkey Assignment
+To assign custom keyboard shortcuts:
+1. Open Obsidian Settings → Hotkeys
+2. Search for "Vault Find Replace"
+3. Assign your preferred key combinations to any command
+
 ## Architecture
 
 ### Search Engine
