@@ -15,7 +15,7 @@
 - **Maximum results limiting** (`maxResults`) - Controls performance for large searches
 - **Search debounce delay** (`searchDebounceDelay`) - Configurable auto-search timing
 - **File group state persistence** (`fileGroupStates`) - Remember expand/collapse preferences
-- **Debug logging toggle** (`enableDebugLogging`) - Console output control
+- **Enhanced logging system** (`logLevel`) - 6-level logging control (SILENT → TRACE)
 
 ### Performance & Reliability
 - **Batch file processing** to maintain UI responsiveness
@@ -24,13 +24,21 @@
 - **Comprehensive error boundaries** for production stability
 - **Memory leak prevention** with proper resource cleanup
 
-## In Progress 🚧
+### Quality Assurance & Testing
+- **Comprehensive test suite** - 61 automated tests across 6 test suites
+- **Regression prevention** - Specific tests for the second match replacement bug
+- **Edge case coverage** - Unicode, overlapping patterns, performance limits
+- **Property-based testing** - Random input generation for unknown edge cases
+- **Fast execution** - Complete test suite runs in under 1 second
+- **Independent testing** - No Obsidian API dependencies required
 
-### Enhanced Logging System
-- **Log level granularity** (SILENT → ERROR → WARN → INFO → DEBUG → TRACE)
-- **Performance-gated logging** to eliminate console spam
-- **User-friendly log level selection** in settings UI
-- **Migration from boolean debug flag** to structured levels
+### Development Commands
+- **Keyboard-first workflow** - 12 Obsidian commands for all plugin actions
+- **Command palette integration** - All functionality accessible via Ctrl/Cmd+P
+- **Custom hotkey support** - Users can assign shortcuts to any command
+- **Accessibility enhancement** - Full plugin operation without mouse dependency
+
+## In Progress 🚧
 
 ### Settings UI Cleanup
 - **Comment out unimplemented features** to avoid user confusion
@@ -115,12 +123,10 @@
 - **Plugin API** for third-party integrations
 - **Search hooks** for other plugins to use
 - **Performance profiling** tools
-- **Automated testing suite** for reliability
 
 ## Technical Debt & Improvements
 
 ### Code Quality
-- **Comprehensive test suite** (unit, integration, e2e)
 - **Bundle size optimization** with code splitting
 - **TypeScript strict mode** compliance
 - **Documentation generation** from code comments
@@ -149,10 +155,34 @@
 - **Follow existing code patterns** and TypeScript conventions
 - **Add comprehensive error handling** for all new features
 - **Include debug logging** for troubleshooting
-- **Update tests** when adding new functionality
+- **Write tests first** using test-driven development approach
+- **Run test suite** (`npm test`) before submitting changes - all 61 tests must pass
+- **Add tests for new features** following patterns in `src/tests/unit/`
 - **Update this roadmap** when completing features
 
 ---
 
-*Last updated: [Date will be filled automatically]*
+*Last updated: September 2025 - Added comprehensive testing infrastructure*
 *For questions or suggestions, please create a GitHub issue.*
+
+## Recent Completions (September 2025)
+
+### ✅ **Comprehensive Automated Testing Infrastructure**
+- **Completed**: Full test suite with 61 tests across 6 suites
+- **Impact**: Zero tolerance for regressions, automatic bug prevention
+- **Tools**: Vitest 2.1.0, TypeScript, jsdom environment
+- **Coverage**: Core algorithms, edge cases, performance, Unicode support
+- **Execution**: <1 second for complete test suite
+- **Benefits**: Test-driven development, safe refactoring, quality assurance
+
+### ✅ **Enhanced Logging System**
+- **Completed**: 6-level logging system (SILENT → TRACE)
+- **Impact**: Professional console experience, granular debug control
+- **Migration**: Automatic conversion from boolean debug flag
+- **Benefits**: Clean user experience, comprehensive debugging when needed
+
+### ✅ **Development Commands Integration**
+- **Completed**: 12 Obsidian commands for keyboard-first workflow
+- **Impact**: Full accessibility, power-user efficiency
+- **Features**: Command palette integration, custom hotkey support
+- **Benefits**: Mouse-free operation, familiar VSCode-like workflows
