@@ -62,7 +62,7 @@ export class FindReplaceView extends ItemView {
         };
 
         // Initialize components
-        this.searchEngine = new SearchEngine(app);
+        this.searchEngine = new SearchEngine(app, plugin);
         this.fileOperations = new FileOperations(app, plugin);
     }
 
@@ -130,9 +130,9 @@ export class FindReplaceView extends ItemView {
         };
 
         // Initialize remaining components now that we have UI elements
-        this.replacementEngine = new ReplacementEngine(this.app, this.searchEngine);
+        this.replacementEngine = new ReplacementEngine(this.app, this.plugin, this.searchEngine);
         this.uiRenderer = new UIRenderer(this.elements, this.searchEngine, this.plugin);
-        this.selectionManager = new SelectionManager(this.elements);
+        this.selectionManager = new SelectionManager(this.elements, this.plugin);
 
         // Now that we have selectionManager, update the SearchToolbar reference
         // @ts-ignore - Temporarily bypass readonly to set the reference

@@ -1,16 +1,22 @@
 import { App, Notice, TFile } from 'obsidian';
 import { SearchResult, SearchOptions, ReplacementMode, ReplacementTarget, ReplacementResult, AffectedResults } from '../types';
 import { SearchEngine } from './searchEngine';
+import { Logger } from '../utils';
+import VaultFindReplacePlugin from '../main';
 
 /**
  * Handles all replacement operations and replacement text expansion
  */
 export class ReplacementEngine {
     private app: App;
+    private plugin: VaultFindReplacePlugin;
+    private logger: Logger;
     private searchEngine: SearchEngine;
 
-    constructor(app: App, searchEngine: SearchEngine) {
+    constructor(app: App, plugin: VaultFindReplacePlugin, searchEngine: SearchEngine) {
         this.app = app;
+        this.plugin = plugin;
+        this.logger = Logger.create(plugin, 'ReplacementEngine');
         this.searchEngine = searchEngine;
     }
 
@@ -125,7 +131,7 @@ export class ReplacementEngine {
             } catch (error) {
                 const errorMsg = `Failed to replace matches in ${file.path}: ${error instanceof Error ? error.message : 'Unknown error'}`;
                 errors.push(errorMsg);
-                console.error(errorMsg, error);
+                this.logger.error(errorMsg, error);
             }
         }
 
@@ -218,6 +224,7 @@ export class ReplacementEngine {
                 const startTime = Date.now();
                 const REGEX_TIMEOUT_MS = 5000; // 5 second timeout for complex patterns
 
+                let foundMatch = false;
                 while ((matchArr = regex.exec(lineText)) !== null) {
                     // SECURITY: Check for timeout to prevent runaway regex (ReDoS protection)
                     if (Date.now() - startTime > REGEX_TIMEOUT_MS) {
@@ -231,6 +238,7 @@ export class ReplacementEngine {
                             lineText.slice(0, matchArr.index) +
                             replacement +
                             lineText.slice(matchArr.index + matchArr[0].length);
+                        foundMatch = true;
                         break;
                     }
 
@@ -245,6 +253,11 @@ export class ReplacementEngine {
                         }
                     }
                 }
+
+                // If we didn't find the match at the expected position, this could indicate a logic error
+                if (!foundMatch) {
+                    this.logger.warn(`Could not find match at expected position - line ${res.line}, col ${res.col}, text: "${res.matchText}"`);
+                }
             }
         }
 
@@ -252,7 +265,7 @@ export class ReplacementEngine {
             await this.app.vault.modify(file, lines.join('\n'));
         } catch (error) {
             // Handle file operation errors gracefully
-            console.error(`Failed to replace content in file ${file.path}:`, error);
+            this.logger.error(`Failed to replace content in file ${file.path}:`, error);
             throw new Error(`Replacement failed for file "${file.path}": ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }

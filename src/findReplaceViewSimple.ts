@@ -30,8 +30,8 @@ export class FindReplaceView extends ItemView {
     constructor(leaf: WorkspaceLeaf, app: App, plugin: VaultFindReplacePlugin) {
         super(leaf);
         this.plugin = plugin;
-        this.searchEngine = new SearchEngine(app);
-        this.replacementEngine = new ReplacementEngine(app, this.searchEngine);
+        this.searchEngine = new SearchEngine(app, plugin);
+        this.replacementEngine = new ReplacementEngine(app, plugin, this.searchEngine);
     }
 
     getViewType(): string { return VIEW_TYPE_FIND_REPLACE; }

@@ -175,7 +175,7 @@ export class ActionHandler {
      */
     async replaceSelectedMatches(): Promise<void> {
         this.logger.debug('=== REPLACE SELECTED START ===');
-        console.log('ActionHandler.replaceSelectedMatches called');
+        this.logger.debug('replaceSelectedMatches called');
 
         const replaceText = this.elements.replaceInput.value;
         const searchOptions = this.getSearchOptions();

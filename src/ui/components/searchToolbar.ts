@@ -302,7 +302,7 @@ export class SearchToolbar {
                     .setDisabled(this.selectionManager.getSelectedIndices().size === 0)
                     .onClick(async () => {
                         try {
-                            console.log('SearchToolbar: Replace Selected menu item clicked');
+                            this.logger.debug('Replace Selected menu item clicked');
                             await this.replaceSelectedCallback();
                         } catch (error) {
                             this.logger.error('Replace selected menu item error', error, true);

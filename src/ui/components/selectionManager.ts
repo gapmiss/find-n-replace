@@ -1,16 +1,22 @@
 import { FindReplaceElements } from '../../types';
 import { SearchResult } from '../../types/search';
+import { Logger } from '../../utils';
+import VaultFindReplacePlugin from '../../main';
 
 /**
  * Handles multi-selection functionality for search results
  */
 export class SelectionManager {
     private elements: FindReplaceElements;
+    private plugin: VaultFindReplacePlugin;
+    private logger: Logger;
     private selectedIndices: Set<number> = new Set();
     private lineElements: HTMLDivElement[] = [];
 
-    constructor(elements: FindReplaceElements) {
+    constructor(elements: FindReplaceElements, plugin: VaultFindReplacePlugin) {
         this.elements = elements;
+        this.plugin = plugin;
+        this.logger = Logger.create(plugin, 'SelectionManager');
     }
 
     /**
@@ -253,7 +259,7 @@ export class SelectionManager {
         this.updateSelectionUI();
 
         // Log the adjustment for debugging
-        console.debug('Selection adjusted for removed indices:', {
+        this.logger.debug('Selection adjusted for removed indices:', {
             removedIndices,
             oldSelectionSize: this.selectedIndices.size + removedIndices.filter(idx => this.selectedIndices.has(idx)).length,
             newSelectionSize: this.selectedIndices.size

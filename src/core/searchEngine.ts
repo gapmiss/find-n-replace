@@ -1,16 +1,22 @@
 import { App, Notice } from 'obsidian';
 import { SearchResult, SearchOptions } from '../types';
+import { Logger } from '../utils';
+import VaultFindReplacePlugin from '../main';
 
 /**
  * Handles all search operations and regex building logic
  */
 export class SearchEngine {
     private app: App;
+    private plugin: VaultFindReplacePlugin;
+    private logger: Logger;
     private lastCompiledRegex: RegExp | null = null;
     private lastSearchOptions: string = '';
 
-    constructor(app: App) {
+    constructor(app: App, plugin: VaultFindReplacePlugin) {
         this.app = app;
+        this.plugin = plugin;
+        this.logger = Logger.create(plugin, 'SearchEngine');
     }
 
     /**
@@ -18,7 +24,7 @@ export class SearchEngine {
      * Should be called when search options change
      */
     clearCache(): void {
-        console.debug('[SearchEngine] Clearing regex cache');
+        this.logger.debug('Clearing regex cache');
         this.lastCompiledRegex = null;
         this.lastSearchOptions = '';
     }
@@ -31,16 +37,16 @@ export class SearchEngine {
      */
     async performSearch(query: string, options: SearchOptions): Promise<SearchResult[]> {
         const trimmedQuery = query.trim();
-        console.debug('[SearchEngine] performSearch called:', { query: trimmedQuery, options });
+        this.logger.debug('performSearch called:', { query: trimmedQuery, options });
 
         if (!trimmedQuery) {
-            console.debug('[SearchEngine] Empty query, returning 0 results');
+            this.logger.debug('Empty query, returning 0 results');
             return [];
         }
 
         const results: SearchResult[] = [];
         const files = this.app.vault.getMarkdownFiles();
-        console.debug('[SearchEngine] Found', files.length, 'markdown files to search');
+        this.logger.debug('Found', files.length, 'markdown files to search');
 
         // Pre-build regex pattern if needed (for performance)
         let regex: RegExp | null = null;
@@ -133,7 +139,7 @@ export class SearchEngine {
                 }
                 } catch (error) {
                     // Log file read errors but continue processing other files
-                    console.warn(`Failed to read file ${file.path}:`, error);
+                    this.logger.warn(`Failed to read file ${file.path}:`, error);
                     // Skip this file and continue with others
                 }
             }));
@@ -152,7 +158,7 @@ export class SearchEngine {
             return colA - colB;
         });
 
-        console.debug('[SearchEngine] Search completed:', {
+        this.logger.debug('Search completed:', {
             query: trimmedQuery,
             options,
             resultCount: results.length,
@@ -175,12 +181,12 @@ export class SearchEngine {
 
         // Return cached regex if options haven't changed
         if (this.lastSearchOptions === cacheKey && this.lastCompiledRegex) {
-            console.debug('[SearchEngine] Using cached regex for:', cacheKey);
+            this.logger.debug('Using cached regex for:', cacheKey);
             return this.lastCompiledRegex;
         }
 
-        console.debug('[SearchEngine] Building new regex for:', cacheKey);
-        console.debug('[SearchEngine] Previous cache key was:', this.lastSearchOptions);
+        this.logger.debug('Building new regex for:', cacheKey);
+        this.logger.debug('Previous cache key was:', this.lastSearchOptions);
 
         let pattern = query ?? '';
 
@@ -210,9 +216,9 @@ export class SearchEngine {
             return regex;
         } catch (error) {
             // This should not happen since validation is done in the view first
-            console.error('[SearchEngine] Unexpected regex error during buildSearchRegex:', error);
-            console.error('[SearchEngine] Pattern that failed:', pattern);
-            console.error('[SearchEngine] Options:', options);
+            this.logger.error('Unexpected regex error during buildSearchRegex:', error);
+            this.logger.error('Pattern that failed:', pattern);
+            this.logger.error('Options:', options);
             throw new Error(`Unexpected regex compilation error: ${error.message}`);
         }
     }

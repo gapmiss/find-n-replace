@@ -256,19 +256,32 @@ To assign custom keyboard shortcuts:
 - Verify capture group numbering in replacement patterns
 - Check console for regex compilation errors
 
+**Individual replacement issues**
+- All replacement modes now work reliably, including second matches on same line
+- If individual replacements fail, try "Replace Selected" or "Replace All in File"
+- Check console logging level for detailed replacement debugging information
+
 **Selection state issues**
 - Clear selection and re-select if state becomes inconsistent
-- Check console for selection state warnings
+- Check console for selection state warnings (if logging enabled)
 - Ensure not clicking during active search operations
 
 ### Debug Information
-Adjust "Console Logging Level" in settings to control debug output:
-- **Silent**: No console output (production)
-- **Errors Only**: Critical failures only (recommended default)
+The plugin features a professional logging system with clean console experience by default:
+
+**Console Logging Levels** (adjust in settings):
+- **Silent**: No console output (production environments)
+- **Errors Only**: Critical failures only (recommended default - clean console)
 - **Standard**: Errors and warnings
 - **Verbose**: All info, warnings, and errors
 - **Debug**: Full debugging output with detailed operation tracking
 - **Trace**: Maximum verbosity including performance timing and lifecycle events
+
+**Professional Logging System:**
+- Clean console experience by default (no debug spam)
+- Granular control over debugging output via settings
+- All plugin components respect user's chosen log level
+- Console output only appears when specifically enabled for troubleshooting
 
 ## Development
 
