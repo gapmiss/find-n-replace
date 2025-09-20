@@ -57,6 +57,17 @@ export class SearchToolbar {
     }
 
     /**
+     * Updates the replace callbacks after ActionHandler is initialized
+     */
+    updateReplaceCallbacks(
+        replaceSelectedCallback: () => Promise<void>,
+        replaceAllVaultCallback: () => Promise<void>
+    ): void {
+        this.replaceSelectedCallback = replaceSelectedCallback;
+        this.replaceAllVaultCallback = replaceAllVaultCallback;
+    }
+
+    /**
      * Creates the main search toolbar container
      */
     createMainToolbar(containerEl: HTMLElement): HTMLElement {
@@ -291,6 +302,7 @@ export class SearchToolbar {
                     .setDisabled(this.selectionManager.getSelectedIndices().size === 0)
                     .onClick(async () => {
                         try {
+                            console.log('SearchToolbar: Replace Selected menu item clicked');
                             await this.replaceSelectedCallback();
                         } catch (error) {
                             this.logger.error('Replace selected menu item error', error, true);

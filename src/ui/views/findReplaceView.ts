@@ -158,6 +158,12 @@ export class FindReplaceView extends ItemView {
             () => this.renderResults()
         );
 
+        // Update SearchToolbar callbacks now that ActionHandler is available
+        this.searchToolbar.updateReplaceCallbacks(
+            () => this.actionHandler.replaceSelectedMatches(),
+            () => this.actionHandler.replaceAllInVault()
+        );
+
         // Set up state callbacks for ActionHandler
         this.actionHandler.setStateCallbacks(
             () => this.state.results,

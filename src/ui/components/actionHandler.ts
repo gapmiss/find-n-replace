@@ -175,16 +175,19 @@ export class ActionHandler {
      */
     async replaceSelectedMatches(): Promise<void> {
         this.logger.debug('=== REPLACE SELECTED START ===');
+        console.log('ActionHandler.replaceSelectedMatches called');
 
         const replaceText = this.elements.replaceInput.value;
         const searchOptions = this.getSearchOptions();
 
         try {
-            // Get selected indices from SelectionManager
-            // This should be injected when SelectionManager integration is complete
-            // For now, get from the view's state via callback
-            const selectedIndices = new Set<number>(); // TODO: Get from SelectionManager
+            // Get selected indices from callback
+            if (!this.getSelectedIndicesCallback) {
+                this.logger.error('No selected indices callback set');
+                return;
+            }
 
+            const selectedIndices = this.getSelectedIndicesCallback();
             if (selectedIndices.size === 0) {
                 this.logger.warn('No matches selected for replacement');
                 return;
