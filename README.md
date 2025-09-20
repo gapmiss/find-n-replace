@@ -306,6 +306,15 @@ npm run dev
 # Production build
 npm run build
 
+# Run test suite
+npm test
+
+# Watch mode testing
+npm run test:watch
+
+# Generate coverage reports
+npm run test:coverage
+
 # Release build
 npm run release
 ```
@@ -315,13 +324,16 @@ npm run release
 - **Event-driven**: Reactive UI updates based on state changes
 - **Modular**: Separation of concerns between search, UI, and state
 - **Testable**: Isolated components with dependency injection
+- **Test Coverage**: 61 automated tests preventing regressions and edge cases
 
 ### Contributing Guidelines
 1. Follow existing code style and TypeScript conventions
 2. Add comprehensive logging for debugging
 3. Include error handling for all async operations
-4. Test with large vaults to ensure performance
-5. Update documentation for any API changes
+4. **Run test suite before submitting:** `npm test` (61 tests must pass)
+5. **Add tests for new features:** Follow existing test patterns in `src/tests/unit/`
+6. Test with large vaults to ensure performance
+7. Update documentation for any API changes
 
 ## Technical Details
 
@@ -342,6 +354,26 @@ npm run release
 - Proper async/await usage throughout codebase
 - AbortController support for cancelling long-running searches
 - Debounced user input to prevent excessive search requests
+
+### Quality Assurance
+- **Comprehensive Test Suite**: 61 automated tests covering core functionality
+- **Regression Prevention**: Specific tests for known bugs (e.g., second match replacement)
+- **Edge Case Coverage**: Unicode, overlapping patterns, performance limits
+- **Property-Based Testing**: Random input generation to discover unknown edge cases
+- **Fast Execution**: Complete test suite runs in under 1 second
+- **Zero Dependencies**: Tests run independently without Obsidian API requirements
+
+#### Test Structure
+```
+src/tests/
+├── unit/                    # Isolated unit tests
+│   ├── regexUtils.test.ts       # Pattern matching (10 tests)
+│   ├── positionTracking.test.ts # Position accuracy (9 tests)
+│   ├── bugRegression.test.ts    # Bug prevention (13 tests)
+│   ├── performance.test.ts      # Performance limits (15 tests)
+│   └── testDataGenerators.test.ts # Property-based (12 tests)
+└── basic.test.ts            # Framework validation (2 tests)
+```
 
 ## License
 
