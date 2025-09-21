@@ -41,6 +41,9 @@ export class HelpModal extends Modal {
             this.renderCategory(contentEl, categoryName, categoryCommands);
         }
 
+        // File filtering guide section
+        this.renderFileFilteringGuide(contentEl);
+
         // Usage tips section
         this.renderUsageTips(contentEl);
 
@@ -267,6 +270,102 @@ export class HelpModal extends Modal {
         });
     }
 
+    private renderFileFilteringGuide(container: HTMLElement) {
+        const filterGuideDiv = container.createDiv('help-file-filtering');
+        filterGuideDiv.createEl('h3', { text: 'File Filtering Guide' });
+
+        // Introduction paragraph
+        const introP = filterGuideDiv.createEl('p');
+        introP.innerHTML = 'Use the <strong>filter button (🔍)</strong> next to the Clear button to open the expandable filtering panel. This helps you search only the files you need, improving performance on large vaults.';
+
+        // Pattern types section
+        const patternTypesDiv = filterGuideDiv.createDiv('filter-pattern-types');
+        patternTypesDiv.createEl('h4', { text: 'Pattern Types' });
+
+        const patternList = patternTypesDiv.createEl('ul');
+
+        const patternTypes = [
+            {
+                type: 'Extensions',
+                example: '.md, .txt, .js',
+                description: 'Filter by file extensions (with or without the dot)'
+            },
+            {
+                type: 'Folders',
+                example: 'Notes/, Daily/, Projects/',
+                description: 'Filter by folder paths (include trailing slash)'
+            },
+            {
+                type: 'Glob Patterns',
+                example: '*.tmp, *backup*, temp/*',
+                description: 'Use * (any characters) and ? (single character) wildcards'
+            }
+        ];
+
+        patternTypes.forEach(({ type, example, description }) => {
+            const li = patternList.createEl('li');
+            li.innerHTML = `<strong>${type}:</strong> <code>${example}</code> - ${description}`;
+        });
+
+        // Include patterns section
+        const includeDiv = filterGuideDiv.createDiv('filter-include-section');
+        includeDiv.createEl('h4', { text: 'Include Patterns (Search Only These Files)' });
+
+        const includeExamples = includeDiv.createEl('ul');
+        const includeItems = [
+            '`.md` - Only markdown files',
+            '`.md,.txt` - Markdown and text files only',
+            '`Notes/,Daily/` - Only files in Notes and Daily folders',
+            '`*.js` - Only JavaScript files (using glob pattern)',
+            '`Notes/*.md` - Only markdown files in the Notes folder'
+        ];
+
+        includeItems.forEach(item => {
+            const li = includeExamples.createEl('li');
+            li.innerHTML = item;
+        });
+
+        // Exclude patterns section
+        const excludeDiv = filterGuideDiv.createDiv('filter-exclude-section');
+        excludeDiv.createEl('h4', { text: 'Exclude Patterns (Skip These Files)' });
+
+        const excludeExamples = excludeDiv.createEl('ul');
+        const excludeItems = [
+            '`Archive/,Templates/` - Skip Archive and Templates folders',
+            '`*.tmp,*.bak` - Skip temporary and backup files',
+            '`*backup*,*draft*` - Skip files with "backup" or "draft" in the name',
+            '`.obsidian/` - Skip Obsidian configuration folder',
+            '`temp/*,*.log` - Skip temp folder and log files'
+        ];
+
+        excludeItems.forEach(item => {
+            const li = excludeExamples.createEl('li');
+            li.innerHTML = item;
+        });
+
+        // Real-world examples section
+        const examplesDiv = filterGuideDiv.createDiv('filter-examples-section');
+        examplesDiv.createEl('h4', { text: 'Common Use Cases' });
+
+        const examplesList = examplesDiv.createEl('ul');
+        const examples = [
+            '<strong>Search only active notes:</strong> Include: <code>.md</code>, Exclude: <code>Archive/,Templates/</code>',
+            '<strong>Search specific project:</strong> Include: <code>Projects/MyProject/</code>',
+            '<strong>Skip all temporary files:</strong> Exclude: <code>*.tmp,*backup*,.trash/</code>',
+            '<strong>Search code files:</strong> Include: <code>.js,.ts,.css,.html</code>',
+            '<strong>Large vault optimization:</strong> Include: <code>Notes/,Daily/</code>, Exclude: <code>Archive/,*.pdf</code>'
+        ];
+
+        examples.forEach(example => {
+            const li = examplesList.createEl('li');
+            li.innerHTML = example;
+        });
+
+        // Performance tip
+        const performanceTip = filterGuideDiv.createDiv('filter-performance-tip');
+        performanceTip.innerHTML = '<strong>💡 Performance Tip:</strong> Filtering happens before search processing, so narrow filters dramatically speed up searches in large vaults with thousands of files.';
+    }
+
     private renderUsageTips(container: HTMLElement) {
         const tipsDiv = container.createDiv('help-tips');
         tipsDiv.createEl('h3', { text: 'Usage Tips' });
@@ -277,9 +376,12 @@ export class HelpModal extends Modal {
             'Use Cmd+Shift+F to quickly open the plugin from anywhere in Obsidian',
             'Regex mode supports capture groups ($1, $2) for advanced replacements',
             'Select specific results before using "Replace Selected" for precise control',
+            'Use the filter button (🔍) to search only specific file types or folders',
+            'Set default filters in Settings to avoid retyping common patterns',
             'Use Cmd+K prefix for less common actions to avoid hotkey conflicts',
             'The plugin remembers your expand/collapse preferences per file',
-            'Multi-line replacements work great with regex patterns'
+            'Multi-line replacements work great with regex patterns',
+            'Include/exclude patterns are session-only; settings provide defaults'
         ];
 
         tips.forEach(tip => {
@@ -290,6 +392,9 @@ export class HelpModal extends Modal {
         noteDiv.createEl('p', {
             text: 'To customize hotkeys: Go to Settings → Hotkeys → Search for "Find-n-Replace"'
         });
+
+        const settingsNote = noteDiv.createEl('p');
+        settingsNote.innerHTML = 'To set default filters: Go to <strong>Settings → Community Plugins → Find-n-Replace → Options</strong>';
     }
 
     onClose() {

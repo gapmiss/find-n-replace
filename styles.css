@@ -127,6 +127,63 @@
     padding: var(--size-2-2) var(--size-4-3);
 }
 
+/* --- File Filtering Guide Section --- */
+.help-file-filtering {
+    margin-top: var(--size-4-4);
+    padding-top: var(--size-4-3);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.help-file-filtering h3 {
+    color: var(--text-normal);
+    font-size: var(--font-ui-medium);
+    margin-bottom: var(--size-4-2);
+}
+
+.help-file-filtering h4 {
+    color: var(--text-normal);
+    font-size: var(--font-ui-small);
+    font-weight: var(--font-weight-medium);
+    margin-top: var(--size-4-3);
+    margin-bottom: var(--size-2-3);
+}
+
+.help-file-filtering p {
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: var(--size-4-2);
+}
+
+.help-file-filtering ul {
+    margin-left: var(--size-4-3);
+    margin-bottom: var(--size-4-2);
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.help-file-filtering li {
+    margin-bottom: var(--size-2-2);
+}
+
+.help-file-filtering code {
+    background-color: var(--background-modifier-border);
+    color: var(--text-normal);
+    padding: var(--size-2-1) var(--size-2-2);
+    border-radius: var(--radius-s);
+    font-family: var(--font-monospace);
+    font-size: var(--font-ui-smaller);
+}
+
+.filter-performance-tip {
+    margin-top: var(--size-4-3);
+    padding: var(--size-4-2);
+    background-color: var(--background-secondary);
+    border-left: 3px solid var(--color-accent);
+    border-radius: var(--radius-s);
+    font-size: var(--font-ui-small);
+    color: var(--text-muted);
+}
+
 /* --- Input wrapper for clear button --- */
 .find-replace-input-wrapper {
     position: relative;

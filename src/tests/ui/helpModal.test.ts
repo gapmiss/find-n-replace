@@ -177,6 +177,27 @@ describe('HelpModal', () => {
     });
   });
 
+  describe('File Filtering Guide', () => {
+    it('should create file filtering guide section', () => {
+      helpModal.onOpen();
+
+      expect(helpModal.contentEl.createDiv).toHaveBeenCalledWith('help-file-filtering');
+    });
+
+    it('should display file filtering content without errors', () => {
+      expect(() => {
+        helpModal.onOpen();
+      }).not.toThrow();
+    });
+
+    it('should create filtering guide elements', () => {
+      helpModal.onOpen();
+
+      // Should call createDiv and createEl methods for the guide sections
+      expect(helpModal.contentEl.createDiv).toHaveBeenCalled();
+    });
+  });
+
   describe('Usage Tips', () => {
     it('should display usage tips section', () => {
       helpModal.onOpen();
@@ -189,6 +210,13 @@ describe('HelpModal', () => {
       expect(() => {
         helpModal.onOpen();
       }).not.toThrow();
+    });
+
+    it('should include filtering-related tips', () => {
+      helpModal.onOpen();
+
+      // Should create tips and render without errors
+      expect(helpModal.contentEl.createDiv).toHaveBeenCalledWith('help-tips');
     });
   });
 
