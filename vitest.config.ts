@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    // setupFiles: ['./src/tests/setup.ts'],
+    setupFiles: ['./src/tests/setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -24,10 +24,14 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@tests': path.resolve(__dirname, './src/tests')
+      '@tests': path.resolve(__dirname, './src/tests'),
+      'obsidian': path.resolve(__dirname, './src/tests/__mocks__/obsidian.ts')
     }
   },
   define: {
     global: 'globalThis'
+  },
+  esbuild: {
+    target: 'node14'
   }
 });

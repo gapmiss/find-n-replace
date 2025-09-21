@@ -50,7 +50,10 @@ export class SearchEngine {
         if (settings.fileExtensions.length > 0) {
             filteredFiles = filteredFiles.filter(file => {
                 const extension = file.extension;
-                const included = settings.fileExtensions.includes(extension);
+                // Support both '.md' and 'md' formats in settings
+                const included = settings.fileExtensions.some(ext =>
+                    ext === extension || ext === '.' + extension
+                );
                 this.logger.trace(`File ${file.path}: extension ${extension}, included: ${included}`);
                 return included;
             });
@@ -60,9 +63,11 @@ export class SearchEngine {
         if (settings.searchInFolders.length > 0) {
             filteredFiles = filteredFiles.filter(file => {
                 const filePath = file.path;
-                const included = settings.searchInFolders.some(folder =>
-                    filePath.startsWith(folder + '/') || filePath.startsWith(folder + '\\') || filePath === folder
-                );
+                const included = settings.searchInFolders.some(folder => {
+                    // Normalize folder path (handle both 'Notes/' and 'Notes' formats)
+                    const normalizedFolder = folder.endsWith('/') || folder.endsWith('\\') ? folder : folder + '/';
+                    return filePath.startsWith(normalizedFolder) || filePath === folder;
+                });
                 this.logger.trace(`File ${filePath}: included in searchInFolders: ${included}`);
                 return included;
             });
@@ -72,9 +77,11 @@ export class SearchEngine {
         if (settings.excludeFolders.length > 0) {
             filteredFiles = filteredFiles.filter(file => {
                 const filePath = file.path;
-                const excluded = settings.excludeFolders.some(folder =>
-                    filePath.startsWith(folder + '/') || filePath.startsWith(folder + '\\') || filePath === folder
-                );
+                const excluded = settings.excludeFolders.some(folder => {
+                    // Normalize folder path (handle both 'Notes/' and 'Notes' formats)
+                    const normalizedFolder = folder.endsWith('/') || folder.endsWith('\\') ? folder : folder + '/';
+                    return filePath.startsWith(normalizedFolder) || filePath === folder;
+                });
                 this.logger.trace(`File ${filePath}: excluded by excludeFolders: ${excluded}`);
                 return !excluded;
             });
@@ -143,9 +150,24 @@ export class SearchEngine {
         }
 
         const results: SearchResult[] = [];
-        const allFiles = this.app.vault.getMarkdownFiles();
+        // Use getAllLoadedFiles() when any filtering is configured
+        // Empty fileExtensions array means "search all files"
+        // Default ['md'] means "search only markdown files"
+        const hasFileExtensionFilter = this.plugin.settings.fileExtensions.length !== 1 ||
+                                      this.plugin.settings.fileExtensions[0] !== 'md';
+        const hasOtherFilters = this.plugin.settings.searchInFolders.length > 0 ||
+                               this.plugin.settings.includePatterns.length > 0 ||
+                               this.plugin.settings.excludeFolders.length > 0 ||
+                               this.plugin.settings.excludePatterns.length > 0;
+
+        const shouldUseAllFiles = hasFileExtensionFilter || hasOtherFilters;
+
+        const allFiles = shouldUseAllFiles ?
+            this.app.vault.getAllLoadedFiles() :
+            this.app.vault.getMarkdownFiles();
+
         const files = this.filterFiles(allFiles);
-        this.logger.debug('Found', files.length, 'markdown files to search');
+        this.logger.debug('Found', files.length, shouldUseAllFiles ? 'files' : 'markdown files', 'to search');
 
         // Pre-build regex pattern if needed (for performance)
         let regex: RegExp | null = null;

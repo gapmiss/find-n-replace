@@ -381,7 +381,7 @@ npm run release
 1. Follow existing code style and TypeScript conventions
 2. Add comprehensive logging for debugging
 3. Include error handling for all async operations
-4. **Run test suite before submitting:** `npm test` (61 tests must pass)
+4. **Run test suite before submitting:** `npm test` (203 tests must pass)
 5. **Add tests for new features:** Follow existing test patterns in `src/tests/unit/`
 6. Test with large vaults to ensure performance
 7. Update documentation for any API changes
@@ -407,11 +407,11 @@ npm run release
 - Debounced user input to prevent excessive search requests
 
 ### Quality Assurance
-- **Comprehensive Test Suite**: 61 automated tests covering core functionality
+- **Comprehensive Test Suite**: 203 automated tests covering core functionality
 - **Regression Prevention**: Specific tests for known bugs (e.g., second match replacement)
 - **Edge Case Coverage**: Unicode, overlapping patterns, performance limits
 - **Property-Based Testing**: Random input generation to discover unknown edge cases
-- **Fast Execution**: Complete test suite runs in under 1 second
+- **Fast Execution**: Complete test suite runs in under 2 seconds
 - **Zero Dependencies**: Tests run independently without Obsidian API requirements
 
 #### Test Structure

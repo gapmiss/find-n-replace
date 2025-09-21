@@ -19,7 +19,11 @@
       "ES7"
     ],
     "resolveJsonModule": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@tests/*": ["./src/tests/*"]
+    }
   },
   "include": [
     "**/*.ts"

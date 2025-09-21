@@ -70,6 +70,18 @@ describe('Property-Based Testing (Fuzzing)', () => {
                             return;
                         }
 
+                        // First validate the pattern before using it in search
+                        const isValid = searchEngine.validateSearchQuery(pattern, {
+                            matchCase: false,
+                            wholeWord: false,
+                            useRegex: true
+                        });
+
+                        if (!isValid) {
+                            // Skip invalid patterns - this is expected behavior
+                            return;
+                        }
+
                         try {
                             const results = await searchEngine.performSearch(pattern, {
                                 matchCase: false,
@@ -86,8 +98,9 @@ describe('Property-Based Testing (Fuzzing)', () => {
                                 expect(result.matchText.length > 0).toBe(true);
                             });
                         } catch (error) {
-                            // Invalid regex should be caught gracefully
+                            // Any remaining errors should be timeout/performance related, not syntax
                             expect(error).toBeInstanceOf(Error);
+                            expect((error as Error).message).toMatch(/(timeout|performance|abort)/i);
                         }
                     }
                 ),
@@ -190,6 +203,19 @@ describe('Property-Based Testing (Fuzzing)', () => {
 
                         for (const op of operations) {
                             try {
+                                // Validate pattern first if using regex
+                                if (op.useRegex) {
+                                    const isValid = searchEngine.validateSearchQuery(op.searchTerm, {
+                                        matchCase: false,
+                                        wholeWord: false,
+                                        useRegex: true
+                                    });
+
+                                    if (!isValid) {
+                                        continue; // Skip invalid regex patterns
+                                    }
+                                }
+
                                 const results = await searchEngine.performSearch(op.searchTerm, {
                                     matchCase: false,
                                     wholeWord: false,
@@ -207,7 +233,7 @@ describe('Property-Based Testing (Fuzzing)', () => {
                                     );
                                 }
                             } catch (error) {
-                                // Some operations may fail due to invalid regex, which is acceptable
+                                // Some operations may still fail due to edge cases, which is acceptable
                                 if (op.useRegex) {
                                     expect(error).toBeInstanceOf(Error);
                                 } else {

@@ -98,6 +98,10 @@ export class MockVault {
             .filter(file => file.path.endsWith('.md'));
     }
 
+    getAllLoadedFiles(): TFile[] {
+        return Array.from(this.mockFiles.values());
+    }
+
     getAbstractFileByPath(path: string): TFile | null {
         return this.mockFiles.get(path) || null;
     }
