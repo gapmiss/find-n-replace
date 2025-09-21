@@ -30,7 +30,92 @@ export class SearchEngine {
     }
 
     /**
-     * Main search function - searches all markdown files in the vault
+     * Filters files based on plugin settings
+     * @param files - Array of files to filter
+     * @returns Filtered array of files
+     */
+    private filterFiles(files: any[]): any[] {
+        const settings = this.plugin.settings;
+        let filteredFiles = [...files];
+
+        this.logger.debug('Filtering files with settings:', {
+            fileExtensions: settings.fileExtensions,
+            searchInFolders: settings.searchInFolders,
+            excludeFolders: settings.excludeFolders,
+            excludePatterns: settings.excludePatterns
+        });
+
+        // Filter by file extensions if specified
+        if (settings.fileExtensions.length > 0) {
+            filteredFiles = filteredFiles.filter(file => {
+                const extension = file.extension;
+                const included = settings.fileExtensions.includes(extension);
+                this.logger.trace(`File ${file.path}: extension ${extension}, included: ${included}`);
+                return included;
+            });
+        }
+
+        // Filter by folder inclusion if specified
+        if (settings.searchInFolders.length > 0) {
+            filteredFiles = filteredFiles.filter(file => {
+                const filePath = file.path;
+                const included = settings.searchInFolders.some(folder =>
+                    filePath.startsWith(folder + '/') || filePath.startsWith(folder + '\\') || filePath === folder
+                );
+                this.logger.trace(`File ${filePath}: included in searchInFolders: ${included}`);
+                return included;
+            });
+        }
+
+        // Filter by folder exclusion
+        if (settings.excludeFolders.length > 0) {
+            filteredFiles = filteredFiles.filter(file => {
+                const filePath = file.path;
+                const excluded = settings.excludeFolders.some(folder =>
+                    filePath.startsWith(folder + '/') || filePath.startsWith(folder + '\\') || filePath === folder
+                );
+                this.logger.trace(`File ${filePath}: excluded by excludeFolders: ${excluded}`);
+                return !excluded;
+            });
+        }
+
+        // Filter by exclude patterns (glob-like patterns)
+        if (settings.excludePatterns.length > 0) {
+            filteredFiles = filteredFiles.filter(file => {
+                const filePath = file.path;
+                const excluded = settings.excludePatterns.some(pattern =>
+                    this.matchesPattern(filePath, pattern)
+                );
+                this.logger.trace(`File ${filePath}: excluded by patterns: ${excluded}`);
+                return !excluded;
+            });
+        }
+
+        this.logger.debug(`Filtered ${files.length} files down to ${filteredFiles.length} files`);
+        return filteredFiles;
+    }
+
+    /**
+     * Simple glob-like pattern matching
+     * Supports * (any characters) and ? (single character)
+     * @param path - File path to test
+     * @param pattern - Pattern to match against
+     * @returns True if path matches pattern
+     */
+    private matchesPattern(path: string, pattern: string): boolean {
+        // Convert glob pattern to regex
+        // Escape special regex characters except * and ?
+        const regexPattern = pattern
+            .replace(/[.+^${}()|[\]\\]/g, '\\$&') // Escape special chars
+            .replace(/\*/g, '.*') // * becomes .*
+            .replace(/\?/g, '.'); // ? becomes .
+
+        const regex = new RegExp('^' + regexPattern + '$', 'i');
+        return regex.test(path);
+    }
+
+    /**
+     * Main search function - searches filtered files in the vault
      * @param query - The search query string
      * @param options - Search configuration options
      * @returns Promise resolving to array of search results
@@ -45,7 +130,8 @@ export class SearchEngine {
         }
 
         const results: SearchResult[] = [];
-        const files = this.app.vault.getMarkdownFiles();
+        const allFiles = this.app.vault.getMarkdownFiles();
+        const files = this.filterFiles(allFiles);
         this.logger.debug('Found', files.length, 'markdown files to search');
 
         // Pre-build regex pattern if needed (for performance)

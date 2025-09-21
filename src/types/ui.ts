@@ -17,6 +17,10 @@ export interface FindReplaceElements {
     toolbarBtn: HTMLButtonElement;
     resultsCountEl: HTMLElement;
     clearAllBtn: HTMLButtonElement; // Global clear button
+    filterBtn: HTMLButtonElement; // Filter toggle button (VSCode-style)
+    filterPanel: HTMLElement; // Expandable filter panel
+    includeInput: HTMLInputElement; // Include files/folders input
+    excludeInput: HTMLInputElement; // Exclude files/folders input
     // replaceAllVaultBtnBottom: HTMLButtonElement; // Adaptive toolbar duplicate
     adaptiveToolbar: HTMLElement; // Contextual results toolbar
     ellipsisMenuBtn: HTMLButtonElement; // Ellipsis menu trigger button (uses Obsidian Menu class)

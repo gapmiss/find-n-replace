@@ -131,13 +131,13 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
             );
         */
 
-        // TODO: Implement file filtering in SearchEngine.performSearch()
-        // See ROADMAP.md - High Priority feature
-        /*
+        // File filtering settings (now implemented in SearchEngine.performSearch())
+        containerEl.createEl("h3", { text: "File Filtering" });
+
         // File extensions filter
         new Setting(containerEl)
             .setName("File extensions")
-            .setDesc("Comma-separated list of file extensions to search (leave empty for all).")
+            .setDesc("Comma-separated list of file extensions to search (leave empty for all). Example: md,txt,js")
             .addText((text) =>
                 text
                     .setPlaceholder("md,txt,js")
@@ -154,10 +154,10 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         // Exclude patterns
         new Setting(containerEl)
             .setName("Exclude patterns")
-            .setDesc("Comma-separated list of file patterns to exclude from search.")
+            .setDesc("Comma-separated list of file patterns to exclude from search. Supports * and ? wildcards. Example: *.tmp,temp/*,*backup*")
             .addText((text) =>
                 text
-                    .setPlaceholder("*.tmp,temp/*")
+                    .setPlaceholder("*.tmp,temp/*,*backup*")
                     .setValue(this.plugin.settings.excludePatterns.join(','))
                     .onChange(async (value) => {
                         this.plugin.settings.excludePatterns = value
@@ -171,10 +171,10 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         // Search in folders
         new Setting(containerEl)
             .setName("Search in folders")
-            .setDesc("Comma-separated list of folders to search in (leave empty for all folders).")
+            .setDesc("Comma-separated list of folders to search in (leave empty for all folders). Example: Notes,Projects,Daily")
             .addText((text) =>
                 text
-                    .setPlaceholder("Notes,Projects")
+                    .setPlaceholder("Notes,Projects,Daily")
                     .setValue(this.plugin.settings.searchInFolders.join(','))
                     .onChange(async (value) => {
                         this.plugin.settings.searchInFolders = value
@@ -188,10 +188,10 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         // Exclude folders
         new Setting(containerEl)
             .setName("Exclude folders")
-            .setDesc("Comma-separated list of folders to exclude from search.")
+            .setDesc("Comma-separated list of folders to exclude from search. Example: Archive,Templates,.trash")
             .addText((text) =>
                 text
-                    .setPlaceholder("Archive,Templates")
+                    .setPlaceholder("Archive,Templates,.trash")
                     .setValue(this.plugin.settings.excludeFolders.join(','))
                     .onChange(async (value) => {
                         this.plugin.settings.excludeFolders = value
@@ -201,7 +201,6 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     })
             );
-        */
 
         // Log level dropdown
         new Setting(containerEl)

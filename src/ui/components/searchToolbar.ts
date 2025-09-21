@@ -20,6 +20,16 @@ export interface SearchInputElements {
 export interface ReplaceInputElements {
     replaceInput: HTMLInputElement;
     clearAllBtn: HTMLButtonElement;
+    filterBtn: HTMLButtonElement;
+}
+
+/**
+ * Interface for filter panel elements
+ */
+export interface FilterPanelElements {
+    filterPanel: HTMLElement;
+    includeInput: HTMLInputElement;
+    excludeInput: HTMLInputElement;
 }
 
 /**
@@ -140,9 +150,62 @@ export class SearchToolbar {
         });
         setIcon(clearAllBtn, 'search-x');
 
+        // Filter button (VSCode-style) - position after clear button
+        const filterBtn = replaceRowActions.createEl('button', {
+            cls: 'inline-toggle-btn toolbar-action clickable-icon',
+            attr: {
+                'aria-label': 'Toggle File Filters',
+                'tabindex': '7'
+            }
+        });
+        setIcon(filterBtn, 'filter');
+
         return {
             replaceInput,
-            clearAllBtn
+            clearAllBtn,
+            filterBtn
+        };
+    }
+
+    /**
+     * Creates the expandable filter panel (VSCode-style)
+     */
+    createFilterPanel(searchToolbar: HTMLElement): FilterPanelElements {
+        // Filter panel container (initially hidden)
+        const filterPanel = searchToolbar.createDiv({
+            cls: 'find-replace-filter-panel hidden'
+        });
+
+        // Include input row
+        const includeRow = filterPanel.createDiv('filter-input-row');
+        const includeLabel = includeRow.createSpan({
+            cls: 'filter-input-label',
+            text: 'Include:'
+        });
+        const includeInput = includeRow.createEl('input', {
+            type: 'text',
+            cls: 'filter-input',
+            placeholder: 'files to include (e.g., .md, Notes/, *.js)',
+            attr: { 'tabindex': '8' }
+        }) as HTMLInputElement;
+
+        // Exclude input row
+        const excludeRow = filterPanel.createDiv('filter-input-row');
+        const excludeLabel = excludeRow.createSpan({
+            cls: 'filter-input-label',
+            text: 'Exclude:'
+        });
+        const excludeInput = excludeRow.createEl('input', {
+            type: 'text',
+            cls: 'filter-input',
+            placeholder: 'files to exclude (e.g., *.tmp, Archive/, *backup*)',
+            attr: { 'tabindex': '9' }
+        }) as HTMLInputElement;
+
+        return {
+            filterPanel,
+            includeInput,
+            excludeInput
         };
     }
 
@@ -152,7 +215,7 @@ export class SearchToolbar {
     createResultsContainer(containerEl: HTMLElement): HTMLElement {
         return containerEl.createDiv({
             cls: 'find-replace-results',
-            attr: { 'tabindex': '11' }
+            attr: { 'tabindex': '12' }
         });
     }
 
@@ -194,7 +257,7 @@ export class SearchToolbar {
             attr: {
                 'disabled': true, // Start disabled (no results)
                 'aria-label': 'Replace actions menu',
-                'tabindex': '7'
+                'tabindex': '10'
             }
         });
         setIcon(ellipsisMenuBtn, 'more-horizontal');
@@ -207,7 +270,7 @@ export class SearchToolbar {
             cls: 'adaptive-action-btn clickable-icon hidden',
             attr: {
                 'aria-label': 'Expand all',
-                'tabindex': '10'
+                'tabindex': '11'
             }
         });
         setIcon(expandCollapseBtn, 'copy-plus'); // Set initial icon to "expand" since we start collapsed
@@ -225,24 +288,182 @@ export class SearchToolbar {
      * Sets up tab navigation for the clear button
      */
     setupClearButtonNavigation(clearAllBtn: HTMLButtonElement, adaptiveToolbar: HTMLElement, resultsContainer: HTMLElement): void {
-        // Handle tab navigation from clear button to adaptive toolbar
-        clearAllBtn.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key === 'Tab' && !e.shiftKey) {
-                // Tab forward to first adaptive toolbar button (if visible), then to results
-                const firstAdaptiveButton = adaptiveToolbar.querySelector('.adaptive-action-btn:not(.hidden)') as HTMLElement;
-                if (firstAdaptiveButton) {
-                    e.preventDefault();
-                    firstAdaptiveButton.focus();
-                } else {
-                    // If no adaptive toolbar visible, go to first result
-                    const firstFocusableResult = resultsContainer.querySelector('.snippet, [role="button"]') as HTMLElement;
-                    if (firstFocusableResult) {
-                        e.preventDefault();
-                        firstFocusableResult.focus();
-                    }
-                }
+        // No custom tab navigation - let browser handle natural DOM order
+    }
+
+    /**
+     * Sets up filter button toggle functionality
+     */
+    setupFilterToggle(filterBtn: HTMLButtonElement, filterPanel: HTMLElement, includeInput: HTMLInputElement, excludeInput: HTMLInputElement): void {
+        let isFilterPanelVisible = false;
+
+        // Toggle filter panel visibility
+        filterBtn.addEventListener('click', () => {
+            isFilterPanelVisible = !isFilterPanelVisible;
+
+            if (isFilterPanelVisible) {
+                filterPanel.removeClass('hidden');
+                filterBtn.addClass('is-active');
+                filterBtn.setAttribute('aria-pressed', 'true');
+                // Focus the include input for immediate typing
+                includeInput.focus();
+            } else {
+                filterPanel.addClass('hidden');
+                filterBtn.removeClass('is-active');
+                filterBtn.setAttribute('aria-pressed', 'false');
+            }
+
+            this.logger.debug('Filter panel toggled:', { visible: isFilterPanelVisible });
+        });
+
+        // Handle input changes and sync with settings
+        const syncFiltersWithSettings = () => {
+            const includeValue = includeInput.value.trim();
+            const excludeValue = excludeInput.value.trim();
+
+            this.logger.debug('Syncing filter inputs with settings:', { include: includeValue, exclude: excludeValue });
+
+            // Parse include patterns
+            if (includeValue) {
+                const patterns = this.parseFilterPatterns(includeValue);
+                this.plugin.settings.fileExtensions = patterns.extensions;
+                this.plugin.settings.searchInFolders = patterns.folders;
+            } else {
+                this.plugin.settings.fileExtensions = [];
+                this.plugin.settings.searchInFolders = [];
+            }
+
+            // Parse exclude patterns
+            if (excludeValue) {
+                const patterns = this.parseFilterPatterns(excludeValue);
+                this.plugin.settings.excludePatterns = patterns.globs;
+                this.plugin.settings.excludeFolders = patterns.folders;
+            } else {
+                this.plugin.settings.excludePatterns = [];
+                this.plugin.settings.excludeFolders = [];
+            }
+
+            // Save settings and trigger search refresh
+            this.plugin.saveSettings();
+
+            // Update filter button visual state
+            this.updateFilterButtonState(filterBtn);
+        };
+
+        // Sync on input change (debounced)
+        let syncTimeout: NodeJS.Timeout;
+        const debouncedSync = () => {
+            clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(syncFiltersWithSettings, 500);
+        };
+
+        includeInput.addEventListener('input', debouncedSync);
+        excludeInput.addEventListener('input', debouncedSync);
+
+        // Load current settings into inputs
+        this.loadCurrentFiltersToInputs(includeInput, excludeInput);
+
+        // Update filter button visual state
+        this.updateFilterButtonState(filterBtn);
+    }
+
+    /**
+     * Parse filter patterns into extensions, folders, and globs
+     */
+    private parseFilterPatterns(input: string): { extensions: string[], folders: string[], globs: string[] } {
+        const patterns = input.split(',').map(p => p.trim()).filter(p => p.length > 0);
+        const extensions: string[] = [];
+        const folders: string[] = [];
+        const globs: string[] = [];
+
+        patterns.forEach(pattern => {
+            if (pattern.startsWith('.')) {
+                // File extension (remove the dot)
+                extensions.push(pattern.substring(1));
+            } else if (pattern.endsWith('/') || (!pattern.includes('*') && !pattern.includes('?'))) {
+                // Folder (remove trailing slash if present)
+                folders.push(pattern.replace(/\/$/, ''));
+            } else {
+                // Glob pattern
+                globs.push(pattern);
             }
         });
+
+        return { extensions, folders, globs };
+    }
+
+    /**
+     * Load current filter settings into the input fields
+     */
+    private loadCurrentFiltersToInputs(includeInput: HTMLInputElement, excludeInput: HTMLInputElement): void {
+        const settings = this.plugin.settings;
+
+        // Build include string from extensions and folders
+        const includeParts: string[] = [];
+        settings.fileExtensions.forEach(ext => includeParts.push('.' + ext));
+        settings.searchInFolders.forEach(folder => includeParts.push(folder));
+        includeInput.value = includeParts.join(', ');
+
+        // Build exclude string from patterns and folders
+        const excludeParts: string[] = [];
+        settings.excludePatterns.forEach(pattern => excludeParts.push(pattern));
+        settings.excludeFolders.forEach(folder => excludeParts.push(folder));
+        excludeInput.value = excludeParts.join(', ');
+    }
+
+    /**
+     * Update filter button visual state to show if filters are active
+     */
+    private updateFilterButtonState(filterBtn: HTMLButtonElement): void {
+        const settings = this.plugin.settings;
+
+        // Check if any filters are active
+        const hasActiveFilters =
+            settings.fileExtensions.length > 0 ||
+            settings.searchInFolders.length > 0 ||
+            settings.excludePatterns.length > 0 ||
+            settings.excludeFolders.length > 0;
+
+        if (hasActiveFilters) {
+            filterBtn.addClass('has-filters');
+            filterBtn.setAttribute('aria-label', 'Toggle File Filters (Active)');
+
+            // Add filter count badge if there isn't one already
+            let badge = filterBtn.querySelector('.filter-badge') as HTMLElement;
+            if (!badge) {
+                badge = filterBtn.createSpan('filter-badge');
+            }
+
+            // Count total active filters
+            const filterCount =
+                settings.fileExtensions.length +
+                settings.searchInFolders.length +
+                settings.excludePatterns.length +
+                settings.excludeFolders.length;
+
+            badge.textContent = filterCount.toString();
+
+            this.logger.debug('Filter button updated: active filters detected', { count: filterCount });
+        } else {
+            filterBtn.removeClass('has-filters');
+            filterBtn.setAttribute('aria-label', 'Toggle File Filters');
+
+            // Remove badge if it exists
+            const badge = filterBtn.querySelector('.filter-badge');
+            if (badge) {
+                badge.remove();
+            }
+
+            this.logger.debug('Filter button updated: no active filters');
+        }
+    }
+
+    /**
+     * Update filter inputs when settings change (bidirectional sync)
+     */
+    updateFilterInputsFromSettings(includeInput: HTMLInputElement, excludeInput: HTMLInputElement, filterBtn: HTMLButtonElement): void {
+        this.loadCurrentFiltersToInputs(includeInput, excludeInput);
+        this.updateFilterButtonState(filterBtn);
     }
 
     /**

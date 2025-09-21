@@ -10,6 +10,7 @@
 - **Real-time replacement preview** with regex expansion
 - **Adaptive results toolbar** with contextual actions
 - **Persistent file group states** with expand/collapse preferences
+- **File filtering & search scope** with VSCode-style expandable UI
 
 ### Settings & Configuration
 - **Maximum results limiting** (`maxResults`) - Controls performance for large searches
@@ -47,21 +48,21 @@
 
 ## Planned - High Priority 📋
 
-### File Filtering & Search Scope
+### ✅ File Filtering & Search Scope (COMPLETED)
 - **File extension filtering** (`fileExtensions`) - Limit search to specific file types
-  - *UI exists but not implemented in SearchEngine*
-  - *Priority: High - commonly requested feature*
-  - *Implementation: Update SearchEngine.performSearch() to filter by extensions*
+  - ✅ *Implemented in SearchEngine.performSearch() with full filtering logic*
+  - ✅ *VSCode-style UI with expandable filter panel*
+  - ✅ *Smart pattern parsing (.md, Notes/, *.js) in main interface*
 
 - **Folder inclusion/exclusion** (`searchInFolders`, `excludeFolders`) - Control search scope
-  - *UI exists but not implemented in SearchEngine*
-  - *Priority: High - essential for large vaults*
-  - *Implementation: Add folder filtering logic to file collection*
+  - ✅ *Implemented with path matching logic*
+  - ✅ *Both granular settings and main UI quick filters*
+  - ✅ *Essential for large vaults - production ready*
 
 - **File pattern exclusion** (`excludePatterns`) - Skip files matching patterns
-  - *UI exists but not implemented in SearchEngine*
-  - *Priority: Medium - useful for excluding temp files, etc.*
-  - *Implementation: Add glob pattern matching during file collection*
+  - ✅ *Implemented with glob pattern matching (* and ? wildcards)*
+  - ✅ *Useful for excluding temp files, backups, etc.*
+  - ✅ *Real-time filtering with debounced input sync*
 
 ### Search Result Enhancement
 - **Search result highlighting** (`highlightDuration`, `persistentHighlight`) - Visual feedback
@@ -202,14 +203,41 @@
   - Improved shift-tab behavior that stays within plugin boundary
 - **Accessibility Impact**: Better keyboard-only operation with predictable focus behavior
 
-### ✅ **Replace Button Tab Order Integration**
-- **Completed**: All replace buttons now properly integrated into sequential tab navigation
-- **Problem Fixed**: Replace buttons were completely missing from tab order after focus target optimization
+### ✅ **VSCode-Style File Filtering Implementation**
+- **Completed**: Comprehensive file filtering system with both granular settings and quick UI filters
+- **Features Implemented**:
+  - File extension filtering (.md, .txt, .js) with smart pattern parsing
+  - Folder inclusion/exclusion (Notes/, Archive/) with path matching logic
+  - Glob pattern exclusion (*.tmp, *backup*, temp/*) with wildcard support
+  - VSCode-style expandable filter panel with include/exclude inputs
+  - Real-time filter sync with 500ms debounced input processing
+  - Visual filter indicators with count badges on filter button
+  - Seamless integration with existing search infrastructure
+- **Technical Implementation**:
+  - Backend filtering in SearchEngine.performSearch() with comprehensive file collection logic
+  - Smart pattern parsing automatically detects extensions vs. folders vs. glob patterns
+  - Dual interface: granular settings panel + quick main UI filters
+  - Complete tab order integration (filter button tabindex 7, inputs 8-9)
+  - CSS-based visual states (active filters show border + count badge)
+  - Bidirectional sync between main UI inputs and plugin settings
+- **User Benefits**:
+  - **Large Vault Performance**: Ability to limit search scope reduces processing time
+  - **Familiar UX**: VSCode-style filter panel with include/exclude pattern matching
+  - **Flexible Filtering**: Support for extensions, folders, and complex glob patterns
+  - **Visual Feedback**: Clear indicators show when filters are active and count
+  - **Granular Control**: Both quick filters and detailed settings for power users
+
+### ✅ **Complete Tab Order System Fix** (September 2025)
+- **Completed**: Comprehensive fix for tab navigation across entire plugin interface
+- **Problem Fixed**: Multiple tab order issues including missing filter elements and broken forward tabbing
+- **Root Cause**: Custom keydown handlers were intercepting Tab key and preventing natural browser navigation
 - **Technical Solution**:
-  - Dual tabindex assignment: each file header + replace button uses 2 sequential values
-  - Each result line (snippet + replace button) uses 2 sequential values
-  - Complete logical flow: toolbar → header → replace-all → snippet → replace-individual → next-snippet
+  - Removed interfering custom tab navigation from clear button
+  - Implemented complete sequential tabindex system (1-12)
+  - Fixed DOM order vs tabindex conflicts
+  - Sequential tab order: Search(1) → Replace(2) → Match Case(3) → Whole Word(4) → Regex(5) → Clear(6) → Filter(7) → Include(8) → Exclude(9) → Ellipsis(10) → Expand/Collapse(11) → Results(12)
 - **User Impact**:
-  - Full keyboard accessibility for all replace actions
-  - No functionality lost during accessibility improvements
-  - Consistent tab behavior across all interactive elements
+  - Perfect forward and reverse tab navigation through all interactive elements
+  - Complete keyboard accessibility for filter functionality
+  - No more skipped elements or broken tab flow
+  - Consistent behavior in both directions (Tab and Shift+Tab)

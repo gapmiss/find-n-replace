@@ -1,27 +1,37 @@
 # Find-n-Replace
 
-A comprehensive find and replace plugin for Obsidian that performs vault-wide search and replacement operations with regex support, multi-selection capabilities, and real-time replacement preview.
+A comprehensive find and replace plugin for Obsidian that performs vault-wide search and replacement operations with regex support, multi-selection capabilities, file filtering system, and real-time replacement preview.
 
 ## What This Plugin Does
 
 This plugin provides a dedicated search interface that allows you to:
 
-1. Search across your entire vault for text patterns
-2. Preview all matches in a structured, navigable list
-3. Select specific matches or entire files for replacement
-4. Execute replacements with full regex capture group support
-5. Navigate directly to any match location with a single click
+1. **Filter and search** across your entire vault with file type and folder controls
+2. **Preview all matches** in a structured, navigable list
+3. **Select specific matches** or entire files for replacement
+4. **Execute replacements** with full regex capture group support
+5. **Navigate directly** to any match location with a single click
+6. **Optimize performance** by limiting search scope to relevant files and folders
 
 Unlike Obsidian's built-in search, this plugin is designed specifically for bulk editing operations across multiple files simultaneously.
 
 ## Core Features
 
 ### Search Capabilities
-- Full-text search across all markdown files in your vault
-- Regular expression pattern matching with JavaScript regex syntax
-- Case-sensitive and whole-word matching options
-- Automatic search-as-you-type with configurable debouncing
-- Search result limiting to handle large vaults efficiently
+- **Full-text search** across all markdown files in your vault
+- **File filtering system** with extensions, folders, and glob patterns for large vault performance
+- **Regular expression pattern matching** with JavaScript regex syntax
+- **Case-sensitive and whole-word matching** options
+- **Automatic search-as-you-type** with configurable debouncing
+- **Search result limiting** to handle large vaults efficiently
+
+### File Filtering System
+- **File extension filtering** - Limit search to specific file types (`.md`, `.txt`, `.js`)
+- **Folder inclusion/exclusion** - Search only in specified folders or exclude certain directories
+- **Glob pattern support** - Use wildcard patterns to exclude temporary files (`*.tmp`, `*backup*`)
+- **VSCode-style interface** - Expandable filter panel with include/exclude inputs
+- **Smart pattern parsing** - Automatically detects extensions vs folders vs glob patterns
+- **Visual feedback** - Filter button shows active state when filters are applied
 
 ### Selection System
 - Multi-select individual matches using Ctrl/Cmd+click
@@ -90,10 +100,24 @@ Click the **⋯** (ellipsis) button in the toolbar and select **Help** to open t
 - Direct link to hotkey configuration in Obsidian settings
 
 ### Basic Search Workflow
-1. Enter search term in the search input field
-2. Results populate automatically as you type
-3. Browse results organized by file
-4. Click any result to navigate to that location in your vault
+1. **Optional**: Configure file filters using the filter button to limit search scope
+2. Enter search term in the search input field
+3. Results populate automatically as you type
+4. Browse results organized by file
+5. Click any result to navigate to that location in your vault
+
+### File Filtering (Performance Optimization)
+Click the **🔍** filter button to open the expandable filter panel:
+
+**Include Examples:**
+- `.md, .txt` - Only search markdown and text files
+- `Notes/, Daily/` - Only search in Notes and Daily folders
+- `.md, Projects/` - Only markdown files in Projects folder
+
+**Exclude Examples:**
+- `*.tmp, *backup*` - Skip temporary and backup files
+- `Archive/, Templates/` - Skip Archive and Templates folders
+- `temp/*, *.log` - Skip temp folder and log files
 
 ### Search Options
 - **Match Case**: Enable case-sensitive searching
@@ -175,6 +199,21 @@ Result: Convert markdown links to wikilinks
 Search: \s{2,}
 Replace: (single space)
 Result: Replace multiple consecutive spaces with single space
+```
+
+### Search Only in Specific File Types
+```
+Filter: .md, .txt
+Search: TODO
+Result: Only searches markdown and text files, ignoring other formats
+```
+
+### Update Links Only in Project Folder
+```
+Filter Include: Projects/
+Search: \[\[old-name\]\]
+Replace: [[new-name]]
+Result: Updates links only within the Projects folder structure
 ```
 
 ## Keyboard Shortcuts

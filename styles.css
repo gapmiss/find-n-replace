@@ -395,6 +395,113 @@
     margin-top: .3em;
 }
 
+/* --- Filter Panel (VSCode-style) --- */
+.find-replace-filter-panel {
+    background: var(--background-modifier-form-field);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    padding: 8px 12px;
+    margin-top: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease-in-out;
+}
+
+.find-replace-filter-panel.hidden {
+    display: none;
+}
+
+.filter-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.filter-input-row:last-child {
+    margin-bottom: 0;
+}
+
+.filter-input-label {
+    min-width: 60px;
+    font-size: var(--font-size-small);
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.filter-input {
+    flex: 1;
+    padding: 4px 8px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: var(--font-size-small);
+    transition: border-color 0.2s ease;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+}
+
+.filter-input::placeholder {
+    color: var(--text-faint);
+}
+
+/* Filter button row at bottom of panel */
+.filter-button-row {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 6px;
+    border-top: 1px solid var(--background-modifier-border);
+    margin-top: 6px;
+}
+
+.filter-toggle-btn {
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: var(--radius-s);
+    padding: 4px 8px;
+    font-size: var(--font-size-small);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-toggle-btn:hover {
+    background: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+/* Filter button states */
+.inline-toggle-btn.is-active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.inline-toggle-btn.has-filters {
+    position: relative;
+    border: 1px solid var(--interactive-accent);
+}
+
+.filter-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--text-error);
+    color: var(--text-on-accent);
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 2;
+}
+
 /* --- Input Containers with Icons --- */
 .find-replace-input-container {
     position: relative;

@@ -53,7 +53,7 @@ export class UIRenderer {
         const fileGroupsContainer = this.elements.resultsContainer.createDiv('file-groups-container');
         let fileCount = 0;
         let globalIndex = 0;
-        let tabIndex = 12; // Start after toolbar elements (1-11)
+        let tabIndex = 13; // Start after toolbar elements (1-12)
 
         Object.entries(resultsByFile).forEach(([filePath, fileResults]) => {
             const fileDiv = fileGroupsContainer.createEl('div');

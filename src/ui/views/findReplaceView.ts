@@ -98,6 +98,10 @@ export class FindReplaceView extends ItemView {
         // Create replace input row using SearchToolbar
         const replaceElements = this.searchToolbar.createReplaceInputRow(searchToolbar);
 
+        // === FILTER PANEL ===
+        // Create expandable filter panel using SearchToolbar
+        const filterElements = this.searchToolbar.createFilterPanel(searchToolbar);
+
         // === RESULTS CONTAINER ===
         // Container where all search results will be displayed
         const resultsContainer = this.searchToolbar.createResultsContainer(this.containerEl);
@@ -112,6 +116,9 @@ export class FindReplaceView extends ItemView {
         // Set up expand/collapse button navigation using SearchToolbar
         this.searchToolbar.setupExpandCollapseNavigation(adaptiveElements.toolbarBtn, resultsContainer);
 
+        // Set up filter button toggle
+        this.searchToolbar.setupFilterToggle(replaceElements.filterBtn, filterElements.filterPanel, filterElements.includeInput, filterElements.excludeInput);
+
         // Store UI elements for component access
         this.elements = {
             containerEl: this.containerEl,
@@ -125,6 +132,10 @@ export class FindReplaceView extends ItemView {
             toolbarBtn: adaptiveElements.toolbarBtn,
             resultsCountEl: adaptiveElements.resultsCountEl,
             clearAllBtn: replaceElements.clearAllBtn,
+            filterBtn: replaceElements.filterBtn,
+            filterPanel: filterElements.filterPanel,
+            includeInput: filterElements.includeInput,
+            excludeInput: filterElements.excludeInput,
             adaptiveToolbar: adaptiveElements.adaptiveToolbar,
             ellipsisMenuBtn: adaptiveElements.ellipsisMenuBtn
         };
@@ -214,6 +225,20 @@ export class FindReplaceView extends ItemView {
 
         // Clear element references (DOM cleanup handled by Obsidian)
         this.elements = null as any;
+    }
+
+    /**
+     * Called when plugin settings change - update UI to reflect changes
+     */
+    onSettingsChanged(): void {
+        // Update filter inputs to reflect settings changes (bidirectional sync)
+        if (this.elements?.includeInput && this.elements?.excludeInput && this.elements?.filterBtn) {
+            this.searchToolbar.updateFilterInputsFromSettings(
+                this.elements.includeInput,
+                this.elements.excludeInput,
+                this.elements.filterBtn
+            );
+        }
     }
 
     /**

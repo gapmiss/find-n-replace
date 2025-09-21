@@ -9,13 +9,15 @@
 
 ## Core Functionality
 
-- **Vault-wide search** across all markdown files
+- **Vault-wide search** across all markdown files with comprehensive file filtering
 - **Advanced replace operations** (individual, file-level, vault-wide, selected)
-- **Search options:** Match case, whole word, regex support
-- **VSCode-style UI** with sidebar view and result navigation
-- **Multi-selection** for targeted replacements
-- **Real-time preview** of replacement results
-- **Comprehensive error handling** and user feedback
+- **Search options:** Match case, whole word, regex support with capture group expansion
+- **VSCode-style UI** with sidebar view, expandable filter panel, and result navigation
+- **File filtering system** with extensions, folders, and glob patterns for large vault performance
+- **Multi-selection** for targeted replacements with visual feedback
+- **Real-time preview** of replacement results with regex capture group support
+- **Complete keyboard accessibility** with sequential tab order and command palette integration
+- **Comprehensive error handling** and user feedback with professional logging system
 
 ## Architecture Overview
 
@@ -668,7 +670,45 @@ src/
   - **Developer Experience:** Clean debugging with precise log level control
   - **Production Ready:** Silent console experience for end users, comprehensive debugging for developers
 
-#### 21. **Comprehensive Automated Testing Infrastructure** (Bug Prevention & Quality Assurance)
+#### 21. **VSCode-Style File Filtering System** (Major Feature Implementation)
+- **Goal:** Implement comprehensive file filtering with VSCode-style expandable UI for large vault performance
+- **Problem:** Users needed ability to limit search scope for performance and relevance in large vaults
+- **Solution Implementation:**
+  - **Backend Filtering:** Complete `SearchEngine.filterFiles()` method with extension, folder, and glob pattern matching
+  - **Smart Pattern Parsing:** Automatically detects `.md` (extensions) vs `Notes/` (folders) vs `*.tmp` (globs)
+  - **Dual Interface:** Both granular settings panel and quick main UI filters for different user workflows
+  - **VSCode-Style UI:** Expandable filter panel with include/exclude inputs matching VSCode's search interface
+- **Technical Architecture:**
+  - **SearchEngine Enhancement:** Added `filterFiles()`, `matchesPattern()` with full glob support (* and ? wildcards)
+  - **Settings Integration:** Enabled all file filtering settings in `settingsTab.ts` with examples and descriptions
+  - **UI Components:** New `FilterPanelElements` interface and `createFilterPanel()` with toggle functionality
+  - **Real-time Sync:** 500ms debounced bidirectional sync between main UI inputs and plugin settings
+  - **Visual Feedback:** Filter button shows active state with count badges when filters are applied
+- **Filter Capabilities:**
+  - **File Extensions:** `.md, .txt, .js` - Limit search to specific file types
+  - **Folder Inclusion:** `Notes/, Projects/` - Search only in specified folders
+  - **Folder Exclusion:** `Archive/, Templates/` - Skip specified folders entirely
+  - **Glob Patterns:** `*.tmp, *backup*, temp/*` - Skip files matching wildcard patterns
+- **User Experience:**
+  - **Large Vault Performance:** Dramatically reduces search time by filtering file collection before processing
+  - **Familiar Interface:** VSCode-style expandable panel with include/exclude pattern matching
+  - **Smart Parsing:** Users don't need to specify filter types - system auto-detects extensions vs folders vs globs
+  - **Visual Indicators:** Clear feedback when filters are active with count display
+  - **Multiple Workflows:** Quick main UI filters for immediate use, detailed settings for complex configurations
+- **File Changes:**
+  - `src/core/searchEngine.ts` (added comprehensive filtering logic - 95 new lines)
+  - `src/settings/settingsTab.ts` (enabled file filtering settings with examples)
+  - `src/ui/components/searchToolbar.ts` (VSCode-style filter panel implementation)
+  - `src/ui/views/findReplaceView.ts` (filter panel integration)
+  - `src/main.ts` (bidirectional settings sync)
+  - `styles.css` (filter panel styling with VSCode-like appearance)
+- **Integration Quality:**
+  - **Production Ready:** Handles all edge cases including empty patterns, invalid paths, special characters
+  - **Performance Optimized:** Filtering occurs before file reading, not after search processing
+  - **Backward Compatible:** No breaking changes to existing search functionality
+  - **Accessibility:** Complete tab order integration (filter button tabindex 7, inputs 8-9)
+
+#### 22. **Comprehensive Automated Testing Infrastructure** (Bug Prevention & Quality Assurance)
 - **Goal:** Implement comprehensive testing framework to automatically catch bugs like the second match replacement issue
 - **Problem:** Manual testing was insufficient to catch edge cases, making bug discovery reactive rather than proactive
 - **Solution Implementation:**
@@ -713,7 +753,37 @@ src/
   - **Comprehensive Coverage:** All core algorithms, edge cases, and performance scenarios tested
   - **Future-Proof Development:** New features can be developed with confidence using test-driven approach
 
-#### 22. **Comprehensive Help Modal with Hotkey Detection** (User Experience & Discoverability)
+#### 22. **Complete Tab Order System Fix** (Critical Accessibility Fix)
+- **Goal:** Fix comprehensive tab navigation issues across entire plugin interface
+- **Problem:** Multiple tab order problems including missing filter elements, broken forward tabbing, and inconsistent behavior
+- **Root Cause Analysis:**
+  - **Custom Tab Interference:** Clear button had custom keydown handler intercepting Tab key
+  - **Sequential Tab Order:** Custom handler jumped directly to adaptive toolbar, skipping filter elements
+  - **DOM vs Tabindex Conflicts:** Mismatched DOM structure and tabindex values causing browser confusion
+- **Solution Implementation:**
+  - **Removed Custom Navigation:** Eliminated interfering `setupClearButtonNavigation` custom Tab handler
+  - **Complete Sequential System:** Implemented proper 1-12 tabindex sequence matching DOM order
+  - **Restored Original Pattern:** Search(1) → Replace(2) → Match Case(3) → Whole Word(4) → Regex(5) → Clear(6) → Filter(7) → Include(8) → Exclude(9) → Ellipsis(10) → Expand/Collapse(11) → Results(12)
+- **Technical Details:**
+  - Custom keydown event listener was calling `e.preventDefault()` and forcing focus jumps
+  - Browser's natural tab order follows DOM structure when tabindex values are sequential
+  - Filter elements needed explicit tabindex values to participate in tab sequence
+  - All interactive elements now have consistent tabindex attribute management
+- **User Impact:**
+  - **Perfect Tab Navigation:** Both forward (Tab) and reverse (Shift+Tab) work flawlessly through all elements
+  - **Complete Accessibility:** No more skipped elements or broken keyboard navigation
+  - **Filter Accessibility:** Include/exclude inputs now properly accessible via keyboard
+  - **Consistent Behavior:** Predictable tab flow that matches visual layout
+- **File Changes:**
+  - `src/ui/components/searchToolbar.ts` (removed custom tab handler, added sequential tabindex 1-12)
+  - All UI elements now have explicit tabindex values for reliable navigation
+- **Quality Assurance:**
+  - Verified forward tabbing reaches all 12 interactive elements in sequence
+  - Verified reverse tabbing works in exact reverse order
+  - No more "missing" elements in tab sequence
+  - Professional keyboard-first workflow now fully functional
+
+#### 23. **Comprehensive Help Modal with Hotkey Detection** (User Experience & Discoverability)
 - **Goal:** Provide in-plugin help system with personalized keyboard shortcuts for improved discoverability
 - **Problem:** Users need to reference external documentation to learn about plugin commands and recommended hotkeys
 - **Solution Implementation:**

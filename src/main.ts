@@ -237,9 +237,25 @@ export default class VaultFindReplacePlugin extends Plugin {
 	async saveSettings() {
 		try {
 			await this.saveData(this.settings);
+
+			// Notify active view of settings change for bidirectional sync
+			this.notifyViewOfSettingsChange();
 		} catch (error) {
 			console.error('vault-find-replace: Failed to save settings:', error);
 			// Don't throw - settings save failure shouldn't break the plugin
+		}
+	}
+
+	/**
+	 * Notify the active view that settings have changed (for bidirectional sync)
+	 */
+	private notifyViewOfSettingsChange(): void {
+		const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_FIND_REPLACE);
+		if (leaves.length > 0) {
+			const view = leaves[0].view as FindReplaceView;
+			if (view && typeof view.onSettingsChanged === 'function') {
+				view.onSettingsChanged();
+			}
 		}
 	}
 
