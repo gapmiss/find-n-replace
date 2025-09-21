@@ -148,7 +148,7 @@
 }
 
 /* --- Options row --- */
-.find-replace-options {
+.find-replace-container .find-replace-options {
     display: flex;
     gap: 12px;
     align-items: center;
@@ -157,14 +157,14 @@
 }
 
 /* toggle container */
-.toggle-container {
+.find-replace-container .toggle-container {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 /* smaller label width so long labels wrap nicely */
-.toggle-container label {
+.find-replace-container .toggle-container label {
     color: var(--text-muted);
     font-size: var(--font-smallest);
 }
@@ -195,6 +195,10 @@
     border-radius: var(--radius-s);
 }
 
+.file-groups-container {
+    padding-top: .25em;
+}
+
 /* file group (group per file) */
 .file-group {
     border-bottom: 1px solid var(--background-modifier-border);
@@ -209,6 +213,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 2px 6px;
+    margin-block: .2em;
     user-select: none;
     background: var(--background-secondary);
 }
@@ -233,7 +238,7 @@
     color: var(--text-muted);
 }
 
-.file-group-heading:focus {
+.file-group-header:focus {
     box-shadow: 0 0 0 3px var(--background-modifier-border-focus);
     border-radius: var(--input-radius);
 }

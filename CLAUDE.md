@@ -235,6 +235,42 @@ src/
   - `styles.css` (focus visibility styles)
   - Comprehensive debugging and error handling throughout
 
+#### 23. **File Group Header Focus Target Optimization** (Accessibility Enhancement)
+- **Problem:** Tab focus was targeting individual `file-group-heading` spans, but the replace button clicks were interfering with expand/collapse functionality
+- **User Request:** Move focus target from heading text to entire header div while preventing replace button from triggering expand/collapse
+- **Solution Implementation:**
+  - **Focus Target Migration:** Moved `tabindex` and `role="button"` from `file-group-heading` span to entire `file-group-header` div
+  - **Event Isolation:** Added click event filtering to prevent replace button clicks from bubbling up to header expand/collapse
+  - **Keyboard Behavior:** Enter/Space on focused header triggers expand/collapse (not replace action)
+  - **Visual Focus Indicators:** Updated CSS focus styles for `.file-group-header:focus` with proper box-shadow and border-radius
+  - **Sequential Tab Order:** Implemented dynamic tabindex assignment starting at 12 for headers, 13+ for result snippets in logical sequence
+- **Technical Implementation:**
+  ```typescript
+  // Click isolation for replace button
+  header.addEventListener('click', (e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest('.clickable-icon')) {
+          return; // Don't expand/collapse if replace button was clicked
+      }
+      // ... expand/collapse logic
+  });
+
+  // Sequential tabindex assignment
+  let tabIndex = 12; // Start after toolbar elements (1-11)
+  this.createFileGroupHeader(fileDiv, filePath, fileResults, tabIndex++);
+  fileResults.forEach((res) => {
+      this.createResultLine(fileDiv, res, replaceText, globalIndex, searchOptions, tabIndex++);
+  });
+  ```
+- **User Benefits:**
+  - **Larger Focus Target:** Entire header div easier to focus and activate than just text span
+  - **Clear Action Separation:** Replace button vs. expand/collapse actions work independently
+  - **Logical Tab Flow:** Header → all its matches → next header → all its matches in sequence
+  - **Improved Shift-Tab:** Reverse navigation properly returns to toolbar without escaping plugin boundary
+- **File Changes:**
+  - `src/ui/components/renderer.ts` (focus target migration, event isolation, sequential tabindex)
+  - `styles.css` (focus styles update from `.file-group-heading:focus` to `.file-group-header:focus`)
+  - `src/ui/components/searchToolbar.ts` (results container tabindex for proper tab order)
+
 #### 11. **Complete Search Concurrency Rewrite** (Critical Race Condition Fix)
 - **Problem Identified:** Multiple simultaneous searches causing inconsistent results
   - **Root Cause:** Same query `"(typescript)"` producing 0, 76, and 25 results randomly

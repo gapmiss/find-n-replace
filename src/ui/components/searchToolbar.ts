@@ -150,7 +150,10 @@ export class SearchToolbar {
      * Creates the results container
      */
     createResultsContainer(containerEl: HTMLElement): HTMLElement {
-        return containerEl.createDiv('find-replace-results');
+        return containerEl.createDiv({
+            cls: 'find-replace-results',
+            attr: { 'tabindex': '11' }
+        });
     }
 
     /**

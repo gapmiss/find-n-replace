@@ -186,3 +186,18 @@
 - **Impact**: Full accessibility, power-user efficiency
 - **Features**: Command palette integration, custom hotkey support
 - **Benefits**: Mouse-free operation, familiar VSCode-like workflows
+
+### ✅ **File Group Header Focus Target Optimization**
+- **Completed**: Enhanced keyboard navigation and accessibility for file group headers
+- **Problem Solved**: Tab focus conflicts between heading text and replace button functionality
+- **Technical Changes**:
+  - Focus target moved from `file-group-heading` span to entire `file-group-header` div
+  - Click event isolation prevents replace button from triggering expand/collapse
+  - Sequential tabindex assignment for logical tab flow
+  - Updated CSS focus styles with proper visual indicators
+- **User Benefits**:
+  - Larger, easier-to-target focus areas for keyboard navigation
+  - Clear separation between replace actions and expand/collapse functionality
+  - Logical tab order: header → all matches → next header → all matches
+  - Improved shift-tab behavior that stays within plugin boundary
+- **Accessibility Impact**: Better keyboard-only operation with predictable focus behavior

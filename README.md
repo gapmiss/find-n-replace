@@ -48,7 +48,8 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 - Clean, focused interface optimized for find/replace workflows
 - Collapsible file groups with persistent expand/collapse state
 - Adaptive toolbar that shows relevant controls contextually
-- Full keyboard navigation with proper tab order
+- Full keyboard navigation with sequential tab order (toolbar → file headers → matches)
+- Enhanced accessibility with larger focus targets and proper event isolation
 - Accessible design with screen reader support
 - **Built-in Help System**: Comprehensive help modal accessible via toolbar menu (⋯) showing all keyboard shortcuts, usage tips, and your personal hotkey configurations
 
@@ -178,10 +179,10 @@ Result: Replace multiple consecutive spaces with single space
 ## Keyboard Shortcuts
 
 ### Navigation
-- **Tab**: Move between interface elements
-- **Shift+Tab**: Move backwards through interface elements
-- **Enter**: Activate buttons and execute search
-- **Space**: Toggle checkboxes and buttons
+- **Tab**: Sequential navigation through toolbar → file headers → matches
+- **Shift+Tab**: Reverse navigation staying within plugin boundary
+- **Enter/Space**: Expand/collapse file groups when header is focused
+- **Enter/Space**: Open result file when match is focused
 
 ### Selection
 - **Ctrl/Cmd+A**: Select all results

@@ -53,6 +53,7 @@ export class UIRenderer {
         const fileGroupsContainer = this.elements.resultsContainer.createDiv('file-groups-container');
         let fileCount = 0;
         let globalIndex = 0;
+        let tabIndex = 12; // Start after toolbar elements (1-11)
 
         Object.entries(resultsByFile).forEach(([filePath, fileResults]) => {
             const fileDiv = fileGroupsContainer.createEl('div');
@@ -67,12 +68,12 @@ export class UIRenderer {
                 fileDiv.addClass('collapsed');
             }
 
-            // Create file group header
-            this.createFileGroupHeader(fileDiv, filePath, fileResults);
+            // Create file group header with sequential tabindex
+            this.createFileGroupHeader(fileDiv, filePath, fileResults, tabIndex++);
 
-            // Create individual result lines
+            // Create individual result lines with sequential tabindex
             fileResults.forEach((res) => {
-                const lineDiv = this.createResultLine(fileDiv, res, replaceText, globalIndex, searchOptions);
+                const lineDiv = this.createResultLine(fileDiv, res, replaceText, globalIndex, searchOptions, tabIndex++);
                 lineElements.push(lineDiv);
                 globalIndex++;
             });
@@ -98,42 +99,20 @@ export class UIRenderer {
     private createFileGroupHeader(
         fileDiv: HTMLElement,
         filePath: string,
-        fileResults: SearchResult[]
+        fileResults: SearchResult[],
+        tabIndex: number
     ): void {
         const header = fileDiv.createDiv('file-group-header');
 
-        // Clickable file name (without .md extension)
+        // Make the entire header focusable and clickable for expand/collapse
+        header.setAttribute('tabindex', tabIndex.toString());
+        header.setAttribute('role', 'button');
+        header.setAttribute('aria-label', `Toggle ${filePath.replace('.md', '')} section`);
+
+        // File name (without .md extension) - no longer focusable itself
         const fileGroupHeading = header.createSpan({
             cls: 'file-group-heading',
-            text: filePath.replace('.md', ''),
-            attr: { 'tabindex': 0, 'role': 'button' }
-        });
-
-        // Handle clicking on file name to toggle collapse/expand
-        fileGroupHeading.addEventListener('click', () => {
-            const group = fileGroupHeading.closest('.file-group') as HTMLElement;
-            if (group) {
-                const isCurrentlyCollapsed = group.classList.contains('collapsed');
-                group.classList.toggle('collapsed');
-
-                // Track the new state for this specific file and save to plugin settings
-                const filePath = group.getAttribute('data-file-path');
-                if (filePath) {
-                    this.plugin.settings.fileGroupStates[filePath] = !isCurrentlyCollapsed;
-                    this.plugin.saveSettings(); // Persist the change
-                }
-
-                // Update global toolbar button state based on all file groups
-                this.updateToolbarButtonState();
-            }
-        });
-
-        // Handle keyboard navigation for file name
-        fileGroupHeading.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (this.isActivationKey(e)) {
-                e.preventDefault();
-                fileGroupHeading.click();
-            }
+            text: filePath.replace('.md', '')
         });
 
         // Display count of results in this file
@@ -151,6 +130,39 @@ export class UIRenderer {
 
         // Store file path for event handling
         replaceAllFileBtn.setAttribute('data-file-path', filePath);
+
+        // Handle clicking on header (but not the button) to toggle collapse/expand
+        header.addEventListener('click', (e: MouseEvent) => {
+            // Don't trigger expand/collapse if the replace button was clicked
+            if ((e.target as HTMLElement).closest('.clickable-icon')) {
+                return;
+            }
+
+            const group = header.closest('.file-group') as HTMLElement;
+            if (group) {
+                const isCurrentlyCollapsed = group.classList.contains('collapsed');
+                group.classList.toggle('collapsed');
+
+                // Track the new state for this specific file and save to plugin settings
+                const filePath = group.getAttribute('data-file-path');
+                if (filePath) {
+                    this.plugin.settings.fileGroupStates[filePath] = !isCurrentlyCollapsed;
+                    this.plugin.saveSettings(); // Persist the change
+                }
+
+                // Update global toolbar button state based on all file groups
+                this.updateToolbarButtonState();
+            }
+        });
+
+        // Handle keyboard navigation for header
+        header.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (this.isActivationKey(e)) {
+                e.preventDefault();
+                // Simulate a click on the header (which will check for button target)
+                header.click();
+            }
+        });
     }
 
     /**
@@ -167,7 +179,8 @@ export class UIRenderer {
         result: SearchResult,
         replaceText: string,
         index: number,
-        searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean }
+        searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean },
+        tabIndex: number
     ): HTMLDivElement {
         const lineDiv = container.createDiv({ cls: 'line-result' });
 
@@ -181,7 +194,7 @@ export class UIRenderer {
 
         // Create clickable text snippet
         const span = lineDiv.createSpan('snippet');
-        span.setAttr('tabindex', 0);
+        span.setAttr('tabindex', tabIndex);
         span.setAttr('role', 'button');
 
         // Handle keyboard navigation for snippets
@@ -464,7 +477,7 @@ export class UIRenderer {
             return false;
         }
 
-        if (target.getAttribute('role') === 'button' && target.tagName === 'SPAN') {
+        if (target.getAttribute('role') === 'button' && (target.tagName === 'SPAN' || target.tagName === 'DIV')) {
             const key = event.key;
             return key === 'Enter' || key === ' ' || key === 'Spacebar';
         }
