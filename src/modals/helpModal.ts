@@ -22,7 +22,7 @@ export class HelpModal extends Modal {
         contentEl.empty();
 
         // Modal title
-        contentEl.createEl('h2', { text: 'Vault Find & Replace - Keyboard Shortcuts' });
+        contentEl.createEl('h2', { text: 'Find-n-Replace - Keyboard Shortcuts' });
 
         // Introduction
         const introDiv = contentEl.createDiv('help-intro');
@@ -55,7 +55,7 @@ export class HelpModal extends Modal {
         const commands: CommandInfo[] = [
             {
                 id: 'open-find-replace',
-                name: 'Open Vault Find & Replace',
+                name: 'Open Find-n-Replace',
                 recommendedHotkey: 'Cmd+Shift+F',
                 description: 'Opens the plugin sidebar view',
                 category: 'Primary'
@@ -288,7 +288,7 @@ export class HelpModal extends Modal {
 
         const noteDiv = tipsDiv.createDiv('help-note');
         noteDiv.createEl('p', {
-            text: 'To customize hotkeys: Go to Settings → Hotkeys → Search for "Vault Find Replace"'
+            text: 'To customize hotkeys: Go to Settings → Hotkeys → Search for "Find-n-Replace"'
         });
     }
 

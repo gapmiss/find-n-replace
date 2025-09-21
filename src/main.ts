@@ -17,14 +17,14 @@ export default class VaultFindReplacePlugin extends Plugin {
 			(leaf: WorkspaceLeaf) => new FindReplaceView(leaf, this.app, this)
 		);
 
-		this.addRibbonIcon('text-search', 'Vault Find & Replace', () => {
+		this.addRibbonIcon('text-search', 'Find-n-Replace', () => {
 			this.activateView();
 		});
 
 		// Register commands for keyboard shortcuts
 		this.addCommand({
 			id: 'open-vault-find-replace',
-			name: 'Open Vault Find & Replace',
+			name: 'Open Find-n-Replace',
 			callback: () => {
 				this.activateView();
 			}

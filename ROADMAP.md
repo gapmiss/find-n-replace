@@ -1,4 +1,4 @@
-# Vault Find Replace - Feature Roadmap
+# Find-n-Replace - Feature Roadmap
 
 ## Implemented ✅
 
@@ -17,7 +17,7 @@
 - **File group state persistence** (`fileGroupStates`) - Remember expand/collapse preferences
 - **Enhanced logging system** (`logLevel`) - 6-level logging control (SILENT → TRACE)
 
-### Performance & Reliability
+### Performance & Reliabilityvaul
 - **Batch file processing** to maintain UI responsiveness
 - **Search result limiting** to prevent UI freezing
 - **AbortController search cancellation** for rapid user input

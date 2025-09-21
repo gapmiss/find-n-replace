@@ -14,7 +14,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl("h2", { text: "Vault Find & Replace Settings" });
+        containerEl.createEl("h2", { text: "Find-n-Replace Settings" });
 
         // TODO: Implement search result highlighting feature
         // See ROADMAP.md - High Priority feature

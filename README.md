@@ -1,4 +1,4 @@
-# Vault Find Replace
+# Find-n-Replace
 
 A comprehensive find and replace plugin for Obsidian that performs vault-wide search and replacement operations with regex support, multi-selection capabilities, and real-time replacement preview.
 
@@ -66,7 +66,7 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 ### Community Plugins (Recommended)
 1. Open Obsidian Settings
 2. Navigate to Community Plugins
-3. Browse for "Vault Find Replace"
+3. Browse for "Find-n-Replace"
 4. Install and enable
 
 ### Manual Installation
@@ -77,7 +77,7 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 ## Usage Guide
 
 ### Opening the Plugin
-Access via Command Palette: `Vault Find Replace: Open`
+Access via Command Palette: `Find-n-Replace: Open`
 
 The plugin opens in a dedicated pane that can be docked anywhere in your workspace.
 
@@ -200,7 +200,7 @@ Result: Replace multiple consecutive spaces with single space
 All plugin functionality is available through Obsidian's Command Palette (Ctrl/Cmd+P) and can be assigned custom hotkeys:
 
 ### View Management
-- **Open Vault Find & Replace** - Opens the plugin view
+- **Open Find-n-Replace** - Opens the plugin view
 - **Focus Search Input** - Focuses the search input field
 - **Focus Replace Input** - Focuses the replace input field
 
@@ -222,7 +222,7 @@ All plugin functionality is available through Obsidian's Command Palette (Ctrl/C
 ### Custom Hotkey Assignment
 To assign custom keyboard shortcuts:
 1. Open Obsidian Settings → Hotkeys
-2. Search for "Vault Find Replace"
+2. Search for "Find-n-Replace"
 3. Assign your preferred key combinations to any command
 
 ## Architecture

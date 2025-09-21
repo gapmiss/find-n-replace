@@ -35,7 +35,7 @@ export class FindReplaceView extends ItemView {
     }
 
     getViewType(): string { return VIEW_TYPE_FIND_REPLACE; }
-    getDisplayText(): string { return 'Vault Find & Replace'; }
+    getDisplayText(): string { return 'Find-n-Replace'; }
     getIcon(): string { return 'text-search'; }
 
     async onOpen(): Promise<void> {

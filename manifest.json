@@ -1,6 +1,6 @@
 {
-	"id": "vault-find-replace",
-	"name": "Vault Find & Replace",
+	"id": "find-n-replace",
+	"name": "Find-n-Replace",
 	"version": "1.0.0",
 	"minAppVersion": "1.2.0",
 	"description": "A VSCode-style vault-wide Find & Replace sidebar view",

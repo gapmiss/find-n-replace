@@ -1,8 +1,8 @@
-# Vault Find & Replace - Obsidian Plugin
+# Find-n-Replace - Obsidian Plugin
 
 ## Project Overview
 
-**Plugin Name:** Vault Find & Replace
+**Plugin Name:** Find-n-Replace
 **Type:** Obsidian.md Plugin
 **Purpose:** VSCode-style vault-wide find and replace functionality with advanced search options
 **Architecture:** TypeScript-based modular architecture with clean separation of concerns
@@ -562,7 +562,7 @@ src/
   - **Smart View Handling:** Commands that need view open use `getOrCreateView()`, operations-only use `getActiveView()`
   - **State Preservation:** Toggle operations maintain search options and trigger re-search when needed
 - **Command List:**
-  1. `Open Vault Find & Replace` - Opens plugin view
+  1. `Open Find-n-Replace` - Opens plugin view
   2. `Perform Search` - Executes search with current query
   3. `Clear Search and Replace` - Clears inputs and resets toggles
   4. `Focus Search Input` - Focuses search input field

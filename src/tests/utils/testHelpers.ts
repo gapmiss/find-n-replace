@@ -1,5 +1,5 @@
 /**
- * Test utilities and helpers for Vault Find Replace testing
+ * Test utilities and helpers for Find-n-Replace testing
  */
 
 import { expect } from 'vitest';
