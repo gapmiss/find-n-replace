@@ -271,6 +271,32 @@ src/
   - `styles.css` (focus styles update from `.file-group-heading:focus` to `.file-group-header:focus`)
   - `src/ui/components/searchToolbar.ts` (results container tabindex for proper tab order)
 
+#### 24. **Replace Button Tab Order Integration** (Accessibility Fix)
+- **Problem:** Replace buttons (both "replace all in file" and individual "replace this match") were missing from tab order after focus target optimization
+- **Root Cause:** Focus migration to file group headers excluded the replace action buttons from sequential navigation
+- **Solution Implementation:**
+  - **Dual Tabindex Assignment:** Each file group header uses 2 sequential tabindex values (header + replace button)
+  - **Result Line Dual Assignment:** Each result line uses 2 sequential tabindex values (snippet + replace button)
+  - **Complete Tab Order:** toolbar(1-11) → header(12) → replace-all-button(13) → snippet(14) → replace-button(15) → next-snippet(16) → replace-button(17)...
+- **Technical Implementation:**
+  ```typescript
+  // File group header: uses tabIndex and tabIndex+1
+  this.createFileGroupHeader(fileDiv, filePath, fileResults, tabIndex);
+  tabIndex += 2; // Header gets tabIndex, button gets tabIndex+1
+
+  // Result lines: each uses tabIndex and tabIndex+1
+  fileResults.forEach((res) => {
+      this.createResultLine(fileDiv, res, replaceText, globalIndex, searchOptions, tabIndex);
+      tabIndex += 2; // Snippet gets tabIndex, button gets tabIndex+1
+  });
+  ```
+- **User Benefits:**
+  - **Complete Keyboard Access:** All replace actions now accessible via tab navigation
+  - **Logical Flow:** Tab moves through header → replace all → individual matches → individual replace buttons
+  - **Consistent Behavior:** Both file-level and match-level replace actions follow same interaction pattern
+- **File Changes:**
+  - `src/ui/components/renderer.ts` (dual tabindex assignment for headers and result lines)
+
 #### 11. **Complete Search Concurrency Rewrite** (Critical Race Condition Fix)
 - **Problem Identified:** Multiple simultaneous searches causing inconsistent results
   - **Root Cause:** Same query `"(typescript)"` producing 0, 76, and 25 results randomly

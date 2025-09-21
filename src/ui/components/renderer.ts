@@ -68,14 +68,16 @@ export class UIRenderer {
                 fileDiv.addClass('collapsed');
             }
 
-            // Create file group header with sequential tabindex
-            this.createFileGroupHeader(fileDiv, filePath, fileResults, tabIndex++);
+            // Create file group header with sequential tabindex (header gets tabIndex, button gets tabIndex+1)
+            this.createFileGroupHeader(fileDiv, filePath, fileResults, tabIndex);
+            tabIndex += 2; // Increment by 2 since header uses 2 tabindex values (header + button)
 
-            // Create individual result lines with sequential tabindex
+            // Create individual result lines with sequential tabindex (snippet gets tabIndex, button gets tabIndex+1)
             fileResults.forEach((res) => {
-                const lineDiv = this.createResultLine(fileDiv, res, replaceText, globalIndex, searchOptions, tabIndex++);
+                const lineDiv = this.createResultLine(fileDiv, res, replaceText, globalIndex, searchOptions, tabIndex);
                 lineElements.push(lineDiv);
                 globalIndex++;
+                tabIndex += 2; // Increment by 2 since each line uses 2 tabindex values (snippet + button)
             });
 
             fileCount += 1;
@@ -123,7 +125,8 @@ export class UIRenderer {
             cls: 'clickable-icon',
             attr: {
                 'aria-label': `Replace all in "${filePath.replace('.md', '')}"`,
-                'data-tooltip-position': 'top'
+                'data-tooltip-position': 'top',
+                'tabindex': (tabIndex + 1).toString()
             }
         });
         setIcon(replaceAllFileBtn, 'replace-all');
@@ -219,7 +222,8 @@ export class UIRenderer {
             cls: 'clickable-icon',
             attr: {
                 'aria-label': 'Replace this match',
-                'data-tooltip-position': 'top'
+                'data-tooltip-position': 'top',
+                'tabindex': (tabIndex + 1).toString()
             }
         });
         setIcon(replaceBtn, 'replace');

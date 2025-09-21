@@ -201,3 +201,15 @@
   - Logical tab order: header → all matches → next header → all matches
   - Improved shift-tab behavior that stays within plugin boundary
 - **Accessibility Impact**: Better keyboard-only operation with predictable focus behavior
+
+### ✅ **Replace Button Tab Order Integration**
+- **Completed**: All replace buttons now properly integrated into sequential tab navigation
+- **Problem Fixed**: Replace buttons were completely missing from tab order after focus target optimization
+- **Technical Solution**:
+  - Dual tabindex assignment: each file header + replace button uses 2 sequential values
+  - Each result line (snippet + replace button) uses 2 sequential values
+  - Complete logical flow: toolbar → header → replace-all → snippet → replace-individual → next-snippet
+- **User Impact**:
+  - Full keyboard accessibility for all replace actions
+  - No functionality lost during accessibility improvements
+  - Consistent tab behavior across all interactive elements
