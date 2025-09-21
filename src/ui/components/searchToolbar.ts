@@ -53,18 +53,51 @@ export class SearchToolbar {
     private selectionManager: SelectionManager;
     private replaceSelectedCallback: () => Promise<void>;
     private replaceAllVaultCallback: () => Promise<void>;
+    private performSearchCallback: () => Promise<void>;
+
+    // Session-only filter state (not synced to settings)
+    private sessionFilters = {
+        include: '',
+        exclude: ''
+    };
 
     constructor(
         plugin: VaultFindReplacePlugin,
         selectionManager: SelectionManager,
         replaceSelectedCallback: () => Promise<void>,
-        replaceAllVaultCallback: () => Promise<void>
+        replaceAllVaultCallback: () => Promise<void>,
+        performSearchCallback: () => Promise<void>
     ) {
         this.plugin = plugin;
         this.logger = Logger.create(plugin, 'SearchToolbar');
         this.selectionManager = selectionManager;
         this.replaceSelectedCallback = replaceSelectedCallback;
         this.replaceAllVaultCallback = replaceAllVaultCallback;
+        this.performSearchCallback = performSearchCallback;
+
+        // Initialize session filters from settings (one-time only)
+        this.initializeSessionFilters();
+    }
+
+    /**
+     * Initialize session filters from settings (one-time only on view creation)
+     */
+    private initializeSessionFilters(): void {
+        const settings = this.plugin.settings;
+
+        // Build include string from extensions and folders
+        const includeParts: string[] = [];
+        settings.fileExtensions.forEach(ext => includeParts.push('.' + ext));
+        settings.searchInFolders.forEach(folder => includeParts.push(folder));
+        this.sessionFilters.include = includeParts.join(', ');
+
+        // Build exclude string from patterns and folders
+        const excludeParts: string[] = [];
+        settings.excludePatterns.forEach(pattern => excludeParts.push(pattern));
+        settings.excludeFolders.forEach(folder => excludeParts.push(folder));
+        this.sessionFilters.exclude = excludeParts.join(', ');
+
+        this.logger.debug('Initialized session filters from settings:', this.sessionFilters);
     }
 
     /**
@@ -316,55 +349,97 @@ export class SearchToolbar {
             this.logger.debug('Filter panel toggled:', { visible: isFilterPanelVisible });
         });
 
-        // Handle input changes and sync with settings
-        const syncFiltersWithSettings = () => {
+        // Handle input changes and update session filters + trigger search
+        const updateFiltersAndSearch = async () => {
             const includeValue = includeInput.value.trim();
             const excludeValue = excludeInput.value.trim();
 
-            this.logger.debug('Syncing filter inputs with settings:', { include: includeValue, exclude: excludeValue });
+            this.logger.debug('Updating session filters:', { include: includeValue, exclude: excludeValue });
 
-            // Parse include patterns
-            if (includeValue) {
-                const patterns = this.parseFilterPatterns(includeValue);
-                this.plugin.settings.fileExtensions = patterns.extensions;
-                this.plugin.settings.searchInFolders = patterns.folders;
-            } else {
-                this.plugin.settings.fileExtensions = [];
-                this.plugin.settings.searchInFolders = [];
-            }
+            // Store in session (not settings)
+            this.sessionFilters.include = includeValue;
+            this.sessionFilters.exclude = excludeValue;
 
-            // Parse exclude patterns
-            if (excludeValue) {
-                const patterns = this.parseFilterPatterns(excludeValue);
-                this.plugin.settings.excludePatterns = patterns.globs;
-                this.plugin.settings.excludeFolders = patterns.folders;
-            } else {
-                this.plugin.settings.excludePatterns = [];
-                this.plugin.settings.excludeFolders = [];
-            }
-
-            // Save settings and trigger search refresh
-            this.plugin.saveSettings();
+            // Update SearchEngine filters and trigger search
+            this.updateSearchEngineFilters();
 
             // Update filter button visual state
             this.updateFilterButtonState(filterBtn);
+
+            // Trigger search refresh
+            await this.performSearchCallback();
         };
 
-        // Sync on input change (debounced)
-        let syncTimeout: NodeJS.Timeout;
-        const debouncedSync = () => {
-            clearTimeout(syncTimeout);
-            syncTimeout = setTimeout(syncFiltersWithSettings, 500);
+        // Debounced update for input changes
+        let updateTimeout: NodeJS.Timeout;
+        const debouncedUpdate = () => {
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(updateFiltersAndSearch, 500);
         };
 
-        includeInput.addEventListener('input', debouncedSync);
-        excludeInput.addEventListener('input', debouncedSync);
+        // Input change handlers
+        includeInput.addEventListener('input', debouncedUpdate);
+        excludeInput.addEventListener('input', debouncedUpdate);
 
-        // Load current settings into inputs
-        this.loadCurrentFiltersToInputs(includeInput, excludeInput);
+        // Enter key handlers for immediate search
+        includeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(updateTimeout); // Cancel debounced update
+                updateFiltersAndSearch(); // Immediate update
+            }
+        });
+        excludeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(updateTimeout); // Cancel debounced update
+                updateFiltersAndSearch(); // Immediate update
+            }
+        });
+
+        // Load session filter values into inputs
+        includeInput.value = this.sessionFilters.include;
+        excludeInput.value = this.sessionFilters.exclude;
+
+        // Update SearchEngine with initial session filters
+        this.updateSearchEngineFilters();
 
         // Update filter button visual state
         this.updateFilterButtonState(filterBtn);
+    }
+
+    /**
+     * Updates SearchEngine settings from current session filters
+     */
+    private updateSearchEngineFilters(): void {
+        // Parse include patterns
+        if (this.sessionFilters.include) {
+            const patterns = this.parseFilterPatterns(this.sessionFilters.include);
+            this.plugin.settings.fileExtensions = patterns.extensions;
+            this.plugin.settings.searchInFolders = patterns.folders;
+            // Add include patterns support
+            this.plugin.settings.includePatterns = patterns.globs;
+        } else {
+            this.plugin.settings.fileExtensions = [];
+            this.plugin.settings.searchInFolders = [];
+            this.plugin.settings.includePatterns = [];
+        }
+
+        // Parse exclude patterns
+        if (this.sessionFilters.exclude) {
+            const patterns = this.parseFilterPatterns(this.sessionFilters.exclude);
+            this.plugin.settings.excludePatterns = patterns.globs;
+            this.plugin.settings.excludeFolders = patterns.folders;
+        } else {
+            this.plugin.settings.excludePatterns = [];
+            this.plugin.settings.excludeFolders = [];
+        }
+
+        this.logger.debug('Updated SearchEngine filters from session:', {
+            fileExtensions: this.plugin.settings.fileExtensions,
+            searchInFolders: this.plugin.settings.searchInFolders,
+            includePatterns: this.plugin.settings.includePatterns,
+            excludePatterns: this.plugin.settings.excludePatterns,
+            excludeFolders: this.plugin.settings.excludeFolders
+        });
     }
 
     /**
@@ -380,49 +455,27 @@ export class SearchToolbar {
             if (pattern.startsWith('.')) {
                 // File extension (remove the dot)
                 extensions.push(pattern.substring(1));
-            } else if (pattern.endsWith('/') || (!pattern.includes('*') && !pattern.includes('?'))) {
-                // Folder (remove trailing slash if present)
-                folders.push(pattern.replace(/\/$/, ''));
-            } else {
-                // Glob pattern
+            } else if (pattern.includes('*') || pattern.includes('?')) {
+                // Glob pattern (contains wildcards)
                 globs.push(pattern);
+            } else {
+                // Folder (plain name, remove trailing slash if present)
+                folders.push(pattern.replace(/\/$/, ''));
             }
         });
 
         return { extensions, folders, globs };
     }
 
-    /**
-     * Load current filter settings into the input fields
-     */
-    private loadCurrentFiltersToInputs(includeInput: HTMLInputElement, excludeInput: HTMLInputElement): void {
-        const settings = this.plugin.settings;
-
-        // Build include string from extensions and folders
-        const includeParts: string[] = [];
-        settings.fileExtensions.forEach(ext => includeParts.push('.' + ext));
-        settings.searchInFolders.forEach(folder => includeParts.push(folder));
-        includeInput.value = includeParts.join(', ');
-
-        // Build exclude string from patterns and folders
-        const excludeParts: string[] = [];
-        settings.excludePatterns.forEach(pattern => excludeParts.push(pattern));
-        settings.excludeFolders.forEach(folder => excludeParts.push(folder));
-        excludeInput.value = excludeParts.join(', ');
-    }
 
     /**
      * Update filter button visual state to show if filters are active
      */
     private updateFilterButtonState(filterBtn: HTMLButtonElement): void {
-        const settings = this.plugin.settings;
-
-        // Check if any filters are active
+        // Check if any session filters are active
         const hasActiveFilters =
-            settings.fileExtensions.length > 0 ||
-            settings.searchInFolders.length > 0 ||
-            settings.excludePatterns.length > 0 ||
-            settings.excludeFolders.length > 0;
+            this.sessionFilters.include.trim().length > 0 ||
+            this.sessionFilters.exclude.trim().length > 0;
 
         if (hasActiveFilters) {
             filterBtn.addClass('has-filters');
@@ -434,16 +487,10 @@ export class SearchToolbar {
                 badge = filterBtn.createSpan('filter-badge');
             }
 
-            // Count total active filters
-            const filterCount =
-                settings.fileExtensions.length +
-                settings.searchInFolders.length +
-                settings.excludePatterns.length +
-                settings.excludeFolders.length;
+            // Show simple active indicator instead of count
+            badge.textContent = '●';
 
-            badge.textContent = filterCount.toString();
-
-            this.logger.debug('Filter button updated: active filters detected', { count: filterCount });
+            this.logger.debug('Filter button updated: active filters detected');
         } else {
             filterBtn.removeClass('has-filters');
             filterBtn.setAttribute('aria-label', 'Toggle File Filters');
@@ -458,13 +505,6 @@ export class SearchToolbar {
         }
     }
 
-    /**
-     * Update filter inputs when settings change (bidirectional sync)
-     */
-    updateFilterInputsFromSettings(includeInput: HTMLInputElement, excludeInput: HTMLInputElement, filterBtn: HTMLButtonElement): void {
-        this.loadCurrentFiltersToInputs(includeInput, excludeInput);
-        this.updateFilterButtonState(filterBtn);
-    }
 
     /**
      * Sets up expand/collapse button navigation

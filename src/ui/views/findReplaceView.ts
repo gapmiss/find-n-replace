@@ -86,7 +86,12 @@ export class FindReplaceView extends ItemView {
             this.plugin,
             null as any, // Temporary - will be set after SelectionManager is created
             () => this.replaceSelectedMatches(),
-            () => this.replaceAllInVault()
+            () => this.replaceAllInVault(),
+            async () => { // Add search callback for filter changes
+                if (this.searchController) {
+                    await this.searchController.performSearch();
+                }
+            }
         );
 
         // Create main toolbar container using SearchToolbar
@@ -228,17 +233,10 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
-     * Called when plugin settings change - update UI to reflect changes
+     * Called when plugin settings change - no longer needed as filters are session-only
      */
     onSettingsChanged(): void {
-        // Update filter inputs to reflect settings changes (bidirectional sync)
-        if (this.elements?.includeInput && this.elements?.excludeInput && this.elements?.filterBtn) {
-            this.searchToolbar.updateFilterInputsFromSettings(
-                this.elements.includeInput,
-                this.elements.excludeInput,
-                this.elements.filterBtn
-            );
-        }
+        // No action needed - filters are now session-only and don't sync with settings
     }
 
     /**

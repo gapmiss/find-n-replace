@@ -27,6 +27,7 @@ export interface VaultFindReplaceSettings {
     excludePatterns: string[];
     fileExtensions: string[];
     searchInFolders: string[];
+    includePatterns: string[];
     excludeFolders: string[];
     showLineNumbers: boolean;
     showFileExtensions: boolean;
@@ -52,6 +53,7 @@ export const DEFAULT_SETTINGS: VaultFindReplaceSettings = {
     excludePatterns: [],
     fileExtensions: ['md'],
     searchInFolders: [],
+    includePatterns: [],
     excludeFolders: [],
     showLineNumbers: true,
     showFileExtensions: false,

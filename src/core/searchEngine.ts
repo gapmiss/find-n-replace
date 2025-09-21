@@ -41,6 +41,7 @@ export class SearchEngine {
         this.logger.debug('Filtering files with settings:', {
             fileExtensions: settings.fileExtensions,
             searchInFolders: settings.searchInFolders,
+            includePatterns: settings.includePatterns,
             excludeFolders: settings.excludeFolders,
             excludePatterns: settings.excludePatterns
         });
@@ -76,6 +77,18 @@ export class SearchEngine {
                 );
                 this.logger.trace(`File ${filePath}: excluded by excludeFolders: ${excluded}`);
                 return !excluded;
+            });
+        }
+
+        // Filter by include patterns (glob-like patterns)
+        if (settings.includePatterns && settings.includePatterns.length > 0) {
+            filteredFiles = filteredFiles.filter(file => {
+                const filePath = file.path;
+                const included = settings.includePatterns.some(pattern =>
+                    this.matchesPattern(filePath, pattern)
+                );
+                this.logger.trace(`File ${filePath}: included by patterns: ${included}`);
+                return included;
             });
         }
 

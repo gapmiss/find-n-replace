@@ -131,13 +131,17 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
             );
         */
 
-        // File filtering settings (now implemented in SearchEngine.performSearch())
-        containerEl.createEl("h3", { text: "File Filtering" });
+        // File filtering default settings
+        containerEl.createEl("h3", { text: "File Filtering Defaults" });
+        containerEl.createEl("p", {
+            text: "These settings provide default values when opening a new find & replace view. Once a view is open, filter changes are session-only.",
+            cls: "setting-item-description"
+        });
 
-        // File extensions filter
+        // Default file extensions filter
         new Setting(containerEl)
-            .setName("File extensions")
-            .setDesc("Comma-separated list of file extensions to search (leave empty for all). Example: md,txt,js")
+            .setName("Default file extensions")
+            .setDesc("Default comma-separated list of file extensions to search (leave empty for all). Example: md,txt,js")
             .addText((text) =>
                 text
                     .setPlaceholder("md,txt,js")
@@ -151,10 +155,10 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                     })
             );
 
-        // Exclude patterns
+        // Default exclude patterns
         new Setting(containerEl)
-            .setName("Exclude patterns")
-            .setDesc("Comma-separated list of file patterns to exclude from search. Supports * and ? wildcards. Example: *.tmp,temp/*,*backup*")
+            .setName("Default exclude patterns")
+            .setDesc("Default comma-separated list of file patterns to exclude from search. Supports * and ? wildcards. Example: *.tmp,temp/*,*backup*")
             .addText((text) =>
                 text
                     .setPlaceholder("*.tmp,temp/*,*backup*")
@@ -168,10 +172,10 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                     })
             );
 
-        // Search in folders
+        // Default search in folders
         new Setting(containerEl)
-            .setName("Search in folders")
-            .setDesc("Comma-separated list of folders to search in (leave empty for all folders). Example: Notes,Projects,Daily")
+            .setName("Default search folders")
+            .setDesc("Default comma-separated list of folders to search in (leave empty for all folders). Example: Notes,Projects,Daily")
             .addText((text) =>
                 text
                     .setPlaceholder("Notes,Projects,Daily")
@@ -185,10 +189,10 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                     })
             );
 
-        // Exclude folders
+        // Default exclude folders
         new Setting(containerEl)
-            .setName("Exclude folders")
-            .setDesc("Comma-separated list of folders to exclude from search. Example: Archive,Templates,.trash")
+            .setName("Default exclude folders")
+            .setDesc("Default comma-separated list of folders to exclude from search. Example: Archive,Templates,.trash")
             .addText((text) =>
                 text
                     .setPlaceholder("Archive,Templates,.trash")

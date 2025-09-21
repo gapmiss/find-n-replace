@@ -753,7 +753,12 @@ src/
   - **Comprehensive Coverage:** All core algorithms, edge cases, and performance scenarios tested
   - **Future-Proof Development:** New features can be developed with confidence using test-driven approach
 
-#### 22. **Complete Tab Order System Fix** (Critical Accessibility Fix)
+#### 22. **File Filter UX Improvements** (Critical Filter Experience Fix)
+- **Problems Fixed:** Missing search refresh on filter changes, over-aggressive 2-way sync, broken include globs (`CTS*`)
+- **Solutions:** Enter key + debounced search refresh, session-only filters (settings as defaults), added `includePatterns` support
+- **Impact:** Responsive filtering, clean settings UX, proper glob pattern support for includes
+
+#### 23. **Complete Tab Order System Fix** (Critical Accessibility Fix)
 - **Goal:** Fix comprehensive tab navigation issues across entire plugin interface
 - **Problem:** Multiple tab order problems including missing filter elements, broken forward tabbing, and inconsistent behavior
 - **Root Cause Analysis:**
