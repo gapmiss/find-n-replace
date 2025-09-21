@@ -62,7 +62,7 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 - Enhanced accessibility with larger focus targets and proper event isolation
 - All replace actions accessible via keyboard navigation
 - Accessible design with screen reader support
-- **Built-in Help System**: Comprehensive help modal accessible via toolbar menu (⋯) showing all keyboard shortcuts, usage tips, and your personal hotkey configurations
+- **Built-in Help System**: Comprehensive help modal accessible via toolbar menu (⋯) showing all keyboard shortcuts, file filtering guide, usage tips, and your personal hotkey configurations
 
 ### Performance Optimizations
 - Incremental result updates after replacements (avoids full re-search)
@@ -96,6 +96,7 @@ Click the **⋯** (ellipsis) button in the toolbar and select **Help** to open t
 - All 12 available plugin commands with descriptions
 - Your configured keyboard shortcuts (if any)
 - Recommended hotkey combinations
+- **File Filtering Guide**: Complete documentation for include/exclude patterns with examples
 - Usage tips for efficient workflows
 - Direct link to hotkey configuration in Obsidian settings
 

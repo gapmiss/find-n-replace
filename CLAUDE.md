@@ -850,6 +850,35 @@ src/
   - **Design Consistency:** Matches Obsidian's modal styling and interaction patterns
   - **Performance:** Lightweight hotkey detection with graceful fallbacks
 
+#### 27. **Help Modal File Filtering Documentation** (User Experience & Feature Discoverability)
+- **Goal:** Add comprehensive file filtering usage instructions to the help modal for improved feature discoverability
+- **Problem:** Users needed guidance on using the Include/Exclude pattern system, which was not documented in the in-plugin help
+- **Solution Implementation:**
+  - **File Filtering Guide Section:** Complete documentation section with pattern types, examples, and use cases
+  - **Pattern Type Coverage:** Extensions (`.md`), folders (`Notes/`), and glob patterns (`*.tmp`) with clear syntax explanations
+  - **Real-World Examples:** Practical scenarios like "search only active notes" and "skip temporary files"
+  - **Performance Integration:** Tips explaining how filtering improves search speed in large vaults
+- **Technical Implementation:**
+  - **New Section:** `renderFileFilteringGuide()` method with comprehensive pattern examples and use cases
+  - **Enhanced Usage Tips:** Updated existing tips to include filtering-specific guidance and settings navigation
+  - **Consistent Styling:** Added CSS classes matching existing help modal design with proper semantic HTML
+  - **Test Coverage:** Updated help modal tests to validate file filtering guide rendering and content
+- **Content Quality:**
+  - **Include Patterns:** `.md,.txt` (file types), `Notes/,Daily/` (folders), `*.js` (globs), `Notes/*.md` (combined)
+  - **Exclude Patterns:** `Archive/,Templates/` (folders), `*.tmp,*.bak` (files), `*backup*,*draft*` (wildcards)
+  - **Common Use Cases:** Project-specific filtering, large vault optimization, file type targeting
+  - **Settings Integration:** Instructions for configuring default filters in plugin settings
+- **User Benefits:**
+  - **Self-Service Discovery:** Users learn powerful filtering capabilities without external documentation
+  - **Performance Awareness:** Understanding of how filtering improves search efficiency
+  - **Immediate Productivity:** Copy-paste examples enable instant productive use
+  - **Workflow Optimization:** Clear guidance for different vault organization strategies
+- **File Changes:**
+  - `src/modals/helpModal.ts` (added comprehensive filtering guide section)
+  - `styles.css` (styling for file filtering guide with consistent design tokens)
+  - `src/tests/ui/helpModal.test.ts` (updated tests for new guide section)
+  - `README.md` (updated help modal description to mention filtering guide)
+
 ## Development Guidelines
 
 ### Code Quality Standards
