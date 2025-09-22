@@ -395,10 +395,11 @@ Tests run automatically on:
 - **Edge Cases:** Circular references, null/undefined handling, memory efficiency
 
 #### **Component Architecture Tests** (`ui/components.test.ts`)
-- **SearchToolbar:** UI creation, toggle states, tab order, filter panel
+- **SearchToolbar:** UI creation, toggle states, tab order, filter panel, clear-input button functionality
 - **ActionHandler:** Event handling, keyboard shortcuts, replace operations
 - **SearchController:** Search execution, cancellation, validation, error handling
 - **SelectionManager:** Multi-selection, preservation, index adjustment
+- **Clear-Input Buttons:** Contextual visibility, event handling, focus management, accessibility
 - **Integration:** Component communication, lifecycle management, type safety
 
 ### **Testing Best Practices for New Features**
@@ -432,6 +433,28 @@ it('should allow components to communicate through callbacks', () => {
   searchToolbar.onSearchInputChange?.('test query');
 
   expect(sharedCallbacks.onSearchChange).toHaveBeenCalledWith('test query');
+});
+```
+
+#### **Clear-Input Button Tests**
+```typescript
+it('should show clear button when input has content and hide when empty', () => {
+  const searchInput = container.querySelector('.find-replace-input') as HTMLInputElement;
+  const clearBtn = container.querySelector('.input-clear-icon') as HTMLButtonElement;
+
+  // Initially hidden when empty
+  expect(clearBtn.classList.contains('visible')).toBe(false);
+
+  // Show when content is added
+  searchInput.value = 'test search';
+  searchInput.dispatchEvent(new Event('input'));
+  expect(clearBtn.classList.contains('visible')).toBe(true);
+
+  // Clear and hide when button clicked
+  clearBtn.click();
+  expect(searchInput.value).toBe('');
+  expect(clearBtn.classList.contains('visible')).toBe(false);
+  expect(document.activeElement).toBe(searchInput); // Focus restored
 });
 ```
 

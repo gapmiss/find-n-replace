@@ -9,6 +9,7 @@ import { HelpModal } from '../../modals/helpModal';
  */
 export interface SearchInputElements {
     searchInput: HTMLInputElement;
+    searchClearBtn: HTMLButtonElement;
     matchCaseBtn: HTMLElement;
     wholeWordBtn: HTMLElement;
     regexBtn: HTMLElement;
@@ -19,6 +20,7 @@ export interface SearchInputElements {
  */
 export interface ReplaceInputElements {
     replaceInput: HTMLInputElement;
+    replaceClearBtn: HTMLButtonElement;
     clearAllBtn: HTMLButtonElement;
     filterBtn: HTMLButtonElement;
 }
@@ -29,7 +31,9 @@ export interface ReplaceInputElements {
 export interface FilterPanelElements {
     filterPanel: HTMLElement;
     includeInput: HTMLInputElement;
+    includeClearBtn: HTMLButtonElement;
     excludeInput: HTMLInputElement;
+    excludeClearBtn: HTMLButtonElement;
 }
 
 /**
@@ -85,10 +89,11 @@ export class SearchToolbar {
     private initializeSessionFilters(): void {
         const settings = this.plugin.settings;
 
-        // Build include string from extensions and folders
+        // Build include string from extensions, folders, and include patterns
         const includeParts: string[] = [];
         settings.fileExtensions.forEach(ext => includeParts.push('.' + ext));
         settings.searchInFolders.forEach(folder => includeParts.push(folder));
+        settings.includePatterns.forEach(pattern => includeParts.push(pattern));
         this.sessionFilters.include = includeParts.join(', ');
 
         // Build exclude string from patterns and folders
@@ -137,6 +142,16 @@ export class SearchToolbar {
             attr: { 'tabindex': '1' }
         }) as HTMLInputElement;
 
+        // Add clear button for search input
+        const searchClearBtn = searchInputContainer.createEl('button', {
+            cls: 'input-clear-icon',
+            attr: {
+                'aria-label': 'Clear search input',
+                'tabindex': '-1'
+            }
+        }) as HTMLButtonElement;
+        setIcon(searchClearBtn, 'x');
+
         // Inline search options (VSCode-style)
         const searchOptions = searchRow.createDiv('find-replace-inline-options');
 
@@ -147,6 +162,7 @@ export class SearchToolbar {
 
         return {
             searchInput,
+            searchClearBtn,
             matchCaseBtn,
             wholeWordBtn,
             regexBtn
@@ -172,6 +188,16 @@ export class SearchToolbar {
             attr: { 'tabindex': '2' }
         }) as HTMLInputElement;
 
+        // Add clear button for replace input
+        const replaceClearBtn = replaceInputContainer.createEl('button', {
+            cls: 'input-clear-icon',
+            attr: {
+                'aria-label': 'Clear replace input',
+                'tabindex': '-1'
+            }
+        }) as HTMLButtonElement;
+        setIcon(replaceClearBtn, 'x');
+
         // Clear button moved to replace row
         const replaceRowActions = replaceRow.createDiv('find-replace-toolbar-actions');
         const clearAllBtn = replaceRowActions.createEl('button', {
@@ -195,6 +221,7 @@ export class SearchToolbar {
 
         return {
             replaceInput,
+            replaceClearBtn,
             clearAllBtn,
             filterBtn
         };
@@ -215,12 +242,23 @@ export class SearchToolbar {
             cls: 'filter-input-label',
             text: 'Include:'
         });
-        const includeInput = includeRow.createEl('input', {
+        const includeInputContainer = includeRow.createDiv('filter-input-container');
+        const includeInput = includeInputContainer.createEl('input', {
             type: 'text',
             cls: 'filter-input',
             placeholder: 'files to include (e.g., .md, Notes/, *.js)',
             attr: { 'tabindex': '8' }
         }) as HTMLInputElement;
+
+        // Add clear button for include input
+        const includeClearBtn = includeInputContainer.createEl('button', {
+            cls: 'input-clear-icon filter-clear-icon',
+            attr: {
+                'aria-label': 'Clear include pattern',
+                'tabindex': '-1'
+            }
+        }) as HTMLButtonElement;
+        setIcon(includeClearBtn, 'x');
 
         // Exclude input row
         const excludeRow = filterPanel.createDiv('filter-input-row');
@@ -228,17 +266,30 @@ export class SearchToolbar {
             cls: 'filter-input-label',
             text: 'Exclude:'
         });
-        const excludeInput = excludeRow.createEl('input', {
+        const excludeInputContainer = excludeRow.createDiv('filter-input-container');
+        const excludeInput = excludeInputContainer.createEl('input', {
             type: 'text',
             cls: 'filter-input',
             placeholder: 'files to exclude (e.g., *.tmp, Archive/, *backup*)',
             attr: { 'tabindex': '9' }
         }) as HTMLInputElement;
 
+        // Add clear button for exclude input
+        const excludeClearBtn = excludeInputContainer.createEl('button', {
+            cls: 'input-clear-icon filter-clear-icon',
+            attr: {
+                'aria-label': 'Clear exclude pattern',
+                'tabindex': '-1'
+            }
+        }) as HTMLButtonElement;
+        setIcon(excludeClearBtn, 'x');
+
         return {
             filterPanel,
             includeInput,
-            excludeInput
+            includeClearBtn,
+            excludeInput,
+            excludeClearBtn
         };
     }
 
@@ -336,14 +387,10 @@ export class SearchToolbar {
 
             if (isFilterPanelVisible) {
                 filterPanel.removeClass('hidden');
-                filterBtn.addClass('is-active');
-                filterBtn.setAttribute('aria-pressed', 'true');
                 // Focus the include input for immediate typing
                 includeInput.focus();
             } else {
                 filterPanel.addClass('hidden');
-                filterBtn.removeClass('is-active');
-                filterBtn.setAttribute('aria-pressed', 'false');
             }
 
             this.logger.debug('Filter panel toggled:', { visible: isFilterPanelVisible });
@@ -468,42 +515,6 @@ export class SearchToolbar {
     }
 
 
-    /**
-     * Update filter button visual state to show if filters are active
-     */
-    private updateFilterButtonState(filterBtn: HTMLButtonElement): void {
-        // Check if any session filters are active
-        const hasActiveFilters =
-            this.sessionFilters.include.trim().length > 0 ||
-            this.sessionFilters.exclude.trim().length > 0;
-
-        if (hasActiveFilters) {
-            filterBtn.addClass('has-filters');
-            filterBtn.setAttribute('aria-label', 'Toggle File Filters (Active)');
-
-            // Add filter count badge if there isn't one already
-            let badge = filterBtn.querySelector('.filter-badge') as HTMLElement;
-            if (!badge) {
-                badge = filterBtn.createSpan('filter-badge');
-            }
-
-            // Show simple active indicator instead of count
-            badge.textContent = '●';
-
-            this.logger.debug('Filter button updated: active filters detected');
-        } else {
-            filterBtn.removeClass('has-filters');
-            filterBtn.setAttribute('aria-label', 'Toggle File Filters');
-
-            // Remove badge if it exists
-            const badge = filterBtn.querySelector('.filter-badge');
-            if (badge) {
-                badge.remove();
-            }
-
-            this.logger.debug('Filter button updated: no active filters');
-        }
-    }
 
 
     /**
@@ -521,6 +532,83 @@ export class SearchToolbar {
                 }
             }
         });
+    }
+
+    /**
+     * Sets up clear icon functionality for all input fields
+     */
+    setupClearIcons(
+        searchInput: HTMLInputElement,
+        searchClearBtn: HTMLButtonElement,
+        replaceInput: HTMLInputElement,
+        replaceClearBtn: HTMLButtonElement,
+        includeInput: HTMLInputElement,
+        includeClearBtn: HTMLButtonElement,
+        excludeInput: HTMLInputElement,
+        excludeClearBtn: HTMLButtonElement,
+        onInputChange?: () => void
+    ): void {
+        // Helper function to update clear icon visibility
+        const updateClearIconVisibility = (input: HTMLInputElement, clearBtn: HTMLButtonElement) => {
+            if (input.value.trim()) {
+                clearBtn.classList.add('visible');
+            } else {
+                clearBtn.classList.remove('visible');
+            }
+        };
+
+        // Helper function to clear input and trigger events
+        const clearInput = (input: HTMLInputElement, clearBtn: HTMLButtonElement) => {
+            input.value = '';
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            clearBtn.classList.remove('visible');
+            input.focus(); // Focus the input field after clearing
+            if (onInputChange) {
+                onInputChange();
+            }
+        };
+
+        // Set up search input clear functionality
+        searchInput.addEventListener('input', () => {
+            updateClearIconVisibility(searchInput, searchClearBtn);
+        });
+
+        searchClearBtn.addEventListener('click', () => {
+            clearInput(searchInput, searchClearBtn);
+        });
+
+        // Set up replace input clear functionality
+        replaceInput.addEventListener('input', () => {
+            updateClearIconVisibility(replaceInput, replaceClearBtn);
+        });
+
+        replaceClearBtn.addEventListener('click', () => {
+            clearInput(replaceInput, replaceClearBtn);
+        });
+
+        // Set up include input clear functionality
+        includeInput.addEventListener('input', () => {
+            updateClearIconVisibility(includeInput, includeClearBtn);
+        });
+
+        includeClearBtn.addEventListener('click', () => {
+            clearInput(includeInput, includeClearBtn);
+        });
+
+        // Set up exclude input clear functionality
+        excludeInput.addEventListener('input', () => {
+            updateClearIconVisibility(excludeInput, excludeClearBtn);
+        });
+
+        excludeClearBtn.addEventListener('click', () => {
+            clearInput(excludeInput, excludeClearBtn);
+        });
+
+        // Initialize visibility state on setup
+        updateClearIconVisibility(searchInput, searchClearBtn);
+        updateClearIconVisibility(replaceInput, replaceClearBtn);
+        updateClearIconVisibility(includeInput, includeClearBtn);
+        updateClearIconVisibility(excludeInput, excludeClearBtn);
     }
 
     /**
@@ -642,5 +730,53 @@ export class SearchToolbar {
                 this.logger.error('Replace selected keyboard shortcut error', error, true);
             }
         });
+    }
+
+    /**
+     * Updates the filter button state to show active filters count
+     */
+    private updateFilterButtonState(filterBtn: HTMLButtonElement): void {
+        // Count active filters
+        let activeFiltersCount = 0;
+
+        // Count include filters
+        if (this.sessionFilters.include.trim()) {
+            const includePatterns = this.sessionFilters.include.split(',')
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
+            activeFiltersCount += includePatterns.length;
+        }
+
+        // Count exclude filters
+        if (this.sessionFilters.exclude.trim()) {
+            const excludePatterns = this.sessionFilters.exclude.split(',')
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
+            activeFiltersCount += excludePatterns.length;
+        }
+
+        // Update button state
+        if (activeFiltersCount > 0) {
+            filterBtn.classList.add('is-active');
+            filterBtn.setAttribute('aria-pressed', 'true');
+
+            // Add or update badge
+            let badge = filterBtn.querySelector('.filter-count-badge') as HTMLElement;
+            if (!badge) {
+                badge = filterBtn.createSpan('filter-count-badge');
+            }
+            badge.textContent = activeFiltersCount.toString();
+        } else {
+            filterBtn.classList.remove('is-active');
+            filterBtn.setAttribute('aria-pressed', 'false');
+
+            // Remove badge if no active filters
+            const badge = filterBtn.querySelector('.filter-count-badge');
+            if (badge) {
+                badge.remove();
+            }
+        }
+
+        this.logger.debug('Updated filter button state:', { activeFiltersCount });
     }
 }

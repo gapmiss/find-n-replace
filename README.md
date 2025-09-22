@@ -56,13 +56,14 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 
 ### User Interface
 - Clean, focused interface optimized for find/replace workflows
+- **Clear-Input Buttons**: All text inputs (search, replace, include/exclude filters) feature contextual clear buttons (X icon) that appear when content is present and disappear when empty, with proper focus management
 - Collapsible file groups with persistent expand/collapse state
 - Adaptive toolbar that shows relevant controls contextually
 - Full keyboard navigation with complete sequential tab order (toolbar → file headers → replace buttons → matches → replace buttons)
 - Enhanced accessibility with larger focus targets and proper event isolation
 - All replace actions accessible via keyboard navigation
-- Accessible design with screen reader support
-- **Built-in Help System**: Comprehensive help modal accessible via toolbar menu (⋯) showing all keyboard shortcuts, file filtering guide, usage tips, and your personal hotkey configurations
+- Accessible design with screen reader support and proper ARIA labeling
+- **Built-in Help System**: Comprehensive help modal accessible via toolbar menu (⋯) showing all keyboard shortcuts, **complete file filtering guide with examples**, usage tips, and your personal hotkey configurations
 
 ### Performance Optimizations
 - Incremental result updates after replacements (avoids full re-search)
@@ -96,29 +97,31 @@ Click the **⋯** (ellipsis) button in the toolbar and select **Help** to open t
 - All 12 available plugin commands with descriptions
 - Your configured keyboard shortcuts (if any)
 - Recommended hotkey combinations
-- **File Filtering Guide**: Complete documentation for include/exclude patterns with examples
-- Usage tips for efficient workflows
+- **File Filtering Guide**: Complete documentation for include/exclude patterns with real-world examples, pattern types (extensions, folders, globs), and common use cases
+- Usage tips for efficient workflows including clear-input button usage
 - Direct link to hotkey configuration in Obsidian settings
 
 ### Basic Search Workflow
 1. **Optional**: Configure file filters using the filter button to limit search scope
-2. Enter search term in the search input field
+2. Enter search term in the search input field (use X button to clear input when needed)
 3. Results populate automatically as you type
 4. Browse results organized by file
 5. Click any result to navigate to that location in your vault
 
 ### File Filtering (Performance Optimization)
-Click the **🔍** filter button to open the expandable filter panel:
+Click the **🔍** filter button to open the expandable filter panel with clear-input enabled fields:
 
 **Include Examples:**
 - `.md, .txt` - Only search markdown and text files
 - `Notes/, Daily/` - Only search in Notes and Daily folders
 - `.md, Projects/` - Only markdown files in Projects folder
+- Use the X button to quickly clear include patterns
 
 **Exclude Examples:**
 - `*.tmp, *backup*` - Skip temporary and backup files
 - `Archive/, Templates/` - Skip Archive and Templates folders
 - `temp/*, *.log` - Skip temp folder and log files
+- Use the X button to quickly clear exclude patterns
 
 ### Search Options
 - **Match Case**: Enable case-sensitive searching

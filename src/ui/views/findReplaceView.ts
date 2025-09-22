@@ -124,6 +124,24 @@ export class FindReplaceView extends ItemView {
         // Set up filter button toggle
         this.searchToolbar.setupFilterToggle(replaceElements.filterBtn, filterElements.filterPanel, filterElements.includeInput, filterElements.excludeInput);
 
+        // Set up clear input icon functionality
+        this.searchToolbar.setupClearIcons(
+            searchElements.searchInput,
+            searchElements.searchClearBtn,
+            replaceElements.replaceInput,
+            replaceElements.replaceClearBtn,
+            filterElements.includeInput,
+            filterElements.includeClearBtn,
+            filterElements.excludeInput,
+            filterElements.excludeClearBtn,
+            () => {
+                // Trigger search when filters are cleared
+                if (this.searchController) {
+                    this.searchController.performSearch();
+                }
+            }
+        );
+
         // Store UI elements for component access
         this.elements = {
             containerEl: this.containerEl,

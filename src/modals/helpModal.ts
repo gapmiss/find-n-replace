@@ -21,6 +21,9 @@ export class HelpModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
+        // Add scoped class to prevent CSS conflicts
+        contentEl.addClass('find-replace-help-modal');
+
         // Modal title
         contentEl.createEl('h2', { text: 'Find-n-Replace - Keyboard Shortcuts' });
 
