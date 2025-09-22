@@ -1,5 +1,5 @@
 {
-	"name": "vault-find-replace",
+	"name": "find-n-replace",
 	"version": "1.0.0",
 	"description": "An Obsidian.md plugin with a VSCode-style vault-wide find & replace sidebar view",
 	"main": "main.js",

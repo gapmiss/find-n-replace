@@ -23,7 +23,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		// Register commands for keyboard shortcuts
 		this.addCommand({
-			id: 'open-vault-find-replace',
+			id: 'open-find-n-replace',
 			name: 'Open Find-n-Replace',
 			callback: () => {
 				this.activateView();
@@ -170,7 +170,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			} else {
 				leaf = workspace.getRightLeaf(false);
 				if (!leaf) {
-					console.error("vault-find-replace: failed to get or create leaf");
+					console.error("find-n-replace: failed to get or create leaf");
 					return;
 				}
 				await leaf.setViewState({ type: VIEW_TYPE_FIND_REPLACE, active: true });
@@ -178,7 +178,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 			workspace.revealLeaf(leaf);
 		} catch (error) {
-			console.error("vault-find-replace: failed to activate view:", error);
+			console.error("find-n-replace: failed to activate view:", error);
 			// Don't throw - just log the error so plugin doesn't crash
 		}
 	}
@@ -196,7 +196,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			}
 			return null;
 		} catch (error) {
-			console.error("vault-find-replace: failed to get active view:", error);
+			console.error("find-n-replace: failed to get active view:", error);
 			return null;
 		}
 	}
@@ -222,7 +222,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			// Migration: Convert old enableDebugLogging to new logLevel
 			if (loadedData.enableDebugLogging !== undefined && this.settings.logLevel === undefined) {
 				this.settings.logLevel = loadedData.enableDebugLogging ? LogLevel.DEBUG : LogLevel.ERROR;
-				console.log(`vault-find-replace: Migrated enableDebugLogging(${loadedData.enableDebugLogging}) to logLevel(${this.settings.logLevel})`);
+				console.log(`find-n-replace: Migrated enableDebugLogging(${loadedData.enableDebugLogging}) to logLevel(${this.settings.logLevel})`);
 
 				// Remove the old setting and save migrated settings
 				delete (this.settings as any).enableDebugLogging;
@@ -268,7 +268,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 				this.settings.defaultIncludePatterns = includePatterns;
 				this.settings.defaultExcludePatterns = excludePatterns;
 
-				console.log(`vault-find-replace: Migrated old filter settings to unified patterns:`, {
+				console.log(`find-n-replace: Migrated old filter settings to unified patterns:`, {
 					include: includePatterns,
 					exclude: excludePatterns
 				});
@@ -282,7 +282,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 				await this.saveSettings();
 			}
 		} catch (error) {
-			console.error('vault-find-replace: Failed to load settings, using defaults:', error);
+			console.error('find-n-replace: Failed to load settings, using defaults:', error);
 			this.settings = { ...DEFAULT_SETTINGS };
 		}
 	}
@@ -291,7 +291,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 		try {
 			await this.saveData(this.settings);
 		} catch (error) {
-			console.error('vault-find-replace: Failed to save settings:', error);
+			console.error('find-n-replace: Failed to save settings:', error);
 			// Don't throw - settings save failure shouldn't break the plugin
 		}
 	}

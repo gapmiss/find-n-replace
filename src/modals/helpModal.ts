@@ -60,86 +60,86 @@ export class HelpModal extends Modal {
     private getCommandsWithHotkeys(): CommandInfo[] {
         const commands: CommandInfo[] = [
             {
-                id: 'open-find-replace',
+                id: 'open-find-n-replace',
                 name: 'Open Find-n-Replace',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>',
                 description: 'Opens the plugin sidebar view',
                 category: 'Primary'
             },
             {
                 id: 'perform-search',
                 name: 'Perform Search',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Enter</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Enter</kbd>',
                 description: 'Executes search with current query',
                 category: 'Primary'
             },
             {
                 id: 'replace-all-vault',
                 name: 'Replace All in Vault',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd>',
                 description: 'Replaces all matches vault-wide',
                 category: 'Primary'
             },
             {
                 id: 'focus-search-input',
                 name: 'Focus Search Input',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>L</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>L</kbd>',
                 description: 'Focuses the search input field',
                 category: 'Navigation'
             },
             {
                 id: 'focus-replace-input',
                 name: 'Focus Replace Input',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>',
                 description: 'Focuses the replace input field',
                 category: 'Navigation'
             },
             {
                 id: 'toggle-match-case',
                 name: 'Toggle Match Case',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd>',
                 description: 'Toggles case-sensitive search',
                 category: 'Search Options'
             },
             {
                 id: 'toggle-whole-word',
                 name: 'Toggle Whole Word',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Alt</kbd>+<kbd>W</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Alt</kbd>+<kbd>W</kbd>',
                 description: 'Toggles whole word matching',
                 category: 'Search Options'
             },
             {
                 id: 'toggle-regex',
                 name: 'Toggle Regex',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd>',
                 description: 'Toggles regular expression mode',
                 category: 'Search Options'
             },
             {
                 id: 'replace-selected',
                 name: 'Replace Selected Matches',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>',
                 description: 'Replaces only selected results',
                 category: 'Replace Actions'
             },
             {
                 id: 'select-all-results',
                 name: 'Select All Results',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>A</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>A</kbd>',
                 description: 'Selects all visible search results',
                 category: 'Selection'
             },
             {
                 id: 'expand-collapse-all',
                 name: 'Expand/Collapse All Results',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>E</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>E</kbd>',
                 description: 'Toggles all file group states',
                 category: 'View'
             },
             {
-                id: 'clear-search-replace',
+                id: 'clear-all',
                 name: 'Clear Search and Replace',
-                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>C</kbd>',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>K</kbd>',
                 description: 'Clears inputs and resets toggles',
                 category: 'Utility'
             }
@@ -154,7 +154,10 @@ export class HelpModal extends Modal {
 
     private getUserHotkey(commandId: string): string {
         // Get user's configured hotkey for this command
-        const fullCommandId = `vault-find-replace:${commandId}`;
+        const fullCommandId = `find-n-replace:${commandId}`;
+
+        // Debug logging to help troubleshoot hotkey detection
+        console.debug(`[Help Modal] Looking for hotkey for command: ${fullCommandId}`);
 
         // Try multiple ways to access hotkey data
         const app = this.app as any;
@@ -162,9 +165,12 @@ export class HelpModal extends Modal {
         // Method 1: Check hotkeyManager
         if (app.hotkeyManager?.customKeys?.[fullCommandId]) {
             const hotkeyData = app.hotkeyManager.customKeys[fullCommandId];
+            console.debug(`[Help Modal] Found in hotkeyManager.customKeys:`, hotkeyData);
             if (hotkeyData.length > 0) {
-                return this.formatHotkey(hotkeyData[0]);
+                return this.formatHotkeys(hotkeyData);
             }
+        } else {
+            console.debug(`[Help Modal] Not found in hotkeyManager.customKeys. Available keys:`, Object.keys(app.hotkeyManager?.customKeys || {}));
         }
 
         // Method 2: Check scope registry
@@ -184,18 +190,32 @@ export class HelpModal extends Modal {
         const commands = app.commands?.commands;
         if (commands && commands[fullCommandId]) {
             const command = commands[fullCommandId];
+            console.debug(`[Help Modal] Found command in registry:`, command);
             if (command.hotkeys && command.hotkeys.length > 0) {
-                return this.formatHotkey(command.hotkeys[0]);
+                console.debug(`[Help Modal] Found hotkeys in command:`, command.hotkeys);
+                return this.formatHotkeys(command.hotkeys);
             }
+        } else {
+            console.debug(`[Help Modal] Command not found in registry. Available commands:`, Object.keys(commands || {}));
         }
 
+        return 'Not set';
+    }
+
+    private formatHotkeys(hotkeyArray: any[]): string {
+        if (hotkeyArray.length === 1) {
+            return this.formatHotkey(hotkeyArray[0]);
+        } else if (hotkeyArray.length > 1) {
+            // Handle multiple alternative hotkeys for the same command
+            return hotkeyArray.map(hotkey => this.formatHotkey(hotkey)).join(' or ');
+        }
         return 'Not set';
     }
 
     private formatHotkey(hotkeyData: any): string {
         const modifiers = [];
         if (hotkeyData.modifiers) {
-            if (hotkeyData.modifiers.includes('Mod')) modifiers.push('Cmd');
+            if (hotkeyData.modifiers.includes('Mod')) modifiers.push('Ctrl/Cmd');
             if (hotkeyData.modifiers.includes('Ctrl')) modifiers.push('Ctrl');
             if (hotkeyData.modifiers.includes('Alt')) modifiers.push('Alt');
             if (hotkeyData.modifiers.includes('Shift')) modifiers.push('Shift');
@@ -216,7 +236,7 @@ export class HelpModal extends Modal {
             if (scopeKey.modifiers & 1) modifiers.push('Ctrl');
             if (scopeKey.modifiers & 2) modifiers.push('Alt');
             if (scopeKey.modifiers & 4) modifiers.push('Shift');
-            if (scopeKey.modifiers & 8) modifiers.push('Cmd');
+            if (scopeKey.modifiers & 8) modifiers.push('Ctrl/Cmd');
         }
 
         let key = scopeKey.key || '';
@@ -443,12 +463,12 @@ export class HelpModal extends Modal {
         const tipsList = tipsDiv.createEl('ul');
 
         const tips = [
-            { text: 'Use ', keys: ['Cmd', 'Shift', 'F'], suffix: ' to quickly open the plugin from anywhere in Obsidian' },
-            { text: 'Regex mode supports capture groups (', keys: ['$1'], middle: ', ', keys2: ['$2'], suffix: ') for advanced replacements' },
+            { text: 'Use ', keys: ['Ctrl/Cmd', 'Shift', 'F'], suffix: ' to quickly open the plugin from anywhere in Obsidian' },
+            { text: 'Regex mode supports capture groups (', code: '$1', middle: ', ', code2: '$2', suffix: ') for advanced replacements' },
             { text: 'Select specific results before using "Replace Selected" for precise control' },
             { text: 'Use the filter button (🔍) to search only specific file types or folders' },
             { text: 'Set default filters in Settings to avoid retyping common patterns' },
-            { text: 'Use ', keys: ['Cmd', 'K'], suffix: ' prefix for less common actions to avoid hotkey conflicts' },
+            { text: 'Use ', keys: ['Ctrl/Cmd', 'K'], suffix: ' prefix for less common actions to avoid hotkey conflicts' },
             { text: 'The plugin remembers your expand/collapse preferences per file' },
             { text: 'Multi-line replacements work great with regex patterns' },
             { text: 'Include/exclude patterns are session-only; settings provide defaults' }
@@ -472,16 +492,18 @@ export class HelpModal extends Modal {
                     });
                 }
 
+                if (tip.code) {
+                    const code = li.createEl('code');
+                    code.insertAdjacentText('beforeend', tip.code);
+                }
+
                 if (tip.middle) {
                     li.insertAdjacentText('beforeend', tip.middle);
                 }
 
-                if (tip.keys2) {
-                    tip.keys2.forEach((key, index) => {
-                        if (index > 0) li.insertAdjacentText('beforeend', '+');
-                        const kbd = li.createEl('kbd');
-                        kbd.insertAdjacentText('beforeend', key);
-                    });
+                if (tip.code2) {
+                    const code2 = li.createEl('code');
+                    code2.insertAdjacentText('beforeend', tip.code2);
                 }
 
                 if (tip.suffix) {
