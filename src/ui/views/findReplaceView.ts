@@ -179,7 +179,8 @@ export class FindReplaceView extends ItemView {
             this.searchEngine,
             this.state,
             (searchOptions) => this.renderResultsWithOptions(searchOptions),
-            () => this.clearResults()
+            () => this.clearResults(),
+            () => this.searchToolbar.getSessionFilters()
         );
 
         // Initialize ActionHandler for event handling

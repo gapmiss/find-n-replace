@@ -25,12 +25,12 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 - **Automatic search-as-you-type** with configurable debouncing
 - **Search result limiting** to handle large vaults efficiently
 
-### File Filtering System
-- **File extension filtering** - Limit search to specific file types (`.md`, `.txt`, `.js`)
-- **Folder inclusion/exclusion** - Search only in specified folders or exclude certain directories
-- **Glob pattern support** - Use wildcard patterns to exclude temporary files (`*.tmp`, `*backup*`)
-- **VSCode-style interface** - Expandable filter panel with include/exclude inputs
+### VSCode-Style File Filtering System
+- **"files to include" patterns** - Limit search to specific file types, folders, or glob patterns (`.md`, `Notes/`, `*.js`)
+- **"files to exclude" patterns** - Skip specific files, folders, or patterns (`*.tmp`, `Archive/`, `*backup*`)
 - **Smart pattern parsing** - Automatically detects extensions vs folders vs glob patterns
+- **Expandable filter panel** - VSCode-style interface with clear-input buttons
+- **Session-only filters** - Changes don't modify plugin settings; settings provide defaults
 - **Visual feedback** - Filter button shows active state when filters are applied
 
 ### Selection System
@@ -108,20 +108,25 @@ Click the **⋯** (ellipsis) button in the toolbar and select **Help** to open t
 4. Browse results organized by file
 5. Click any result to navigate to that location in your vault
 
-### File Filtering (Performance Optimization)
+### VSCode-Style File Filtering (Performance Optimization)
 Click the **🔍** filter button to open the expandable filter panel with clear-input enabled fields:
 
-**Include Examples:**
+**files to include Examples:**
 - `.md, .txt` - Only search markdown and text files
 - `Notes/, Daily/` - Only search in Notes and Daily folders
 - `.md, Projects/` - Only markdown files in Projects folder
 - Use the X button to quickly clear include patterns
 
-**Exclude Examples:**
+**files to exclude Examples:**
 - `*.tmp, *backup*` - Skip temporary and backup files
 - `Archive/, Templates/` - Skip Archive and Templates folders
 - `temp/*, *.log` - Skip temp folder and log files
 - Use the X button to quickly clear exclude patterns
+
+**Session-Only Behavior:**
+- Filter changes are temporary and don't modify plugin settings
+- Settings provide default values when opening the view
+- Close and reopen the view to load fresh defaults
 
 ### Search Options
 - **Match Case**: Enable case-sensitive searching
@@ -152,11 +157,15 @@ Click the **🔍** filter button to open the expandable filter panel with clear-
 - **Enable Auto Search**: Toggle automatic search-as-you-type
 - **Console Logging Level**: Granular control over console output (Silent, Errors Only, Standard, Verbose, Debug, Trace)
 
-### File Filtering
-- **File Extensions**: Limit search to specific file types (default: md)
-- **Search In Folders**: Restrict search to specific folders
-- **Exclude Folders**: Skip specific folders during search
-- **Exclude Patterns**: Regex patterns for files to ignore
+### File Filtering (VSCode-Style Defaults)
+- **Default files to include**: Default patterns for "files to include" input (examples: `.md,.txt`, `Notes/,Projects/`, `*.js`)
+- **Default files to exclude**: Default patterns for "files to exclude" input (examples: `*.tmp,*backup*`, `Archive/,Templates/`)
+
+**How Default Filters Work:**
+- Settings populate the filter inputs when opening the Find-n-Replace view
+- Filter inputs are session-only and don't modify these default settings
+- To apply new defaults: change settings above, then close and reopen the view
+- Leave settings empty to start with no filters by default
 
 ### Performance Tuning
 - **Result Limiting**: Automatic truncation with user notification
@@ -207,14 +216,14 @@ Result: Replace multiple consecutive spaces with single space
 
 ### Search Only in Specific File Types
 ```
-Filter: .md, .txt
+files to include: .md, .txt
 Search: TODO
 Result: Only searches markdown and text files, ignoring other formats
 ```
 
 ### Update Links Only in Project Folder
 ```
-Filter Include: Projects/
+files to include: Projects/
 Search: \[\[old-name\]\]
 Replace: [[new-name]]
 Result: Updates links only within the Projects folder structure

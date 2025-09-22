@@ -69,8 +69,9 @@ src/
 #### 4. **SearchToolbar** (`src/ui/components/searchToolbar.ts`)
 - Creates all UI elements (search input, replace input, toggle buttons, adaptive toolbar)
 - **Clear-input buttons** for all text inputs with contextual visibility
-- VSCode-style expandable filter panel with include/exclude inputs
-- Complete keyboard navigation and accessibility support
+- **VSCode-style expandable filter panel** with "files to include" / "files to exclude" inputs
+- **Session-only filter management** - filters don't modify settings; settings provide defaults
+- Complete keyboard navigation and accessibility support including filter panel
 
 ## Major Recent Improvements (Condensed)
 
@@ -82,16 +83,19 @@ src/
 
 ### UI/UX Enhancements
 5. **Clear-Input Buttons** - Contextual X buttons for all text inputs with professional styling
-6. **VSCode-Style File Filtering** - Expandable panel with extensions, folders, and glob patterns
-7. **Complete Help Modal** - In-plugin documentation with hotkey detection and filtering guide
-8. **Keyboard Navigation** - Sequential tab order throughout entire interface
-9. **Native Obsidian Menu Integration** - Professional dropdown menus using Obsidian's Menu class
+6. **VSCode-Style File Filtering** - Complete redesign matching VSCode's "files to include" / "files to exclude" interface
+7. **Session-Only Filters** - Filter inputs don't modify settings; settings provide defaults when opening view
+8. **Complete Help Modal** - In-plugin documentation with individual `<kbd>` tags and comprehensive filtering guide
+9. **Keyboard Navigation** - Sequential tab order throughout entire interface including filter panel
+10. **Native Obsidian Menu Integration** - Professional dropdown menus using Obsidian's Menu class
 
 ### Architecture Improvements
-10. **Component Extraction** - Refactored monolithic view into focused components
-11. **Comprehensive Testing** - 203 automated tests preventing regressions
-12. **Professional Logging** - 6-level system (SILENT to TRACE) with clean console by default
-13. **Scoped CSS** - All styling prefixed with view selector to prevent global conflicts
+11. **Component Extraction** - Refactored monolithic view into focused components
+12. **VSCode-Style Settings Migration** - Unified "files to include" / "files to exclude" pattern with automatic migration from old 4-setting structure
+13. **SessionFilters Interface** - Clean separation between session-only filters and persistent settings
+14. **Comprehensive Testing** - 203 automated tests preventing regressions
+15. **Professional Logging** - 6-level system (SILENT to TRACE) with clean console by default
+16. **Scoped CSS** - All styling prefixed with view selector to prevent global conflicts
 
 ## Development Guidelines
 
@@ -123,11 +127,12 @@ src/
 - **Settings:** Standard Obsidian settings architecture with migration support
 
 ### Key Features for Users
-- **File Filtering:** Include/exclude patterns for performance optimization
-- **Multi-Selection:** Targeted replacements with visual feedback
+- **VSCode-Style File Filtering:** "files to include" / "files to exclude" inputs with familiar pattern syntax and session-only behavior
+- **Settings as Defaults:** Plugin settings populate filter inputs when opening view; changes are temporary
+- **Multi-Selection:** Targeted replacements with visual feedback and individual `<kbd>` tag styling
 - **Regex Support:** Full capture group support with live preview
-- **Keyboard Shortcuts:** Complete command palette integration
-- **Help System:** Built-in documentation accessible via toolbar menu
+- **Keyboard Shortcuts:** Complete command palette integration with visual help documentation
+- **Help System:** Built-in documentation with hotkey detection and individual key styling for professional appearance
 
 ## Troubleshooting
 

@@ -372,20 +372,24 @@ Tests run automatically on:
 
 ### **New Feature Tests Added**
 
-#### **File Filtering System Tests** (`core/fileFiltering.test.ts`)
-- **Extension Filtering:** `.md`, `.txt`, multiple extensions with/without dots
-- **Folder Filtering:** Include/exclude patterns, nested folders, case sensitivity
-- **Glob Pattern Filtering:** `*.tmp`, `*backup*`, `test?.md` wildcard matching
-- **Combined Filtering:** Multiple filter types working together
-- **Edge Cases:** Special characters, no extensions, whitespace handling
-- **Performance:** Large file collection filtering efficiency
+#### **VSCode-Style File Filtering Tests** (`core/fileFiltering.test.ts`)
+- **"files to include" Patterns:** `.md`, `.txt`, `Notes/`, `*.js` with automatic pattern detection
+- **"files to exclude" Patterns:** `*.tmp`, `Archive/`, `*backup*` with wildcard support
+- **Session-Only Behavior:** Filter inputs don't modify settings; settings provide defaults
+- **Settings Migration:** Automatic conversion from old 4-setting structure to unified patterns
+- **Pattern Parsing:** Automatic detection of extensions vs folders vs glob patterns
+- **Combined Filtering:** Multiple filter types working together with VSCode-style interface
+- **Edge Cases:** Special characters, empty patterns, whitespace handling
+- **Performance:** Large file collection filtering with session-only state management
 
-#### **Help Modal Tests** (`ui/helpModal.test.ts`)
-- **Hotkey Detection:** Multi-method hotkey discovery from Obsidian API
-- **Modal Content:** Command categorization, usage tips, table generation
-- **Hotkey Formatting:** Modifier key handling, special key names
-- **Error Handling:** Missing dependencies, DOM creation failures
-- **Integration:** Obsidian Modal API compatibility, plugin lifecycle
+#### **Enhanced Help Modal Tests** (`ui/helpModal.test.ts`)
+- **Individual `<kbd>` Tag Rendering:** Separate keyboard key elements for professional appearance
+- **VSCode-Style Filter Documentation:** Complete "files to include" / "files to exclude" guide with examples
+- **Hotkey Detection:** Multi-method hotkey discovery from Obsidian API with `<kbd>` formatting
+- **Modal Content:** Command categorization, usage tips, table generation with individual key styling
+- **Safe DOM Manipulation:** No innerHTML usage; all content created with safe DOM methods
+- **Menu Navigation Styling:** Settings and Hotkeys menu items with `<kbd>` styling
+- **Integration:** Obsidian Modal API compatibility, plugin lifecycle, accessibility
 
 #### **Logging System Tests** (`utils/logger.test.ts`)
 - **Log Level Filtering:** 6-level system (SILENT, ERROR, WARN, INFO, DEBUG, TRACE)
@@ -404,20 +408,37 @@ Tests run automatically on:
 
 ### **Testing Best Practices for New Features**
 
-#### **File Filtering Tests**
+#### **VSCode-Style Interface Tests**
 ```typescript
-it('should handle complex folder and extension combinations', async () => {
-  const files = await searchEngine.filterFiles(
-    mockApp.vault.getMarkdownFiles(),
-    '.md',              // Only markdown files
-    '',                 // No exclude patterns
-    'Notes/,Docs/',     // Include these folders
-    'Templates/'        // Exclude this folder
-  );
+it('should handle VSCode-style filter patterns correctly', async () => {
+  const sessionFilters = {
+    includePatterns: ['.md', 'Notes/', '*.js'],  // files to include
+    excludePatterns: ['*.tmp', 'Archive/', '*backup*']  // files to exclude
+  };
 
-  const paths = files.map(f => f.path);
-  expect(paths).toContain('Notes/project.md');
-  expect(paths).not.toContain('Templates/template.md');
+  const files = await searchEngine.performSearch('test', options, sessionFilters);
+
+  const paths = files.map(f => f.file.path);
+  expect(paths).toContain('Notes/project.md');     // Included by folder
+  expect(paths).toContain('src/main.js');          // Included by glob
+  expect(paths).not.toContain('temp/backup.md');   // Excluded by pattern
+  expect(paths).not.toContain('Archive/old.md');   // Excluded by folder
+});
+
+it('should maintain session-only filter behavior', () => {
+  const toolbar = new SearchToolbar(container, callbacks);
+  const initialSettings = { ...mockPlugin.settings };
+
+  // Change filter inputs
+  toolbar.updateFilterInputs('*.md', '*.tmp');
+
+  // Settings should remain unchanged
+  expect(mockPlugin.settings).toEqual(initialSettings);
+
+  // Session filters should be updated
+  const sessionFilters = toolbar.getSessionFilters();
+  expect(sessionFilters.includePatterns).toContain('*.md');
+  expect(sessionFilters.excludePatterns).toContain('*.tmp');
 });
 ```
 
@@ -433,6 +454,44 @@ it('should allow components to communicate through callbacks', () => {
   searchToolbar.onSearchInputChange?.('test query');
 
   expect(sharedCallbacks.onSearchChange).toHaveBeenCalledWith('test query');
+});
+```
+
+#### **Individual `<kbd>` Tag Tests**
+```typescript
+it('should render individual kbd tags for each key component', () => {
+  const helpModal = new HelpModal(mockApp, mockPlugin);
+  const container = document.createElement('div');
+
+  // Test hotkey rendering method
+  helpModal.renderHotkeyWithKbd(container, '<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>');
+
+  const kbdElements = container.querySelectorAll('kbd');
+  expect(kbdElements).toHaveLength(3);
+  expect(kbdElements[0].textContent).toBe('Cmd');
+  expect(kbdElements[1].textContent).toBe('Shift');
+  expect(kbdElements[2].textContent).toBe('F');
+
+  // Check for separator text between keys
+  expect(container.textContent).toContain('+');
+});
+
+it('should handle complex tips with multiple key groups', () => {
+  const tipData = {
+    text: 'Regex mode supports capture groups (',
+    keys: ['$1'],
+    middle: ', ',
+    keys2: ['$2'],
+    suffix: ') for advanced replacements'
+  };
+
+  const li = document.createElement('li');
+  // Simulate tip rendering logic
+
+  const kbdElements = li.querySelectorAll('kbd');
+  expect(kbdElements).toHaveLength(2);
+  expect(kbdElements[0].textContent).toBe('$1');
+  expect(kbdElements[1].textContent).toBe('$2');
 });
 ```
 

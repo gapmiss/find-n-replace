@@ -1,7 +1,7 @@
 import { debounce } from 'obsidian';
 import { Logger } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
-import { FindReplaceElements, SearchOptions, ViewState } from '../../types';
+import { FindReplaceElements, SearchOptions, ViewState, SessionFilters } from '../../types';
 import { SearchEngine } from '../../core';
 
 /**
@@ -16,6 +16,7 @@ export class SearchController {
     private state: ViewState;
     private renderResultsCallback: (searchOptions: SearchOptions) => void;
     private clearResultsCallback: () => void;
+    private getSessionFiltersCallback: () => SessionFilters;
 
     // Search state management
     private currentSearchController: AbortController | null = null;
@@ -27,7 +28,8 @@ export class SearchController {
         searchEngine: SearchEngine,
         state: ViewState,
         renderResultsCallback: (searchOptions: SearchOptions) => void,
-        clearResultsCallback: () => void
+        clearResultsCallback: () => void,
+        getSessionFiltersCallback: () => SessionFilters
     ) {
         this.plugin = plugin;
         this.logger = Logger.create(plugin, 'SearchController');
@@ -36,6 +38,7 @@ export class SearchController {
         this.state = state;
         this.renderResultsCallback = renderResultsCallback;
         this.clearResultsCallback = clearResultsCallback;
+        this.getSessionFiltersCallback = getSessionFiltersCallback;
     }
 
     /**
@@ -192,8 +195,10 @@ export class SearchController {
             }
 
             this.logger.debug(`[${searchId}] Starting SearchEngine.performSearch`);
-            // Perform the actual search
-            const results = await this.searchEngine.performSearch(query, searchOptions);
+            // Get session filters for this search
+            const sessionFilters = this.getSessionFiltersCallback();
+            // Perform the actual search with session filters
+            const results = await this.searchEngine.performSearch(query, searchOptions, sessionFilters);
             this.logger.debug(`[${searchId}] SearchEngine.performSearch completed: ${results.length} results`);
 
             // Check if search was cancelled after completion

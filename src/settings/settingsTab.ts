@@ -138,33 +138,16 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
             cls: "setting-item-description"
         });
 
-        // Default file extensions filter
+        // Default files to include (VSCode-style)
         new Setting(containerEl)
-            .setName("Default file extensions")
-            .setDesc("Default comma-separated list of file extensions to search (leave empty for all). Example: md,txt,js")
+            .setName("Default files to include")
+            .setDesc("Default patterns that populate the \"files to include\" input when opening the view. Supports extensions (.md), folders (Notes/), and globs (*.js). Example: .md,.txt,Notes/,Projects/")
             .addText((text) =>
                 text
-                    .setPlaceholder("md,txt,js")
-                    .setValue(this.plugin.settings.fileExtensions.join(','))
+                    .setPlaceholder("e.g. .md, Notes/, *.js")
+                    .setValue(this.plugin.settings.defaultIncludePatterns.join(','))
                     .onChange(async (value) => {
-                        this.plugin.settings.fileExtensions = value
-                            .split(',')
-                            .map(ext => ext.trim())
-                            .filter(ext => ext.length > 0);
-                        await this.plugin.saveSettings();
-                    })
-            );
-
-        // Default exclude patterns
-        new Setting(containerEl)
-            .setName("Default exclude patterns")
-            .setDesc("Default comma-separated list of file patterns to exclude from search. Supports * and ? wildcards. Example: *.tmp,temp/*,*backup*")
-            .addText((text) =>
-                text
-                    .setPlaceholder("*.tmp,temp/*,*backup*")
-                    .setValue(this.plugin.settings.excludePatterns.join(','))
-                    .onChange(async (value) => {
-                        this.plugin.settings.excludePatterns = value
+                        this.plugin.settings.defaultIncludePatterns = value
                             .split(',')
                             .map(pattern => pattern.trim())
                             .filter(pattern => pattern.length > 0);
@@ -172,39 +155,44 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                     })
             );
 
-        // Default search in folders
+        // Default files to exclude (VSCode-style)
         new Setting(containerEl)
-            .setName("Default search folders")
-            .setDesc("Default comma-separated list of folders to search in (leave empty for all folders). Example: Notes,Projects,Daily")
+            .setName("Default files to exclude")
+            .setDesc("Default patterns that populate the \"files to exclude\" input when opening the view. Supports globs (*.tmp), folders (Archive/), and patterns (*backup*). Example: *.tmp,Archive/,*backup*")
             .addText((text) =>
                 text
-                    .setPlaceholder("Notes,Projects,Daily")
-                    .setValue(this.plugin.settings.searchInFolders.join(','))
+                    .setPlaceholder("e.g. *.tmp, Archive/, *backup*")
+                    .setValue(this.plugin.settings.defaultExcludePatterns.join(','))
                     .onChange(async (value) => {
-                        this.plugin.settings.searchInFolders = value
+                        this.plugin.settings.defaultExcludePatterns = value
                             .split(',')
-                            .map(folder => folder.trim())
-                            .filter(folder => folder.length > 0);
+                            .map(pattern => pattern.trim())
+                            .filter(pattern => pattern.length > 0);
                         await this.plugin.saveSettings();
                     })
             );
 
-        // Default exclude folders
-        new Setting(containerEl)
-            .setName("Default exclude folders")
-            .setDesc("Default comma-separated list of folders to exclude from search. Example: Archive,Templates,.trash")
-            .addText((text) =>
-                text
-                    .setPlaceholder("Archive,Templates,.trash")
-                    .setValue(this.plugin.settings.excludeFolders.join(','))
-                    .onChange(async (value) => {
-                        this.plugin.settings.excludeFolders = value
-                            .split(',')
-                            .map(folder => folder.trim())
-                            .filter(folder => folder.length > 0);
-                        await this.plugin.saveSettings();
-                    })
-            );
+        // Add information section about how default settings work
+        const filterInfoDiv = containerEl.createDiv('setting-item');
+        filterInfoDiv.createEl('div', {
+            cls: 'setting-item-info',
+            text: ''
+        });
+
+        const filterInfoContent = filterInfoDiv.createDiv('setting-item-description');
+        filterInfoContent.innerHTML = `
+            <strong>💡 How Default File Filters Work:</strong><br>
+            • These default settings populate the <strong>"files to include"</strong> and <strong>"files to exclude"</strong> inputs when you open the Find-n-Replace view<br>
+            • Filter inputs in the view are <strong>session-only</strong> - they don't modify these default settings<br>
+            • To apply new defaults: change settings above, then <strong>close and reopen</strong> the Find-n-Replace view<br>
+            • Leave settings empty to start with no filters by default<br>
+            • Uses VSCode-style pattern syntax for familiar file filtering
+        `;
+        filterInfoContent.style.marginTop = '10px';
+        filterInfoContent.style.padding = '12px';
+        filterInfoContent.style.backgroundColor = 'var(--background-secondary)';
+        filterInfoContent.style.borderRadius = '6px';
+        filterInfoContent.style.borderLeft = '3px solid var(--interactive-accent)';
 
         // Log level dropdown
         new Setting(containerEl)

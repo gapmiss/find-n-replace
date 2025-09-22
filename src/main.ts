@@ -228,6 +228,59 @@ export default class VaultFindReplacePlugin extends Plugin {
 				delete (this.settings as any).enableDebugLogging;
 				await this.saveSettings();
 			}
+
+			// Migration: Convert old filter settings to new unified pattern arrays
+			if ((loadedData.fileExtensions !== undefined || loadedData.searchInFolders !== undefined ||
+				 loadedData.includePatterns !== undefined || loadedData.excludePatterns !== undefined ||
+				 loadedData.excludeFolders !== undefined) &&
+				(this.settings.defaultIncludePatterns.length === 0 && this.settings.defaultExcludePatterns.length === 0)) {
+
+				// Migrate include patterns (extensions + folders + include patterns)
+				const includePatterns: string[] = [];
+				if (loadedData.fileExtensions?.length > 0) {
+					loadedData.fileExtensions.forEach((ext: string) => {
+						// Add dot prefix if not already present
+						includePatterns.push(ext.startsWith('.') ? ext : `.${ext}`);
+					});
+				}
+				if (loadedData.searchInFolders?.length > 0) {
+					loadedData.searchInFolders.forEach((folder: string) => {
+						// Ensure folder ends with slash
+						includePatterns.push(folder.endsWith('/') ? folder : `${folder}/`);
+					});
+				}
+				if (loadedData.includePatterns?.length > 0) {
+					includePatterns.push(...loadedData.includePatterns);
+				}
+
+				// Migrate exclude patterns (exclude patterns + exclude folders)
+				const excludePatterns: string[] = [];
+				if (loadedData.excludePatterns?.length > 0) {
+					excludePatterns.push(...loadedData.excludePatterns);
+				}
+				if (loadedData.excludeFolders?.length > 0) {
+					loadedData.excludeFolders.forEach((folder: string) => {
+						// Ensure folder ends with slash
+						excludePatterns.push(folder.endsWith('/') ? folder : `${folder}/`);
+					});
+				}
+
+				this.settings.defaultIncludePatterns = includePatterns;
+				this.settings.defaultExcludePatterns = excludePatterns;
+
+				console.log(`vault-find-replace: Migrated old filter settings to unified patterns:`, {
+					include: includePatterns,
+					exclude: excludePatterns
+				});
+
+				// Remove old settings and save migrated settings
+				delete (this.settings as any).fileExtensions;
+				delete (this.settings as any).searchInFolders;
+				delete (this.settings as any).includePatterns;
+				delete (this.settings as any).excludePatterns;
+				delete (this.settings as any).excludeFolders;
+				await this.saveSettings();
+			}
 		} catch (error) {
 			console.error('vault-find-replace: Failed to load settings, using defaults:', error);
 			this.settings = { ...DEFAULT_SETTINGS };

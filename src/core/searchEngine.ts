@@ -1,5 +1,5 @@
 import { App, Notice } from 'obsidian';
-import { SearchResult, SearchOptions } from '../types';
+import { SearchResult, SearchOptions, SessionFilters } from '../types';
 import { Logger } from '../utils';
 import VaultFindReplacePlugin from '../main';
 
@@ -30,12 +30,26 @@ export class SearchEngine {
     }
 
     /**
-     * Filters files based on plugin settings
+     * Filters files based on plugin settings or session filters
      * @param files - Array of files to filter
+     * @param sessionFilters - Optional session-only filters (overrides plugin settings)
      * @returns Filtered array of files
      */
-    private filterFiles(files: any[]): any[] {
-        const settings = this.plugin.settings;
+    private filterFiles(files: any[], sessionFilters?: SessionFilters): any[] {
+        // Use session filters if provided, otherwise fall back to plugin settings
+        const settings = sessionFilters ? {
+            fileExtensions: sessionFilters.fileExtensions || [],
+            searchInFolders: sessionFilters.searchInFolders || [],
+            includePatterns: sessionFilters.includePatterns || [],
+            excludeFolders: sessionFilters.excludeFolders || [],
+            excludePatterns: sessionFilters.excludePatterns || []
+        } : {
+            fileExtensions: this.plugin.settings.fileExtensions || [],
+            searchInFolders: this.plugin.settings.searchInFolders || [],
+            includePatterns: this.plugin.settings.includePatterns || [],
+            excludeFolders: this.plugin.settings.excludeFolders || [],
+            excludePatterns: this.plugin.settings.excludePatterns || []
+        };
         let filteredFiles = [...files];
 
         this.logger.debug('Filtering files with settings:', {
@@ -138,9 +152,10 @@ export class SearchEngine {
      * Main search function - searches filtered files in the vault
      * @param query - The search query string
      * @param options - Search configuration options
+     * @param sessionFilters - Optional session-only filters (overrides plugin settings)
      * @returns Promise resolving to array of search results
      */
-    async performSearch(query: string, options: SearchOptions): Promise<SearchResult[]> {
+    async performSearch(query: string, options: SearchOptions, sessionFilters?: SessionFilters): Promise<SearchResult[]> {
         const trimmedQuery = query.trim();
         this.logger.debug('performSearch called:', { query: trimmedQuery, options });
 
@@ -150,23 +165,22 @@ export class SearchEngine {
         }
 
         const results: SearchResult[] = [];
-        // Use getAllLoadedFiles() when any filtering is configured
-        // Empty fileExtensions array means "search all files"
-        // Default ['md'] means "search only markdown files"
-        const hasFileExtensionFilter = this.plugin.settings.fileExtensions.length !== 1 ||
-                                      this.plugin.settings.fileExtensions[0] !== 'md';
-        const hasOtherFilters = this.plugin.settings.searchInFolders.length > 0 ||
-                               this.plugin.settings.includePatterns.length > 0 ||
-                               this.plugin.settings.excludeFolders.length > 0 ||
-                               this.plugin.settings.excludePatterns.length > 0;
+        // Use getAllLoadedFiles() when any filtering is configured via session filters
+        const hasSessionFilters = sessionFilters && (
+            (sessionFilters.fileExtensions && sessionFilters.fileExtensions.length > 0) ||
+            (sessionFilters.searchInFolders && sessionFilters.searchInFolders.length > 0) ||
+            (sessionFilters.includePatterns && sessionFilters.includePatterns.length > 0) ||
+            (sessionFilters.excludeFolders && sessionFilters.excludeFolders.length > 0) ||
+            (sessionFilters.excludePatterns && sessionFilters.excludePatterns.length > 0)
+        );
 
-        const shouldUseAllFiles = hasFileExtensionFilter || hasOtherFilters;
+        const shouldUseAllFiles = hasSessionFilters;
 
         const allFiles = shouldUseAllFiles ?
             this.app.vault.getAllLoadedFiles() :
             this.app.vault.getMarkdownFiles();
 
-        const files = this.filterFiles(allFiles);
+        const files = this.filterFiles(allFiles, sessionFilters);
         this.logger.debug('Found', files.length, shouldUseAllFiles ? 'files' : 'markdown files', 'to search');
 
         // Pre-build regex pattern if needed (for performance)

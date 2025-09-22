@@ -31,3 +31,14 @@ export interface SearchStatistics {
     searchDuration: number; // in milliseconds
     averageResultsPerFile: number;
 }
+
+/**
+ * Session-only filter settings (separate from persistent plugin settings)
+ */
+export interface SessionFilters {
+    fileExtensions?: string[];
+    searchInFolders?: string[];
+    includePatterns?: string[];
+    excludeFolders?: string[];
+    excludePatterns?: string[];
+}

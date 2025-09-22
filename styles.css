@@ -191,6 +191,16 @@
     color: var(--text-muted);
 }
 
+.find-replace-help-modal kbd {
+    font-family: var(--font-monospace-default);
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
+    border-radius: var(--size-2-2);
+    border: 1px solid var(--color-base-35);
+    box-shadow: 0 1px 0 1px var(--color-base-50);
+    margin-inline: .25em;
+}
+
 /* --- View-Specific Styles (Scoped to prevent conflicts) --- */
 
 /* --- Input wrapper for clear button --- */

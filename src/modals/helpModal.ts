@@ -62,84 +62,84 @@ export class HelpModal extends Modal {
             {
                 id: 'open-find-replace',
                 name: 'Open Find-n-Replace',
-                recommendedHotkey: 'Cmd+Shift+F',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>',
                 description: 'Opens the plugin sidebar view',
                 category: 'Primary'
             },
             {
                 id: 'perform-search',
                 name: 'Perform Search',
-                recommendedHotkey: 'Cmd+Enter',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Enter</kbd>',
                 description: 'Executes search with current query',
                 category: 'Primary'
             },
             {
                 id: 'replace-all-vault',
                 name: 'Replace All in Vault',
-                recommendedHotkey: 'Cmd+Shift+H',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd>',
                 description: 'Replaces all matches vault-wide',
                 category: 'Primary'
             },
             {
                 id: 'focus-search-input',
                 name: 'Focus Search Input',
-                recommendedHotkey: 'Cmd+L',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>L</kbd>',
                 description: 'Focuses the search input field',
                 category: 'Navigation'
             },
             {
                 id: 'focus-replace-input',
                 name: 'Focus Replace Input',
-                recommendedHotkey: 'Cmd+Shift+L',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd>',
                 description: 'Focuses the replace input field',
                 category: 'Navigation'
             },
             {
                 id: 'toggle-match-case',
                 name: 'Toggle Match Case',
-                recommendedHotkey: 'Cmd+Alt+C',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Alt</kbd>+<kbd>C</kbd>',
                 description: 'Toggles case-sensitive search',
                 category: 'Search Options'
             },
             {
                 id: 'toggle-whole-word',
                 name: 'Toggle Whole Word',
-                recommendedHotkey: 'Cmd+Alt+W',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Alt</kbd>+<kbd>W</kbd>',
                 description: 'Toggles whole word matching',
                 category: 'Search Options'
             },
             {
                 id: 'toggle-regex',
                 name: 'Toggle Regex',
-                recommendedHotkey: 'Cmd+Alt+R',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd>',
                 description: 'Toggles regular expression mode',
                 category: 'Search Options'
             },
             {
                 id: 'replace-selected',
                 name: 'Replace Selected Matches',
-                recommendedHotkey: 'Cmd+Shift+R',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>',
                 description: 'Replaces only selected results',
                 category: 'Replace Actions'
             },
             {
                 id: 'select-all-results',
                 name: 'Select All Results',
-                recommendedHotkey: 'Cmd+K Cmd+A',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>A</kbd>',
                 description: 'Selects all visible search results',
                 category: 'Selection'
             },
             {
                 id: 'expand-collapse-all',
                 name: 'Expand/Collapse All Results',
-                recommendedHotkey: 'Cmd+K Cmd+E',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>E</kbd>',
                 description: 'Toggles all file group states',
                 category: 'View'
             },
             {
                 id: 'clear-search-replace',
                 name: 'Clear Search and Replace',
-                recommendedHotkey: 'Cmd+K Cmd+C',
+                recommendedHotkey: '<kbd>Cmd</kbd>+<kbd>K</kbd> <kbd>Cmd</kbd>+<kbd>C</kbd>',
                 description: 'Clears inputs and resets toggles',
                 category: 'Utility'
             }
@@ -204,7 +204,8 @@ export class HelpModal extends Modal {
         let key = hotkeyData.key || '';
         if (key === ' ') key = 'Space';
 
-        return [...modifiers, key].join('+');
+        const keys = [...modifiers, key];
+        return keys.map(k => `<kbd>${k}</kbd>`).join('+');
     }
 
     private formatHotkeyFromScope(scopeKey: any): string {
@@ -221,7 +222,8 @@ export class HelpModal extends Modal {
         let key = scopeKey.key || '';
         if (key === ' ') key = 'Space';
 
-        return [...modifiers, key].join('+');
+        const keys = [...modifiers, key];
+        return keys.map(k => `<kbd>${k}</kbd>`).join('+');
     }
 
     private groupCommandsByCategory(commands: (CommandInfo & { actualHotkey: string })[]): Record<string, (CommandInfo & { actualHotkey: string })[]> {
@@ -235,6 +237,27 @@ export class HelpModal extends Modal {
         });
 
         return groups;
+    }
+
+    private renderHotkeyWithKbd(container: HTMLElement, hotkeyString: string): void {
+        // Parse the hotkey string with <kbd> tags and render safely
+        const parts = hotkeyString.split('<kbd>');
+        container.insertAdjacentText('beforeend', parts[0]); // Text before first <kbd>
+
+        for (let i = 1; i < parts.length; i++) {
+            const kbdParts = parts[i].split('</kbd>');
+            if (kbdParts.length >= 2) {
+                // Create the kbd element
+                const kbd = container.createEl('kbd');
+                kbd.insertAdjacentText('beforeend', kbdParts[0]);
+
+                // Add text after </kbd>
+                container.insertAdjacentText('beforeend', kbdParts[1]);
+            } else {
+                // No closing </kbd> found, treat as regular text
+                container.insertAdjacentText('beforeend', '<kbd>' + parts[i]);
+            }
+        }
     }
 
     private renderCategory(container: HTMLElement, categoryName: string, commands: (CommandInfo & { actualHotkey: string })[]) {
@@ -259,15 +282,19 @@ export class HelpModal extends Modal {
 
             const actualCell = row.createEl('td');
             const actualSpan = actualCell.createEl('span', {
-                text: cmd.actualHotkey,
                 cls: cmd.actualHotkey === 'Not set' ? 'hotkey-not-set' : 'hotkey-set'
             });
+            if (cmd.actualHotkey === 'Not set') {
+                actualSpan.insertAdjacentText('beforeend', cmd.actualHotkey);
+            } else {
+                this.renderHotkeyWithKbd(actualSpan, cmd.actualHotkey);
+            }
 
             const recommendedCell = row.createEl('td');
-            recommendedCell.createEl('span', {
-                text: cmd.recommendedHotkey,
+            const recommendedSpan = recommendedCell.createEl('span', {
                 cls: 'hotkey-recommended'
             });
+            this.renderHotkeyWithKbd(recommendedSpan, cmd.recommendedHotkey);
 
             row.createEl('td', { text: cmd.description });
         });
@@ -279,7 +306,16 @@ export class HelpModal extends Modal {
 
         // Introduction paragraph
         const introP = filterGuideDiv.createEl('p');
-        introP.innerHTML = 'Use the <strong>filter button (🔍)</strong> next to the Clear button to open the expandable filtering panel. This helps you search only the files you need, improving performance on large vaults.';
+        introP.insertAdjacentText('beforeend', 'Use the ');
+        const filterBtnStrong = introP.createEl('strong');
+        filterBtnStrong.insertAdjacentText('beforeend', 'filter button (🔍)');
+        introP.insertAdjacentText('beforeend', ' next to the Clear button to open the VSCode-style expandable filtering panel with ');
+        const includeStrong = introP.createEl('strong');
+        includeStrong.insertAdjacentText('beforeend', '"files to include"');
+        introP.insertAdjacentText('beforeend', ' and ');
+        const excludeStrong = introP.createEl('strong');
+        excludeStrong.insertAdjacentText('beforeend', '"files to exclude"');
+        introP.insertAdjacentText('beforeend', ' inputs. This helps you search only the files you need, improving performance on large vaults.');
 
         // Pattern types section
         const patternTypesDiv = filterGuideDiv.createDiv('filter-pattern-types');
@@ -307,12 +343,17 @@ export class HelpModal extends Modal {
 
         patternTypes.forEach(({ type, example, description }) => {
             const li = patternList.createEl('li');
-            li.innerHTML = `<strong>${type}:</strong> <code>${example}</code> - ${description}`;
+            const strong = li.createEl('strong');
+            strong.insertAdjacentText('beforeend', `${type}:`);
+            li.insertAdjacentText('beforeend', ' ');
+            const code = li.createEl('code');
+            code.insertAdjacentText('beforeend', example);
+            li.insertAdjacentText('beforeend', ` - ${description}`);
         });
 
         // Include patterns section
         const includeDiv = filterGuideDiv.createDiv('filter-include-section');
-        includeDiv.createEl('h4', { text: 'Include Patterns (Search Only These Files)' });
+        includeDiv.createEl('h4', { text: 'files to include (Search Only These Files)' });
 
         const includeExamples = includeDiv.createEl('ul');
         const includeItems = [
@@ -325,12 +366,12 @@ export class HelpModal extends Modal {
 
         includeItems.forEach(item => {
             const li = includeExamples.createEl('li');
-            li.innerHTML = item;
+            li.insertAdjacentText('beforeend', item);
         });
 
         // Exclude patterns section
         const excludeDiv = filterGuideDiv.createDiv('filter-exclude-section');
-        excludeDiv.createEl('h4', { text: 'Exclude Patterns (Skip These Files)' });
+        excludeDiv.createEl('h4', { text: 'files to exclude (Skip These Files)' });
 
         const excludeExamples = excludeDiv.createEl('ul');
         const excludeItems = [
@@ -343,7 +384,7 @@ export class HelpModal extends Modal {
 
         excludeItems.forEach(item => {
             const li = excludeExamples.createEl('li');
-            li.innerHTML = item;
+            li.insertAdjacentText('beforeend', item);
         });
 
         // Real-world examples section
@@ -361,12 +402,38 @@ export class HelpModal extends Modal {
 
         examples.forEach(example => {
             const li = examplesList.createEl('li');
-            li.innerHTML = example;
+            // Parse the HTML-like content into safe DOM elements
+            const parts = example.split('<strong>');
+            li.insertAdjacentText('beforeend', parts[0]);
+
+            if (parts.length > 1) {
+                const strongPart = parts[1].split('</strong>');
+                const strong = li.createEl('strong');
+                strong.insertAdjacentText('beforeend', strongPart[0]);
+
+                if (strongPart.length > 1) {
+                    const remaining = strongPart[1];
+                    const codeParts = remaining.split('<code>');
+                    li.insertAdjacentText('beforeend', codeParts[0]);
+
+                    if (codeParts.length > 1) {
+                        const codeContent = codeParts[1].split('</code>');
+                        const code = li.createEl('code');
+                        code.insertAdjacentText('beforeend', codeContent[0]);
+
+                        if (codeContent.length > 1) {
+                            li.insertAdjacentText('beforeend', codeContent[1]);
+                        }
+                    }
+                }
+            }
         });
 
         // Performance tip
         const performanceTip = filterGuideDiv.createDiv('filter-performance-tip');
-        performanceTip.innerHTML = '<strong>💡 Performance Tip:</strong> Filtering happens before search processing, so narrow filters dramatically speed up searches in large vaults with thousands of files.';
+        const strong = performanceTip.createEl('strong');
+        strong.insertAdjacentText('beforeend', '💡 Performance Tip:');
+        performanceTip.insertAdjacentText('beforeend', ' Filtering happens before search processing, so narrow filters dramatically speed up searches in large vaults with thousands of files.');
     }
 
     private renderUsageTips(container: HTMLElement) {
@@ -376,28 +443,67 @@ export class HelpModal extends Modal {
         const tipsList = tipsDiv.createEl('ul');
 
         const tips = [
-            'Use Cmd+Shift+F to quickly open the plugin from anywhere in Obsidian',
-            'Regex mode supports capture groups ($1, $2) for advanced replacements',
-            'Select specific results before using "Replace Selected" for precise control',
-            'Use the filter button (🔍) to search only specific file types or folders',
-            'Set default filters in Settings to avoid retyping common patterns',
-            'Use Cmd+K prefix for less common actions to avoid hotkey conflicts',
-            'The plugin remembers your expand/collapse preferences per file',
-            'Multi-line replacements work great with regex patterns',
-            'Include/exclude patterns are session-only; settings provide defaults'
+            { text: 'Use ', keys: ['Cmd', 'Shift', 'F'], suffix: ' to quickly open the plugin from anywhere in Obsidian' },
+            { text: 'Regex mode supports capture groups (', keys: ['$1'], middle: ', ', keys2: ['$2'], suffix: ') for advanced replacements' },
+            { text: 'Select specific results before using "Replace Selected" for precise control' },
+            { text: 'Use the filter button (🔍) to search only specific file types or folders' },
+            { text: 'Set default filters in Settings to avoid retyping common patterns' },
+            { text: 'Use ', keys: ['Cmd', 'K'], suffix: ' prefix for less common actions to avoid hotkey conflicts' },
+            { text: 'The plugin remembers your expand/collapse preferences per file' },
+            { text: 'Multi-line replacements work great with regex patterns' },
+            { text: 'Include/exclude patterns are session-only; settings provide defaults' }
         ];
 
         tips.forEach(tip => {
-            tipsList.createEl('li', { text: tip });
+            const li = tipsList.createEl('li');
+
+            if (typeof tip === 'string') {
+                // Simple text tip
+                li.insertAdjacentText('beforeend', tip);
+            } else {
+                // Complex tip with keyboard shortcuts
+                li.insertAdjacentText('beforeend', tip.text);
+
+                if (tip.keys) {
+                    tip.keys.forEach((key, index) => {
+                        if (index > 0) li.insertAdjacentText('beforeend', '+');
+                        const kbd = li.createEl('kbd');
+                        kbd.insertAdjacentText('beforeend', key);
+                    });
+                }
+
+                if (tip.middle) {
+                    li.insertAdjacentText('beforeend', tip.middle);
+                }
+
+                if (tip.keys2) {
+                    tip.keys2.forEach((key, index) => {
+                        if (index > 0) li.insertAdjacentText('beforeend', '+');
+                        const kbd = li.createEl('kbd');
+                        kbd.insertAdjacentText('beforeend', key);
+                    });
+                }
+
+                if (tip.suffix) {
+                    li.insertAdjacentText('beforeend', tip.suffix);
+                }
+            }
         });
 
         const noteDiv = tipsDiv.createDiv('help-note');
-        noteDiv.createEl('p', {
-            text: 'To customize hotkeys: Go to Settings → Hotkeys → Search for "Find-n-Replace"'
-        });
+        const hotkeyNote = noteDiv.createEl('p');
+        hotkeyNote.insertAdjacentText('beforeend', 'To customize hotkeys: Go to ');
+        const settingsKbd = hotkeyNote.createEl('kbd');
+        settingsKbd.insertAdjacentText('beforeend', 'Settings');
+        hotkeyNote.insertAdjacentText('beforeend', ' → ');
+        const hotkeysKbd = hotkeyNote.createEl('kbd');
+        hotkeysKbd.insertAdjacentText('beforeend', 'Hotkeys');
+        hotkeyNote.insertAdjacentText('beforeend', ' → Search for "Find-n-Replace"');
 
         const settingsNote = noteDiv.createEl('p');
-        settingsNote.innerHTML = 'To set default filters: Go to <strong>Settings → Community Plugins → Find-n-Replace → Options</strong>';
+        settingsNote.insertAdjacentText('beforeend', 'To set default filters: Go to ');
+        const strong = settingsNote.createEl('strong');
+        strong.insertAdjacentText('beforeend', 'Settings → Community Plugins → Find-n-Replace → Options');
     }
 
     onClose() {

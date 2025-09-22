@@ -1,5 +1,6 @@
 import { setIcon, Menu } from 'obsidian';
 import { Logger } from '../../utils';
+import { SessionFilters } from '../../types';
 import VaultFindReplacePlugin from '../../main';
 import { SelectionManager } from './selectionManager';
 import { HelpModal } from '../../modals/helpModal';
@@ -89,20 +90,11 @@ export class SearchToolbar {
     private initializeSessionFilters(): void {
         const settings = this.plugin.settings;
 
-        // Build include string from extensions, folders, and include patterns
-        const includeParts: string[] = [];
-        settings.fileExtensions.forEach(ext => includeParts.push('.' + ext));
-        settings.searchInFolders.forEach(folder => includeParts.push(folder));
-        settings.includePatterns.forEach(pattern => includeParts.push(pattern));
-        this.sessionFilters.include = includeParts.join(', ');
+        // Use the unified default patterns directly
+        this.sessionFilters.include = settings.defaultIncludePatterns.join(', ');
+        this.sessionFilters.exclude = settings.defaultExcludePatterns.join(', ');
 
-        // Build exclude string from patterns and folders
-        const excludeParts: string[] = [];
-        settings.excludePatterns.forEach(pattern => excludeParts.push(pattern));
-        settings.excludeFolders.forEach(folder => excludeParts.push(folder));
-        this.sessionFilters.exclude = excludeParts.join(', ');
-
-        this.logger.debug('Initialized session filters from settings:', this.sessionFilters);
+        this.logger.debug('Initialized session filters from unified settings:', this.sessionFilters);
     }
 
     /**
@@ -240,13 +232,13 @@ export class SearchToolbar {
         const includeRow = filterPanel.createDiv('filter-input-row');
         const includeLabel = includeRow.createSpan({
             cls: 'filter-input-label',
-            text: 'Include:'
+            text: 'files to include:'
         });
         const includeInputContainer = includeRow.createDiv('filter-input-container');
         const includeInput = includeInputContainer.createEl('input', {
             type: 'text',
             cls: 'filter-input',
-            placeholder: 'files to include (e.g., .md, Notes/, *.js)',
+            placeholder: 'e.g. .md, Notes/, *.js',
             attr: { 'tabindex': '8' }
         }) as HTMLInputElement;
 
@@ -254,7 +246,7 @@ export class SearchToolbar {
         const includeClearBtn = includeInputContainer.createEl('button', {
             cls: 'input-clear-icon filter-clear-icon',
             attr: {
-                'aria-label': 'Clear include pattern',
+                'aria-label': 'Clear files to include',
                 'tabindex': '-1'
             }
         }) as HTMLButtonElement;
@@ -264,13 +256,13 @@ export class SearchToolbar {
         const excludeRow = filterPanel.createDiv('filter-input-row');
         const excludeLabel = excludeRow.createSpan({
             cls: 'filter-input-label',
-            text: 'Exclude:'
+            text: 'files to exclude:'
         });
         const excludeInputContainer = excludeRow.createDiv('filter-input-container');
         const excludeInput = excludeInputContainer.createEl('input', {
             type: 'text',
             cls: 'filter-input',
-            placeholder: 'files to exclude (e.g., *.tmp, Archive/, *backup*)',
+            placeholder: 'e.g. *.tmp, Archive/, *backup*',
             attr: { 'tabindex': '9' }
         }) as HTMLInputElement;
 
@@ -278,7 +270,7 @@ export class SearchToolbar {
         const excludeClearBtn = excludeInputContainer.createEl('button', {
             cls: 'input-clear-icon filter-clear-icon',
             attr: {
-                'aria-label': 'Clear exclude pattern',
+                'aria-label': 'Clear files to exclude',
                 'tabindex': '-1'
             }
         }) as HTMLButtonElement;
@@ -407,8 +399,7 @@ export class SearchToolbar {
             this.sessionFilters.include = includeValue;
             this.sessionFilters.exclude = excludeValue;
 
-            // Update SearchEngine filters and trigger search
-            this.updateSearchEngineFilters();
+            // Note: Session filters are now passed to SearchEngine directly via SearchController
 
             // Update filter button visual state
             this.updateFilterButtonState(filterBtn);
@@ -446,47 +437,44 @@ export class SearchToolbar {
         includeInput.value = this.sessionFilters.include;
         excludeInput.value = this.sessionFilters.exclude;
 
-        // Update SearchEngine with initial session filters
-        this.updateSearchEngineFilters();
+        // Note: Session filters are now passed to SearchEngine directly via SearchController
 
         // Update filter button visual state
         this.updateFilterButtonState(filterBtn);
     }
 
     /**
-     * Updates SearchEngine settings from current session filters
+     * Creates session filters from current session filter inputs (does NOT modify plugin settings)
+     * @returns SessionFilters object for use with SearchEngine
      */
-    private updateSearchEngineFilters(): void {
+    getSessionFilters(): SessionFilters {
+        const sessionFilters: SessionFilters = {};
+
         // Parse include patterns
         if (this.sessionFilters.include) {
             const patterns = this.parseFilterPatterns(this.sessionFilters.include);
-            this.plugin.settings.fileExtensions = patterns.extensions;
-            this.plugin.settings.searchInFolders = patterns.folders;
-            // Add include patterns support
-            this.plugin.settings.includePatterns = patterns.globs;
+            sessionFilters.fileExtensions = patterns.extensions;
+            sessionFilters.searchInFolders = patterns.folders;
+            sessionFilters.includePatterns = patterns.globs;
         } else {
-            this.plugin.settings.fileExtensions = [];
-            this.plugin.settings.searchInFolders = [];
-            this.plugin.settings.includePatterns = [];
+            sessionFilters.fileExtensions = [];
+            sessionFilters.searchInFolders = [];
+            sessionFilters.includePatterns = [];
         }
 
         // Parse exclude patterns
         if (this.sessionFilters.exclude) {
             const patterns = this.parseFilterPatterns(this.sessionFilters.exclude);
-            this.plugin.settings.excludePatterns = patterns.globs;
-            this.plugin.settings.excludeFolders = patterns.folders;
+            sessionFilters.excludePatterns = patterns.globs;
+            sessionFilters.excludeFolders = patterns.folders;
         } else {
-            this.plugin.settings.excludePatterns = [];
-            this.plugin.settings.excludeFolders = [];
+            sessionFilters.excludePatterns = [];
+            sessionFilters.excludeFolders = [];
         }
 
-        this.logger.debug('Updated SearchEngine filters from session:', {
-            fileExtensions: this.plugin.settings.fileExtensions,
-            searchInFolders: this.plugin.settings.searchInFolders,
-            includePatterns: this.plugin.settings.includePatterns,
-            excludePatterns: this.plugin.settings.excludePatterns,
-            excludeFolders: this.plugin.settings.excludeFolders
-        });
+        this.logger.debug('Created session filters (no settings modified):', sessionFilters);
+
+        return sessionFilters;
     }
 
     /**
