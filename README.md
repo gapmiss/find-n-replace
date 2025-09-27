@@ -49,6 +49,7 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 
 ### Regex Support
 - Full JavaScript regular expression support
+- **Multiline patterns**: Cross-line matching with `\n`, `^`, `$` anchors (requires Multiline mode)
 - Capture group replacement using `$1`, `$2`, etc.
 - Special replacement tokens: `$&` (full match), `$$` (literal $)
 - Live preview of regex replacements with capture group expansion
@@ -132,6 +133,7 @@ Click the **🔍** filter button to open the expandable filter panel with clear-
 - **Match Case**: Enable case-sensitive searching
 - **Whole Word**: Match complete words only (adds word boundaries)
 - **Use Regex**: Enable regular expression pattern matching
+- **Multiline**: Enable cross-line regex patterns (requires Regex mode)
 
 ### Multi-Selection
 - **Ctrl/Cmd+Click**: Toggle selection of individual results
@@ -229,6 +231,29 @@ Replace: [[new-name]]
 Result: Updates links only within the Projects folder structure
 ```
 
+### Cross-Line Pattern Matching (Multiline Mode)
+```
+Regex + Multiline enabled:
+Search: (TODO:.*)\n(.*)
+Replace: - [ ] $1\n  $2
+Result: Converts "TODO: Fix bug\nDetails here" to "- [ ] TODO: Fix bug\n  Details here"
+```
+
+### Remove Empty Lines Between Headings
+```
+Regex + Multiline enabled:
+Search: (^## .+)\n\n+
+Replace: $1\n
+Result: Removes extra blank lines after headings
+```
+
+### Find Cross-Line Code Blocks
+```
+Regex + Multiline enabled:
+Search: ```(\w+)\n([\s\S]*?)\n```
+Result: Matches complete code blocks including language and content
+```
+
 ## Keyboard Shortcuts
 
 ### Navigation
@@ -262,6 +287,7 @@ All plugin functionality is available through Obsidian's Command Palette (Ctrl/C
 - **Toggle Match Case** - Toggles case-sensitive search mode
 - **Toggle Whole Word** - Toggles whole word matching mode
 - **Toggle Regex** - Toggles regular expression mode
+- **Toggle Multiline** - Toggles multiline regex mode (enables cross-line patterns)
 
 ### Replace Operations
 - **Replace Selected Matches** - Replaces only the currently selected results
@@ -388,13 +414,13 @@ npm run release
 - **Event-driven**: Reactive UI updates based on state changes
 - **Modular**: Separation of concerns between search, UI, and state
 - **Testable**: Isolated components with dependency injection
-- **Test Coverage**: 61 automated tests preventing regressions and edge cases
+- **Test Coverage**: 105 automated tests preventing regressions and edge cases (61 existing + 44 new multiline tests)
 
 ### Contributing Guidelines
 1. Follow existing code style and TypeScript conventions
 2. Add comprehensive logging for debugging
 3. Include error handling for all async operations
-4. **Run test suite before submitting:** `npm test` (203 tests must pass)
+4. **Run test suite before submitting:** `npm test` (105+ tests must pass)
 5. **Add tests for new features:** Follow existing test patterns in `src/tests/unit/`
 6. Test with large vaults to ensure performance
 7. Update documentation for any API changes

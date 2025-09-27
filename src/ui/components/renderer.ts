@@ -251,10 +251,86 @@ export class UIRenderer {
         col: number | undefined,
         replaceText: string,
         pattern: string,
-        searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean }
+        searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean; multiline?: boolean }
     ): void {
         container.empty(); // Clear any existing content
 
+        // Handle multiline matches differently
+        if (searchOptions.multiline === true && searchOptions.useRegex && matchText.includes('\n')) {
+            // For multiline matches, show a truncated version
+            const lines = matchText.split('\n');
+            const firstLine = lines[0];
+            const hasMoreLines = lines.length > 1;
+
+            // Show context before the match on the first line
+            const beforeContext = 10;
+            const matchIndex = col ?? 0;
+            const start = Math.max(0, matchIndex - beforeContext);
+
+            let before = lineText.slice(start, matchIndex);
+            if (start > 0) before = "… " + before;
+
+            // Build the highlighted content
+            if (before) container.appendChild(document.createTextNode(before));
+
+            // Create highlighted match element
+            const mark = document.createElement("mark");
+            mark.textContent = firstLine + (hasMoreLines ? '…' : '');
+            if (hasMoreLines) {
+                mark.title = `Multiline match (${lines.length} lines):\n${matchText}`;
+            }
+            container.appendChild(mark);
+
+            // Generate replacement preview for multiline matches
+            if (replaceText) {
+                try {
+                    let preview = '';
+                    if (searchOptions.useRegex) {
+                        // For multiline regex, we need to test against the full matchText
+                        const regex = this.searchEngine.buildSearchRegex(pattern, searchOptions);
+                        regex.lastIndex = 0;
+
+                        // Test the replacement on the full multiline match
+                        const fakeMatch = regex.exec(matchText);
+                        if (fakeMatch) {
+                            preview = this.expandReplacementString(replaceText, fakeMatch);
+                        } else {
+                            preview = replaceText;
+                        }
+                    } else {
+                        preview = replaceText;
+                    }
+
+                    // Only show preview if it's different and not empty
+                    if (preview !== matchText && preview.trim()) {
+                        // For multiline previews, show first line + indicator
+                        const previewLines = preview.split('\n');
+                        const previewFirstLine = previewLines[0];
+                        const previewHasMoreLines = previewLines.length > 1;
+
+                        const previewSpan = document.createElement("span");
+                        previewSpan.className = "replace-preview";
+                        previewSpan.textContent = previewFirstLine + (previewHasMoreLines ? '…' : '');
+                        if (previewHasMoreLines) {
+                            previewSpan.title = `Replacement preview (${previewLines.length} lines):\n${preview}`;
+                        }
+                        container.appendChild(previewSpan);
+                    }
+                } catch (error) {
+                    this.logger.debug('Error generating multiline replacement preview:', error);
+                }
+            }
+
+            // Show context after match (for single-line portion)
+            const afterContext = 50;
+            const end = Math.min(lineText.length, matchIndex + firstLine.length + afterContext);
+            let after = lineText.slice(matchIndex + firstLine.length, end);
+            if (end < lineText.length) after = after + " …";
+            if (after) container.appendChild(document.createTextNode(after));
+            return;
+        }
+
+        // Original single-line logic
         // Find the match position within the line
         const matchIndex = lineText.toLowerCase().indexOf(
             matchText.toLowerCase(),

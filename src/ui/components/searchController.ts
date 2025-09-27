@@ -75,7 +75,8 @@ export class SearchController {
         const toggleButtons = [
             this.elements.matchCaseCheckbox,
             this.elements.wholeWordCheckbox,
-            this.elements.regexCheckbox
+            this.elements.regexCheckbox,
+            this.elements.multilineCheckbox
         ];
 
         toggleButtons.forEach(btn => {
@@ -254,17 +255,19 @@ export class SearchController {
      * Reads search options ONCE for freezing during search execution
      * This method should only be called at the START of a search
      */
-    private readSearchOptionsOnce(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean } {
+    private readSearchOptionsOnce(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean; multiline: boolean } {
         const matchCase = this.getToggleValue(this.elements.matchCaseCheckbox);
         const wholeWord = this.getToggleValue(this.elements.wholeWordCheckbox);
         const useRegex = this.getToggleValue(this.elements.regexCheckbox);
+        const multiline = this.getToggleValue(this.elements.multilineCheckbox) || false;
 
-        const optionsSnapshot = { matchCase, wholeWord, useRegex };
+        const optionsSnapshot = { matchCase, wholeWord, useRegex, multiline };
 
         this.logger.debug('readSearchOptionsOnce() creating frozen snapshot:', {
             matchCase: { value: matchCase, pressed: this.elements.matchCaseCheckbox?.getAttribute('aria-pressed') },
             wholeWord: { value: wholeWord, pressed: this.elements.wholeWordCheckbox?.getAttribute('aria-pressed') },
             useRegex: { value: useRegex, pressed: this.elements.regexCheckbox?.getAttribute('aria-pressed') },
+            multiline: { value: multiline, pressed: this.elements.multilineCheckbox?.getAttribute('aria-pressed') },
             snapshot: optionsSnapshot
         });
 
@@ -274,12 +277,13 @@ export class SearchController {
     /**
      * Gets current search options (for non-search operations)
      */
-    getSearchOptions(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean } {
+    getSearchOptions(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean; multiline: boolean } {
         const matchCase = this.getToggleValue(this.elements.matchCaseCheckbox);
         const wholeWord = this.getToggleValue(this.elements.wholeWordCheckbox);
         const useRegex = this.getToggleValue(this.elements.regexCheckbox);
+        const multiline = this.getToggleValue(this.elements.multilineCheckbox) || false;
 
-        const optionsSnapshot = { matchCase, wholeWord, useRegex };
+        const optionsSnapshot = { matchCase, wholeWord, useRegex, multiline };
 
         // If search is in progress, warn about option state changes
         if (this.isSearching) {

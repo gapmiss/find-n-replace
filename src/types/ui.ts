@@ -10,6 +10,7 @@ export interface FindReplaceElements {
     matchCaseCheckbox: HTMLElement; // Now inline toggle button
     wholeWordCheckbox: HTMLElement; // Now inline toggle button
     regexCheckbox: HTMLElement; // Now inline toggle button
+    multilineCheckbox: HTMLElement; // Now inline toggle button
     resultsContainer: HTMLElement;
     selectedCountEl: HTMLElement;
     // replaceSelectedBtn: HTMLButtonElement;

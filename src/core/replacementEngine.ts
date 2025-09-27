@@ -179,9 +179,66 @@ export class ReplacementEngine {
     ): Promise<void> {
         try {
             let content = await this.app.vault.read(file);
-            const lines = content.split('\n');
 
-        const regex = this.searchEngine.buildSearchRegex(matches[0]?.pattern || '', searchOptions);
+            const regex = this.searchEngine.buildSearchRegex(matches[0]?.pattern || '', searchOptions);
+
+            // Handle multiline replacements differently
+            if (searchOptions.multiline === true && searchOptions.useRegex) {
+                // For multiline, work on entire content instead of line-by-line
+                if (replaceAllInFile) {
+                    // Replace all matches in entire content
+                    content = content.replace(regex, (match, ...rest: (string | number)[]) => {
+                        const offset = rest[rest.length - 2] as number;
+                        const input = rest[rest.length - 1] as string;
+                        const groups = rest.slice(0, -2) as string[];
+
+                        // Reconstruct RegExpExecArray-like object
+                        interface RegExpExecArrayLike extends Array<string> {
+                            index: number;
+                            input: string;
+                        }
+                        const execArray = [match, ...groups] as RegExpExecArrayLike;
+                        execArray.index = offset;
+                        execArray.input = input;
+
+                        return this.expandReplacement(execArray as RegExpExecArray, replaceText, input, searchOptions);
+                    });
+                } else {
+                    // Replace only specific matches - sort by position to maintain order
+                    const sortedMatches = [...matches].sort((a, b) => {
+                        const aPos = this.getCharacterPosition(content, a.line, a.col || 0);
+                        const bPos = this.getCharacterPosition(content, b.line, b.col || 0);
+                        return bPos - aPos; // Reverse order for safe replacement
+                    });
+
+                    // Replace in reverse order to maintain positions
+                    for (const match of sortedMatches) {
+                        const charPos = this.getCharacterPosition(content, match.line, match.col || 0);
+
+                        // Find the actual match at this position
+                        regex.lastIndex = 0;
+                        let regexMatch: RegExpExecArray | null;
+                        while ((regexMatch = regex.exec(content)) !== null) {
+                            if (regexMatch.index === charPos && regexMatch[0] === match.matchText) {
+                                const replacement = this.expandReplacement(regexMatch, replaceText, content, searchOptions);
+                                content = content.slice(0, regexMatch.index) + replacement + content.slice(regexMatch.index + regexMatch[0].length);
+                                break;
+                            }
+                            if (regexMatch[0].length === 0) {
+                                regex.lastIndex++;
+                                if (regex.lastIndex >= content.length) break;
+                            }
+                        }
+                    }
+                }
+
+                // Write back the modified content
+                await this.app.vault.modify(file, content);
+                return;
+            }
+
+            // Original line-by-line processing for non-multiline
+            const lines = content.split('\n');
 
         if (replaceAllInFile) {
             // Replace all matches in the file (once per unique line to prevent repeated replacements)
@@ -357,5 +414,27 @@ export class ReplacementEngine {
             isValid: true, // For now, we allow all replacement text
             warnings
         };
+    }
+
+    /**
+     * Converts line/column position to character position in content
+     * @param content - The full content string
+     * @param line - Zero-based line number
+     * @param col - Zero-based column number
+     * @returns Character position in the content string
+     */
+    private getCharacterPosition(content: string, line: number, col: number): number {
+        const lines = content.split('\n');
+        let charPos = 0;
+
+        // Add characters from all previous lines (including their \n characters)
+        for (let i = 0; i < line && i < lines.length; i++) {
+            charPos += lines[i].length + 1; // +1 for the \n character
+        }
+
+        // Add column position within the target line
+        charPos += col;
+
+        return charPos;
     }
 }

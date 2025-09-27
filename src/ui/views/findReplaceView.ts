@@ -150,6 +150,7 @@ export class FindReplaceView extends ItemView {
             matchCaseCheckbox: searchElements.matchCaseBtn,
             wholeWordCheckbox: searchElements.wholeWordBtn,
             regexCheckbox: searchElements.regexBtn,
+            multilineCheckbox: searchElements.multilineBtn,
             resultsContainer,
             selectedCountEl: adaptiveElements.selectedCountEl,
             toolbarBtn: adaptiveElements.toolbarBtn,

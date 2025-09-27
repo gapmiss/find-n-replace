@@ -14,6 +14,7 @@ export interface SearchInputElements {
     matchCaseBtn: HTMLElement;
     wholeWordBtn: HTMLElement;
     regexBtn: HTMLElement;
+    multilineBtn: HTMLElement;
 }
 
 /**
@@ -148,16 +149,18 @@ export class SearchToolbar {
         const searchOptions = searchRow.createDiv('find-replace-inline-options');
 
         // Create inline toggle buttons for search options
-        const matchCaseBtn = this.createInlineToggle(searchOptions, 'match-case', 'case-sensitive', 'Match Case', 3);
-        const wholeWordBtn = this.createInlineToggle(searchOptions, 'whole-word', 'whole-word', 'Match Whole Word', 4);
-        const regexBtn = this.createInlineToggle(searchOptions, 'regex', 'regex', 'Use Regular Expression', 5);
+        const matchCaseBtn = this.createInlineToggle(searchOptions, 'match-case', 'case-sensitive', 'Match Case', 3, searchInput);
+        const wholeWordBtn = this.createInlineToggle(searchOptions, 'whole-word', 'whole-word', 'Match Whole Word', 4, searchInput);
+        const regexBtn = this.createInlineToggle(searchOptions, 'regex', 'regex', 'Use Regular Expression', 5, searchInput);
+        const multilineBtn = this.createInlineToggle(searchOptions, 'multiline', 'wrap-text', 'Multiline Mode (enables \\n patterns)', 6, searchInput);
 
         return {
             searchInput,
             searchClearBtn,
             matchCaseBtn,
             wholeWordBtn,
-            regexBtn
+            regexBtn,
+            multilineBtn
         };
     }
 
@@ -602,7 +605,7 @@ export class SearchToolbar {
     /**
      * Creates an inline toggle button (moved from FindReplaceView private method)
      */
-    private createInlineToggle(container: HTMLElement, id: string, icon: string, label: string, tabIndex?: number): HTMLElement {
+    private createInlineToggle(container: HTMLElement, id: string, icon: string, label: string, tabIndex?: number, searchInput?: HTMLInputElement): HTMLElement {
         const toggle = container.createEl('button', {
             cls: 'inline-toggle-btn clickable-icon',
             attr: {
@@ -616,12 +619,19 @@ export class SearchToolbar {
         setIcon(toggle, icon);
 
         // Handle toggle state changes
-        toggle.addEventListener('click', () => {
+        toggle.addEventListener('click', async () => {
             const isPressed = toggle.getAttribute('aria-pressed') === 'true';
             const newPressed = !isPressed;
             toggle.setAttribute('aria-pressed', newPressed.toString());
             toggle.classList.toggle('is-active', newPressed);
 
+            // Trigger auto-search when toggle state changes (if search query exists)
+            if (searchInput) {
+                const searchQuery = searchInput.value.trim();
+                if (searchQuery.length > 0) {
+                    await this.performSearchCallback();
+                }
+            }
         });
 
         return toggle;

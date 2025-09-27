@@ -20,6 +20,7 @@ export interface SearchOptions {
     matchCase: boolean;     // Whether search is case-sensitive
     wholeWord: boolean;     // Whether to match whole words only
     useRegex: boolean;      // Whether to use regex pattern matching
+    multiline?: boolean;    // Whether to enable multiline regex matching (allows patterns like \n to work)
 }
 
 /**

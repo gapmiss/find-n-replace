@@ -205,6 +205,36 @@ export class SearchEngine {
             await Promise.all(batch.map(async (file) => {
                 try {
                     const content = await this.app.vault.read(file);
+
+                    // Use multiline processing if multiline option is enabled and we're using regex
+                    if (options.multiline === true && options.useRegex && regex) {
+                        // Process entire file content for multiline matches
+                        for (const m of Array.from(content.matchAll(regex))) {
+                            if (!m[0]) continue; // Skip empty matches
+
+                            // Find which line this match starts on
+                            const beforeMatch = content.substring(0, m.index ?? 0);
+                            const lineNumber = beforeMatch.split('\n').length - 1;
+                            const lineStartPos = beforeMatch.lastIndexOf('\n') + 1;
+                            const colInLine = (m.index ?? 0) - lineStartPos;
+
+                            // Get the line content for display (show first line of match)
+                            const lines = content.split('\n');
+                            const lineContent = lines[lineNumber] || '';
+
+                            results.push({
+                                file,
+                                line: lineNumber,
+                                content: lineContent,
+                                matchText: m[0],
+                                col: colInLine,
+                                pattern: query
+                            });
+                        }
+                        return; // Skip line-by-line processing
+                    }
+
+                    // Default line-by-line processing
                     const lines = content.split('\n');
 
                 // Special case: handle dot regex patterns that match everything
@@ -339,9 +369,9 @@ export class SearchEngine {
             pattern = options.useRegex ? `\\b(?:${pattern})\\b` : `\\b${pattern}\\b`;
         }
 
-        // Build flags: 'g' for global, 'i' for case-insensitive if needed
+        // Build flags: 'g' for global, 'i' for case-insensitive if needed, 'm' for multiline
         try {
-            const flags = (options.matchCase ? '' : 'i') + 'g';
+            const flags = (options.matchCase ? '' : 'i') + 'g' + (options.multiline === true ? 'm' : '');
             const regex = new RegExp(pattern, flags);
 
             // Cache the compiled regex
