@@ -432,4 +432,75 @@ Line three end`;
             expect(result.totalReplacements).toBeGreaterThan(10);
         });
     });
+
+    describe('Regression Tests for Multiline Replace All Bug Fix', () => {
+        it('should ensure multiline flag is properly passed to replace all operations', async () => {
+            // This test specifically validates the bug fix where ActionHandler.getSearchOptions()
+            // was missing the multiline flag, causing replace all operations to fail
+
+            mockApp.vault.addFile('multiline-bug-test.md', 'start\nworking on\nmultiple lines\nend');
+
+            const searchOptions: SearchOptions = {
+                matchCase: false,
+                wholeWord: false,
+                useRegex: true,
+                multiline: true // This flag was not being passed correctly before the fix
+            };
+
+            // Search for multiline pattern
+            const results = await searchEngine.performSearch('working.*\\n.*multiple', searchOptions);
+            expect(results.length).toBe(1);
+            expect(results[0].matchText).toMatch(/working.*\n.*multiple/);
+
+            // This would have failed before the fix because ActionHandler.getSearchOptions()
+            // wasn't including the multiline flag for vault-wide replacements
+            const result = await replacementEngine.dispatchReplace(
+                'vault',
+                results,
+                new Set(),
+                'REPLACED MULTILINE TEXT',
+                searchOptions
+            );
+
+            expect(result.totalReplacements).toBe(1);
+            expect(result.errors.length).toBe(0);
+
+            // Verify the replacement actually worked
+            const modifiedContent = await mockApp.vault.read(results[0].file);
+            expect(modifiedContent).toContain('REPLACED MULTILINE TEXT');
+            expect(modifiedContent).not.toMatch(/working.*\n.*multiple/);
+        });
+
+        it('should handle file-level multiline replace all operations', async () => {
+            // Test file-level replace all with multiline patterns
+            const testFile = mockApp.vault.addFile('file-multiline-test.md',
+                'pattern one\ncontinues here\n\npattern two\ncontinues there');
+
+            const searchOptions: SearchOptions = {
+                matchCase: false,
+                wholeWord: false,
+                useRegex: true,
+                multiline: true
+            };
+
+            const results = await searchEngine.performSearch('pattern.*\\n.*continues', searchOptions);
+            expect(results.length).toBe(2);
+
+            // Test file-level replace all
+            const result = await replacementEngine.dispatchReplace(
+                'file',
+                results,
+                new Set(),
+                'REPLACED',
+                searchOptions,
+                testFile
+            );
+
+            expect(result.totalReplacements).toBe(2);
+            expect(result.filesModified).toBe(1);
+
+            const modifiedContent = await mockApp.vault.read(testFile);
+            expect((modifiedContent.match(/REPLACED/g) || []).length).toBe(2);
+        });
+    });
 });

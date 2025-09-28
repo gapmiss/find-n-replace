@@ -317,8 +317,9 @@ export class ActionHandler {
         const matchCase = this.getToggleValue(this.elements.matchCaseCheckbox);
         const wholeWord = this.getToggleValue(this.elements.wholeWordCheckbox);
         const useRegex = this.getToggleValue(this.elements.regexCheckbox);
+        const multiline = this.getToggleValue(this.elements.multilineCheckbox) || false;
 
-        return { matchCase, wholeWord, useRegex };
+        return { matchCase, wholeWord, useRegex, multiline };
     }
 
     /**
