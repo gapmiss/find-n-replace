@@ -191,7 +191,7 @@ export class FindReplaceView extends ItemView {
             this.searchEngine,
             this.replacementEngine,
             () => this.searchController.performSearch(),
-            () => this.renderResults()
+            (preserveSelection: boolean = false) => this.renderResults(preserveSelection)
         );
 
         // Update SearchToolbar callbacks now that ActionHandler is available
@@ -310,8 +310,9 @@ export class FindReplaceView extends ItemView {
     /**
      * DEPRECATED: Use renderResultsWithOptions() to avoid race conditions
      * This method reads search options which can cause inconsistency during search
+     * @param preserveSelection - Whether to preserve existing selections (default: false)
      */
-    private renderResults(): void {
+    private renderResults(preserveSelection: boolean = false): void {
         const replaceText = this.elements.replaceInput.value;
         const searchOptions = this.searchController.getSearchOptions(); // WARNING: Race condition risk!
         const lineElements = this.uiRenderer.renderResults(
@@ -324,7 +325,7 @@ export class FindReplaceView extends ItemView {
 
         // Update state and set up selection
         this.state.lineElements = lineElements;
-        this.selectionManager.setupSelection(lineElements);
+        this.selectionManager.setupSelection(lineElements, preserveSelection);
     }
 
     /**

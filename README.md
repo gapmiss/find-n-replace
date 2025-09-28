@@ -38,6 +38,7 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 - Select all matches in a specific file
 - Select all matches across the entire vault
 - Visual selection indicators with persistent state
+- **Persistent selections** - selections maintained when modifying replace text
 - Keyboard shortcuts for bulk selection operations
 
 ### Replacement Operations

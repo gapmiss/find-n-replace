@@ -16,7 +16,7 @@ export class ActionHandler {
     private searchEngine: SearchEngine;
     private replacementEngine: ReplacementEngine;
     private performSearchCallback: () => Promise<void>;
-    private renderResultsCallback: () => void;
+    private renderResultsCallback: (preserveSelection?: boolean) => void;
     private isSearching: boolean = false;
     private getResultsCallback?: () => any[];
     private getSelectedIndicesCallback?: () => Set<number>;
@@ -28,7 +28,7 @@ export class ActionHandler {
         searchEngine: SearchEngine,
         replacementEngine: ReplacementEngine,
         performSearchCallback: () => Promise<void>,
-        renderResultsCallback: () => void
+        renderResultsCallback: (preserveSelection?: boolean) => void
     ) {
         this.plugin = plugin;
         this.logger = Logger.create(plugin, 'ActionHandler');
@@ -76,10 +76,11 @@ export class ActionHandler {
 
     /**
      * Sets up replace input change handler for preview updates
+     * Preserves selections when replace text changes to improve UX
      */
     private setupReplaceInputHandler(): void {
         this.elements.replaceInput.addEventListener('input', () => {
-            this.renderResultsCallback();
+            this.renderResultsCallback(true); // Preserve selections for replace text changes
         });
     }
 

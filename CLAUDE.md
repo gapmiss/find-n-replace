@@ -89,15 +89,16 @@ src/
 9. **Keyboard Navigation** - Sequential tab order throughout entire interface including filter panel
 10. **Native Obsidian Menu Integration** - Professional dropdown menus using Obsidian's Menu class
 11. **Multiline Search Support** - Cross-line regex patterns with `\n`, anchors, and full replacement preview
+12. **Persistent Selections** - Match selections preserved when replace text changes, improving UX workflow
 
 ### Architecture Improvements
-12. **Component Extraction** - Refactored monolithic view into focused components
-13. **VSCode-Style Settings Migration** - Unified "files to include" / "files to exclude" pattern with automatic migration from old 4-setting structure
-14. **SessionFilters Interface** - Clean separation between session-only filters and persistent settings
-15. **Multiline Search Engine** - Complete multiline regex implementation with content-aware replacement
-16. **Comprehensive Testing** - 105 total tests (44 new multiline + existing suite) preventing regressions
-17. **Professional Logging** - 6-level system (SILENT to TRACE) with clean console by default
-18. **Scoped CSS** - All styling prefixed with view selector to prevent global conflicts
+13. **Component Extraction** - Refactored monolithic view into focused components
+14. **VSCode-Style Settings Migration** - Unified "files to include" / "files to exclude" pattern with automatic migration from old 4-setting structure
+15. **SessionFilters Interface** - Clean separation between session-only filters and persistent settings
+16. **Multiline Search Engine** - Complete multiline regex implementation with content-aware replacement
+17. **Comprehensive Testing** - 105 total tests (44 new multiline + existing suite) preventing regressions
+18. **Professional Logging** - 6-level system (SILENT to TRACE) with clean console by default
+19. **Scoped CSS** - All styling prefixed with view selector to prevent global conflicts
 
 ## Development Guidelines
 
