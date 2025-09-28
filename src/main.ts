@@ -164,6 +164,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 			let leaf: WorkspaceLeaf | null = null;
 			const leaves = workspace.getLeavesOfType(VIEW_TYPE_FIND_REPLACE);
+			const wasAlreadyOpen = leaves.length > 0;
 
 			if (leaves.length > 0) {
 				leaf = leaves[0];
@@ -177,6 +178,17 @@ export default class VaultFindReplacePlugin extends Plugin {
 			}
 
 			workspace.revealLeaf(leaf);
+
+			// Focus the search input after activating the view
+			// For newly opened views, use a delay to ensure rendering is complete
+			// For already open views, focus immediately since they're already rendered
+			const focusDelay = wasAlreadyOpen ? 0 : 100;
+			setTimeout(() => {
+				const view = this.getActiveView();
+				if (view) {
+					view.commandFocusSearch();
+				}
+			}, focusDelay);
 		} catch (error) {
 			console.error("find-n-replace: failed to activate view:", error);
 			// Don't throw - just log the error so plugin doesn't crash
