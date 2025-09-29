@@ -233,6 +233,12 @@ export class SearchController {
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
                 this.logger.warn(`[${searchId}] Search was CANCELLED (AbortError)`);
+                // Notify user when search is cancelled (helpful for long-running searches)
+                this.logger.error('Search cancelled. Starting new search...', undefined, true);
+            } else if (error instanceof Error && error.message.includes('timeout')) {
+                this.logger.error(`[${searchId}] Search TIMEOUT`, error);
+                // Show user-friendly timeout message
+                this.logger.error('Search timed out. Try simplifying your search pattern or using filters to narrow the scope.', undefined, true);
             } else {
                 this.logger.error(`[${searchId}] Search operation FAILED`, error, true);
             }

@@ -289,7 +289,8 @@ export class ReplacementEngine {
                 while ((matchArr = regex.exec(lineText)) !== null) {
                     // SECURITY: Check for timeout to prevent runaway regex (ReDoS protection)
                     if (Date.now() - startTime > REGEX_TIMEOUT_MS) {
-                        this.logger.error(`Regex timeout in file ${file.path}`, undefined, true);
+                        const userMessage = `Regex pattern timed out in file "${file.path}". Try simplifying your search pattern.`;
+                        this.logger.error(userMessage, undefined, true);
                         throw new Error(`Regex execution timeout after ${REGEX_TIMEOUT_MS}ms. Pattern may be too complex or unsafe.`);
                     }
 
