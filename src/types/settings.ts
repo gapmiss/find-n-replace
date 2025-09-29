@@ -25,6 +25,12 @@ export interface VaultFindReplaceSettings {
     defaultIncludePatterns: string[]; // Default patterns for "files to include" input
     defaultExcludePatterns: string[]; // Default patterns for "files to exclude" input
 
+    // History settings (implemented)
+    searchHistory: string[]; // Recent search patterns (newest first)
+    replaceHistory: string[]; // Recent replace patterns (newest first)
+    maxHistorySize: number; // Maximum number of history entries to keep (default: 50)
+    enableSearchHistory: boolean; // Enable/disable history feature (default: true)
+
     // TODO: Implement these features (see ROADMAP.md)
     highlightDuration: number; // in ms
     persistentHighlight: boolean;
@@ -56,6 +62,12 @@ export const DEFAULT_SETTINGS: VaultFindReplaceSettings = {
     // File filtering defaults (VSCode-style)
     defaultIncludePatterns: [], // Start with no default filters
     defaultExcludePatterns: [], // Start with no default filters
+
+    // History settings (implemented)
+    searchHistory: [], // Start with empty history
+    replaceHistory: [], // Start with empty history
+    maxHistorySize: 50, // Default to 50 entries
+    enableSearchHistory: true, // Enable by default
 
     // TODO: Implement these features (see ROADMAP.md)
     highlightDuration: 2000,

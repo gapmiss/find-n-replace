@@ -52,23 +52,38 @@ export class SearchController {
      * Sets up basic navigation with Enter key search functionality
      */
     setupBasicNavigation(): void {
-        // Set up Enter key handlers for inputs
-        const elements = [
-            this.elements.searchInput,
-            this.elements.replaceInput,
-        ];
-
-        // Add Enter key search for input elements
-        elements.forEach(el => {
-            el.addEventListener('keydown', async (evt) => {
-                if (evt.key === 'Enter') {
-                    try {
-                        await this.performSearch();
-                    } catch (error) {
-                        this.logger.error('Search on Enter key error', error, true);
+        // Set up Enter key handler for search input
+        this.elements.searchInput.addEventListener('keydown', async (evt) => {
+            if (evt.key === 'Enter') {
+                try {
+                    // Save search query to history when user presses Enter
+                    const query = this.elements.searchInput.value.trim();
+                    if (query) {
+                        this.plugin.historyManager.addSearch(query);
                     }
+                    await this.performSearch();
+                } catch (error) {
+                    this.logger.error('Search on Enter key error', error, true);
                 }
-            });
+            }
+        });
+
+        // Set up Enter key handler for replace input
+        this.elements.replaceInput.addEventListener('keydown', async (evt) => {
+            if (evt.key === 'Enter') {
+                try {
+                    // Save replace text to history when user presses Enter
+                    // Only save if there's a search query (otherwise pressing Enter in empty replace is pointless)
+                    const query = this.elements.searchInput.value.trim();
+                    const replaceText = this.elements.replaceInput.value;
+                    if (query && replaceText !== null && replaceText !== undefined && replaceText.trim() !== '') {
+                        this.plugin.historyManager.addReplace(replaceText);
+                    }
+                    await this.performSearch();
+                } catch (error) {
+                    this.logger.error('Search on Enter key error', error, true);
+                }
+            }
         });
 
         // Add Enter/Space key support for toggle buttons

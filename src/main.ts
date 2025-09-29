@@ -6,11 +6,17 @@ import {
 	VaultFindReplaceSettingTab,
 } from "./settings";
 import { LogLevel } from "./types";
+import { HistoryManager } from './core/historyManager';
 
 export default class VaultFindReplacePlugin extends Plugin {
 	settings: VaultFindReplaceSettings;
+	historyManager: HistoryManager;
 	async onload() {
 		await this.loadSettings();
+
+		// Initialize history manager
+		this.historyManager = new HistoryManager(this);
+
 		this.addSettingTab(new VaultFindReplaceSettingTab(this.app, this));
 		this.registerView(
 			VIEW_TYPE_FIND_REPLACE,
@@ -292,6 +298,14 @@ export default class VaultFindReplacePlugin extends Plugin {
 				delete (this.settings as any).excludePatterns;
 				delete (this.settings as any).excludeFolders;
 				await this.saveSettings();
+			}
+
+			// Migration: Initialize history arrays if they don't exist
+			if (!this.settings.searchHistory) {
+				this.settings.searchHistory = [];
+			}
+			if (!this.settings.replaceHistory) {
+				this.settings.replaceHistory = [];
 			}
 		} catch (error) {
 			console.error('find-n-replace: Failed to load settings, using defaults:', error);

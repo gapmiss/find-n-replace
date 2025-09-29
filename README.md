@@ -58,6 +58,7 @@ Unlike Obsidian's built-in search, this plugin is designed specifically for bulk
 
 ### User Interface
 - Clean, focused interface optimized for find/replace workflows
+- **Search History**: Navigate previous search and replace patterns using ↑↓ arrow keys (saved on Enter key press)
 - **Clear-Input Buttons**: All text inputs (search, replace, include/exclude filters) feature contextual clear buttons (X icon) that appear when content is present and disappear when empty, with proper focus management
 - Collapsible file groups with persistent expand/collapse state
 - Adaptive toolbar that shows relevant controls contextually
@@ -106,9 +107,10 @@ Click the **⋯** (ellipsis) button in the toolbar and select **Help** to open t
 ### Basic Search Workflow
 1. **Optional**: Configure file filters using the filter button to limit search scope
 2. Enter search term in the search input field (use X button to clear input when needed)
-3. Results populate automatically as you type
-4. Browse results organized by file
-5. Click any result to navigate to that location in your vault
+3. Press **Enter** to add to search history (use ↑↓ arrows to navigate history)
+4. Results populate automatically as you type
+5. Browse results organized by file
+6. Click any result to navigate to that location in your vault
 
 ### VSCode-Style File Filtering (Performance Optimization)
 Click the **🔍** filter button to open the expandable filter panel with clear-input enabled fields:
@@ -155,9 +157,18 @@ Click the **🔍** filter button to open the expandable filter panel with clear-
 ## Configuration
 
 ### Plugin Settings
+
+#### Search history
+- **Enable Search History**: Toggle history feature on/off (default: enabled)
+- **Maximum History Entries**: Number of patterns to remember, 10-200 (default: 50)
+- **Clear All History**: Button to clear all saved search and replace patterns
+
+#### Core settings
 - **Max Results**: Maximum search results to display (default: 1000)
 - **Search Debounce Delay**: Delay before auto-search triggers (default: 300ms)
 - **Enable Auto Search**: Toggle automatic search-as-you-type
+
+#### Troubleshooting
 - **Console Logging Level**: Granular control over console output (Silent, Errors Only, Standard, Verbose, Debug, Trace)
 
 ### File Filtering (VSCode-Style Defaults)
@@ -270,8 +281,10 @@ Result: Matches complete code blocks including language and content
 - **Ctrl/Cmd+Click**: Toggle individual result selection
 
 ### Search
-- **Enter** (in search field): Execute manual search
+- **Enter** (in search/replace field): Execute search and save to history
+- **↑↓ Arrow Keys** (in search/replace field): Navigate through search history
 - **Escape** (in search field): Clear search input
+- **Escape** (in history mode): Exit history and restore current input
 
 ## Obsidian Commands
 

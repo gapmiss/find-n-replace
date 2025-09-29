@@ -450,6 +450,9 @@ export class FindReplaceView extends ItemView {
                 result
             );
 
+            // Add replace text to history after successful replacement
+            this.plugin.historyManager.addReplace(replaceText);
+
             // Update selection state before updating results
             if (resultIndex !== -1 && this.selectionManager.getSelectedIndices().has(resultIndex)) {
                 // If the replaced result was selected, remove it from selection

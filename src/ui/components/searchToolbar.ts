@@ -4,6 +4,7 @@ import { SessionFilters } from '../../types';
 import VaultFindReplacePlugin from '../../main';
 import { SelectionManager } from './selectionManager';
 import { HelpModal } from '../../modals/helpModal';
+import { HistoryNavigator } from './historyNavigator';
 
 /**
  * Interface for search input elements
@@ -61,6 +62,10 @@ export class SearchToolbar {
     private replaceAllVaultCallback: () => Promise<void>;
     private performSearchCallback: () => Promise<void>;
 
+    // History navigators for inputs
+    private searchHistoryNavigator: HistoryNavigator;
+    private replaceHistoryNavigator: HistoryNavigator;
+
     // Session-only filter state (not synced to settings)
     private sessionFilters = {
         include: '',
@@ -80,6 +85,10 @@ export class SearchToolbar {
         this.replaceSelectedCallback = replaceSelectedCallback;
         this.replaceAllVaultCallback = replaceAllVaultCallback;
         this.performSearchCallback = performSearchCallback;
+
+        // Initialize history navigators
+        this.searchHistoryNavigator = new HistoryNavigator(plugin);
+        this.replaceHistoryNavigator = new HistoryNavigator(plugin);
 
         // Initialize session filters from settings (one-time only)
         this.initializeSessionFilters();
@@ -131,9 +140,12 @@ export class SearchToolbar {
         const searchInput = searchInputContainer.createEl('input', {
             type: 'text',
             cls: 'find-replace-input',
-            placeholder: 'Find',
+            placeholder: 'Find (↑↓ for history)',
             attr: { 'tabindex': '1' }
         }) as HTMLInputElement;
+
+        // Attach history navigator to search input
+        this.searchHistoryNavigator.attachTo(searchInput, () => this.plugin.historyManager.getSearchHistory());
 
         // Add clear button for search input
         const searchClearBtn = searchInputContainer.createEl('button', {
@@ -179,9 +191,12 @@ export class SearchToolbar {
         const replaceInput = replaceInputContainer.createEl('input', {
             type: 'text',
             cls: 'find-replace-input',
-            placeholder: 'Replace',
+            placeholder: 'Replace (↑↓ for history)',
             attr: { 'tabindex': '2' }
         }) as HTMLInputElement;
+
+        // Attach history navigator to replace input
+        this.replaceHistoryNavigator.attachTo(replaceInput, () => this.plugin.historyManager.getReplaceHistory());
 
         // Add clear button for replace input
         const replaceClearBtn = replaceInputContainer.createEl('button', {

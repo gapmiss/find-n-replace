@@ -17,6 +17,7 @@
 - **Multi-selection** for targeted replacements with visual feedback
 - **Real-time preview** of replacement results with regex capture group support
 - **Complete keyboard accessibility** with sequential tab order and command palette integration
+- **Search history** with ↑↓ arrow key navigation (VSCode-style)
 - **Clear-input buttons** for all text inputs with contextual visibility
 - **Comprehensive error handling** and user feedback with professional logging system
 
@@ -28,7 +29,8 @@ src/
 ├── core/               # Business logic layer
 │   ├── searchEngine.ts     # Search operations and regex handling
 │   ├── replacementEngine.ts # File modification and replacement logic
-│   └── fileOperations.ts   # File system operations and navigation
+│   ├── fileOperations.ts   # File system operations and navigation
+│   └── historyManager.ts   # Search/replace history with LRU cache
 ├── ui/                 # User interface layer
 │   ├── views/
 │   │   └── findReplaceView.ts # Main plugin coordinator (~800 lines)
@@ -36,6 +38,7 @@ src/
 │       ├── searchToolbar.ts   # UI creation and layout (358 lines)
 │       ├── actionHandler.ts   # Event handling and replace operations (300+ lines)
 │       ├── searchController.ts # Search logic and state management (285 lines)
+│       ├── historyNavigator.ts # ↑↓ arrow key history navigation
 │       ├── renderer.ts        # UI rendering and DOM manipulation
 │       ├── selectionManager.ts # Multi-selection functionality
 │       └── navigationHandler.ts # Keyboard navigation
@@ -69,9 +72,17 @@ src/
 #### 4. **SearchToolbar** (`src/ui/components/searchToolbar.ts`)
 - Creates all UI elements (search input, replace input, toggle buttons, adaptive toolbar)
 - **Clear-input buttons** for all text inputs with contextual visibility
+- **History navigation** - ↑↓ arrow keys attached to search/replace inputs
 - **VSCode-style expandable filter panel** with "files to include" / "files to exclude" inputs
 - **Session-only filter management** - filters don't modify settings; settings provide defaults
 - Complete keyboard navigation and accessibility support including filter panel
+
+#### 5. **HistoryManager** (`src/core/historyManager.ts`)
+- LRU cache for search and replace patterns (default: 50 entries each)
+- Persistent storage in plugin settings across sessions
+- Deduplication prevents consecutive identical entries
+- Respects user preferences (enabled/disabled, max size)
+- History saved on Enter key press (not auto-search)
 
 ## Major Recent Improvements (Condensed)
 
@@ -90,6 +101,7 @@ src/
 10. **Native Obsidian Menu Integration** - Professional dropdown menus using Obsidian's Menu class
 11. **Multiline Search Support** - Cross-line regex patterns with `\n`, anchors, and full replacement preview
 12. **Persistent Selections** - Match selections preserved when replace text changes, improving UX workflow
+13. **Search History** - VSCode-style ↑↓ navigation with LRU cache, Enter-to-save, and settings UI
 
 ### Architecture Improvements
 13. **Component Extraction** - Refactored monolithic view into focused components
@@ -99,6 +111,7 @@ src/
 17. **Comprehensive Testing** - 105 total tests (44 new multiline + existing suite) preventing regressions
 18. **Professional Logging** - 6-level system (SILENT to TRACE) with clean console by default
 19. **Scoped CSS** - All styling prefixed with view selector to prevent global conflicts
+20. **History Management** - Configurable max size (10-200), enable/disable toggle, clear all button in settings
 
 ## Code Audit & Quality Improvements (Latest)
 

@@ -14,8 +14,6 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl("h2", { text: "Find-n-Replace Settings" });
-
         // TODO: Implement search result highlighting feature
         // See ROADMAP.md - High Priority feature
         /*
@@ -97,6 +95,59 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                     })
             );
 
+        // History settings section
+        new Setting(containerEl)
+            .setName('Search history')
+            .setHeading();
+
+        // Enable search history toggle
+        new Setting(containerEl)
+            .setName("Enable search history")
+            .setDesc("Save search and replace patterns for quick access using arrow keys (↑↓).")
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.enableSearchHistory)
+                    .onChange(async (value) => {
+                        this.plugin.settings.enableSearchHistory = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
+
+        // Max history size
+        new Setting(containerEl)
+            .setName("Maximum history entries")
+            .setDesc("Maximum number of search and replace patterns to remember. Range: 10-200.")
+            .addText((text) =>
+                text
+                    .setPlaceholder("50")
+                    .setValue(this.plugin.settings.maxHistorySize.toString())
+                    .onChange(async (value) => {
+                        const num = parseInt(value, 10);
+                        if (!isNaN(num) && num >= 10 && num <= 200) {
+                            this.plugin.settings.maxHistorySize = num;
+                            await this.plugin.saveSettings();
+                            // Trim existing history if needed
+                            this.plugin.historyManager.updateMaxSize();
+                        }
+                    })
+            );
+
+        // Clear history button
+        new Setting(containerEl)
+            .setName("Clear search history")
+            .setDesc(`Clear all saved search and replace patterns. Current history size: ${this.plugin.settings.searchHistory.length} search, ${this.plugin.settings.replaceHistory.length} replace.`)
+            .addButton((button) =>
+                button
+                    .setButtonText("Clear All History")
+                    .setWarning()
+                    .onClick(async () => {
+                        this.plugin.historyManager.clearAllHistory();
+                        await this.plugin.saveSettings();
+                        // Refresh the display to update the count
+                        this.display();
+                    })
+            );
+
         // TODO: Implement line number display in search results
         // See ROADMAP.md - Medium Priority feature
         /*
@@ -132,7 +183,9 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         */
 
         // File filtering default settings
-        containerEl.createEl("h3", { text: "File Filtering Defaults" });
+        new Setting(containerEl)
+            .setName('File filtering defaults')
+            .setHeading();
         containerEl.createEl("p", {
             text: "These settings provide default values when opening a new find & replace view. Once a view is open, filter changes are session-only.",
             cls: "setting-item-description"
@@ -181,7 +234,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
 
         const filterInfoContent = filterInfoDiv.createDiv('setting-item-description');
         filterInfoContent.innerHTML = `
-            <strong>💡 How Default File Filters Work:</strong><br>
+            <strong>💡 How default file filters work:</strong><br>
             • These default settings populate the <strong>"files to include"</strong> and <strong>"files to exclude"</strong> inputs when you open the Find-n-Replace view<br>
             • Filter inputs in the view are <strong>session-only</strong> - they don't modify these default settings<br>
             • To apply new defaults: change settings above, then <strong>close and reopen</strong> the Find-n-Replace view<br>
@@ -193,6 +246,11 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         filterInfoContent.style.backgroundColor = 'var(--background-secondary)';
         filterInfoContent.style.borderRadius = '6px';
         filterInfoContent.style.borderLeft = '3px solid var(--interactive-accent)';
+
+        // Troubleshooting section
+        new Setting(containerEl)
+            .setName('Troubleshooting')
+            .setHeading();
 
         // Log level dropdown
         new Setting(containerEl)

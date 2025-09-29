@@ -221,6 +221,9 @@ export class ActionHandler {
 
             this.logger.success(`Successfully replaced ${result.totalReplacements} matches in ${result.filesModified} files`);
 
+            // Add replace text to history after successful replacement
+            this.plugin.historyManager.addReplace(replaceText);
+
             // Refresh search results to show updated content
             await this.performSearchCallback();
 
@@ -273,6 +276,9 @@ export class ActionHandler {
             );
 
             this.logger.success(`Successfully replaced ${result.totalReplacements} matches across ${result.filesModified} files`);
+
+            // Add replace text to history after successful replacement
+            this.plugin.historyManager.addReplace(replaceText);
 
             // Refresh search results to show updated content
             await this.performSearchCallback();
