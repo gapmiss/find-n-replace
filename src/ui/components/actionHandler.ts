@@ -247,11 +247,13 @@ export class ActionHandler {
             return;
         }
 
-        // Show confirmation modal for replace all operation
-        const confirmResult = await this.showReplaceAllConfirmation(query, replaceText);
-        if (!confirmResult) {
-            this.logger.debug('Replace all operation cancelled by user');
-            return;
+        // Show confirmation modal for replace all operation (if enabled in settings)
+        if (this.plugin.settings.confirmDestructiveActions) {
+            const confirmResult = await this.showReplaceAllConfirmation(query, replaceText);
+            if (!confirmResult) {
+                this.logger.debug('Replace all operation cancelled by user');
+                return;
+            }
         }
 
         try {

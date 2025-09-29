@@ -274,6 +274,37 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         filterInfoContent.style.borderRadius = '6px';
         filterInfoContent.style.borderLeft = '3px solid var(--interactive-accent)';
 
+        // User experience settings section
+        new Setting(containerEl)
+            .setName('User experience')
+            .setHeading();
+
+        // Confirm destructive actions toggle
+        new Setting(containerEl)
+            .setName("Confirm destructive actions")
+            .setDesc("Show confirmation dialog before Replace All in Vault operations. Disable for faster workflow if you're confident.")
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.confirmDestructiveActions)
+                    .onChange(async (value) => {
+                        this.plugin.settings.confirmDestructiveActions = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
+
+        // Remember search options toggle
+        new Setting(containerEl)
+            .setName("Remember search options")
+            .setDesc("Persist Match Case, Whole Word, Regex, and Multiline toggle states across sessions. When disabled, toggles reset to off each time you open the view.")
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.rememberSearchOptions)
+                    .onChange(async (value) => {
+                        this.plugin.settings.rememberSearchOptions = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
+
         // Troubleshooting section
         new Setting(containerEl)
             .setName('Troubleshooting')

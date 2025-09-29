@@ -629,15 +629,40 @@ export class SearchToolbar {
      * Creates an inline toggle button (moved from FindReplaceView private method)
      */
     private createInlineToggle(container: HTMLElement, id: string, icon: string, label: string, tabIndex?: number, searchInput?: HTMLInputElement): HTMLElement {
+        // Determine initial state from settings if "Remember Search Options" is enabled
+        let initialPressed = false;
+        if (this.plugin.settings.rememberSearchOptions) {
+            const lastOptions = this.plugin.settings.lastSearchOptions;
+            switch (id) {
+                case 'match-case':
+                    initialPressed = lastOptions.matchCase;
+                    break;
+                case 'whole-word':
+                    initialPressed = lastOptions.wholeWord;
+                    break;
+                case 'regex':
+                    initialPressed = lastOptions.useRegex;
+                    break;
+                case 'multiline':
+                    initialPressed = lastOptions.multiline;
+                    break;
+            }
+        }
+
         const toggle = container.createEl('button', {
             cls: 'inline-toggle-btn clickable-icon',
             attr: {
                 'aria-label': label,
                 'data-toggle': id,
-                'aria-pressed': 'false',
+                'aria-pressed': initialPressed.toString(),
                 'tabindex': tabIndex?.toString() || '0'
             }
         });
+
+        // Set initial active state if pressed
+        if (initialPressed) {
+            toggle.classList.add('is-active');
+        }
 
         setIcon(toggle, icon);
 
@@ -647,6 +672,26 @@ export class SearchToolbar {
             const newPressed = !isPressed;
             toggle.setAttribute('aria-pressed', newPressed.toString());
             toggle.classList.toggle('is-active', newPressed);
+
+            // Save to settings if "Remember Search Options" is enabled
+            if (this.plugin.settings.rememberSearchOptions) {
+                switch (id) {
+                    case 'match-case':
+                        this.plugin.settings.lastSearchOptions.matchCase = newPressed;
+                        break;
+                    case 'whole-word':
+                        this.plugin.settings.lastSearchOptions.wholeWord = newPressed;
+                        break;
+                    case 'regex':
+                        this.plugin.settings.lastSearchOptions.useRegex = newPressed;
+                        break;
+                    case 'multiline':
+                        this.plugin.settings.lastSearchOptions.multiline = newPressed;
+                        break;
+                }
+                await this.plugin.saveSettings();
+                this.logger.debug(`Saved search option: ${id} = ${newPressed}`);
+            }
 
             // Trigger auto-search when toggle state changes (if search query exists)
             if (searchInput) {

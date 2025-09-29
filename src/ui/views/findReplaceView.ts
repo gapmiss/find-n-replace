@@ -482,13 +482,15 @@ export class FindReplaceView extends ItemView {
             const replaceText = this.elements.replaceInput.value;
             const filePath = file.path;
 
-            // Confirm replacement
-            const confirmMessage = replaceText === ''
-                ? `Replace all matches in "${filePath}" with an empty value? This action cannot be undone.`
-                : `Replace all matches in "${filePath}"? This action cannot be undone.`;
+            // Confirm replacement (if enabled in settings)
+            if (this.plugin.settings.confirmDestructiveActions) {
+                const confirmMessage = replaceText === ''
+                    ? `Replace all matches in "${filePath}" with an empty value? This action cannot be undone.`
+                    : `Replace all matches in "${filePath}"? This action cannot be undone.`;
 
-            const confirmed = await this.confirmReplaceEmpty(confirmMessage);
-            if (!confirmed) return;
+                const confirmed = await this.confirmReplaceEmpty(confirmMessage);
+                if (!confirmed) return;
+            }
 
             const searchOptions = this.searchController.getSearchOptions();
             const replacementResult = await this.replacementEngine.dispatchReplace(

@@ -31,6 +31,16 @@ export interface VaultFindReplaceSettings {
     maxHistorySize: number; // Maximum number of history entries to keep (default: 50)
     enableSearchHistory: boolean; // Enable/disable history feature (default: true)
 
+    // User experience settings
+    confirmDestructiveActions: boolean; // Show confirmation for Replace All operations (default: true)
+    rememberSearchOptions: boolean; // Persist search toggle states across sessions (default: false)
+    lastSearchOptions: {
+        matchCase: boolean;
+        wholeWord: boolean;
+        useRegex: boolean;
+        multiline: boolean;
+    };
+
     // TODO: Implement these features (see ROADMAP.md)
     highlightDuration: number; // in ms
     persistentHighlight: boolean;
@@ -68,6 +78,16 @@ export const DEFAULT_SETTINGS: VaultFindReplaceSettings = {
     replaceHistory: [], // Start with empty history
     maxHistorySize: 50, // Default to 50 entries
     enableSearchHistory: true, // Enable by default
+
+    // User experience settings
+    confirmDestructiveActions: true, // Show confirmation by default (safer)
+    rememberSearchOptions: false, // Don't persist by default (fresh start each session)
+    lastSearchOptions: {
+        matchCase: false,
+        wholeWord: false,
+        useRegex: false,
+        multiline: false
+    },
 
     // TODO: Implement these features (see ROADMAP.md)
     highlightDuration: 2000,
