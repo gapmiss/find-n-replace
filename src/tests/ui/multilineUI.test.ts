@@ -107,7 +107,6 @@ describe('Multiline UI Interactions', () => {
         it('should create multiline toggle button correctly', () => {
             const searchToolbar = new SearchToolbar(
                 mockPlugin,
-                {} as any, // selectionManager
                 async () => {}, // replaceSelectedCallback
                 async () => {}, // replaceAllVaultCallback
                 async () => {} // performSearchCallback
@@ -139,7 +138,6 @@ describe('Multiline UI Interactions', () => {
 
             const searchToolbar = new SearchToolbar(
                 mockPlugin,
-                {} as any,
                 async () => {},
                 async () => {},
                 performSearchCallback
@@ -164,7 +162,6 @@ describe('Multiline UI Interactions', () => {
 
             const searchToolbar = new SearchToolbar(
                 mockPlugin,
-                {} as any,
                 async () => {},
                 async () => {},
                 performSearchCallback
@@ -296,7 +293,6 @@ describe('Multiline UI Interactions', () => {
         it('should support keyboard navigation for multiline toggle', () => {
             const searchToolbar = new SearchToolbar(
                 mockPlugin,
-                {} as any,
                 async () => {},
                 async () => {},
                 async () => {}

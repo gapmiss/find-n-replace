@@ -84,7 +84,6 @@ export class FindReplaceView extends ItemView {
         // Initialize SearchToolbar (selectionManager will be set after elements are created)
         this.searchToolbar = new SearchToolbar(
             this.plugin,
-            null as any, // Temporary - will be set after SelectionManager is created
             () => this.replaceSelectedMatches(),
             () => this.replaceAllInVault(),
             async () => { // Add search callback for filter changes
@@ -169,9 +168,8 @@ export class FindReplaceView extends ItemView {
         this.uiRenderer = new UIRenderer(this.elements, this.searchEngine, this.plugin);
         this.selectionManager = new SelectionManager(this.elements, this.plugin);
 
-        // Now that we have selectionManager, update the SearchToolbar reference
-        // @ts-ignore - Temporarily bypass readonly to set the reference
-        (this.searchToolbar as any).selectionManager = this.selectionManager;
+        // Now that we have selectionManager, provide it to SearchToolbar
+        this.searchToolbar.setSelectionManager(this.selectionManager);
 
         // Initialize SearchController for search logic
         this.searchController = new SearchController(

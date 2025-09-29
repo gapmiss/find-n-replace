@@ -74,14 +74,14 @@ export class SearchToolbar {
 
     constructor(
         plugin: VaultFindReplacePlugin,
-        selectionManager: SelectionManager,
         replaceSelectedCallback: () => Promise<void>,
         replaceAllVaultCallback: () => Promise<void>,
-        performSearchCallback: () => Promise<void>
+        performSearchCallback: () => Promise<void>,
+        selectionManager?: SelectionManager
     ) {
         this.plugin = plugin;
         this.logger = Logger.create(plugin, 'SearchToolbar');
-        this.selectionManager = selectionManager;
+        this.selectionManager = selectionManager as SelectionManager;
         this.replaceSelectedCallback = replaceSelectedCallback;
         this.replaceAllVaultCallback = replaceAllVaultCallback;
         this.performSearchCallback = performSearchCallback;
@@ -92,6 +92,14 @@ export class SearchToolbar {
 
         // Initialize session filters from settings (one-time only)
         this.initializeSessionFilters();
+    }
+
+    /**
+     * Sets the SelectionManager after construction (required for initialization order)
+     */
+    setSelectionManager(selectionManager: SelectionManager): void {
+        this.selectionManager = selectionManager;
+        this.logger.debug('SelectionManager set after construction');
     }
 
     /**
@@ -665,7 +673,7 @@ export class SearchToolbar {
             menu.addItem((item) => {
                 item.setTitle('Replace Selected')
                     .setIcon('replace')
-                    .setDisabled(this.selectionManager.getSelectedIndices().size === 0)
+                    .setDisabled(!this.selectionManager || this.selectionManager.getSelectedIndices().size === 0)
                     .onClick(async () => {
                         try {
                             this.logger.debug('Replace Selected menu item clicked');
