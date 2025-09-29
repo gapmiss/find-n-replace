@@ -1,6 +1,7 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import VaultFindReplacePlugin from "../main";
 import { VaultFindReplaceSettings, LogLevel } from "../types";
+import { ConfirmModal } from "../modals/confirmModal";
 
 export class VaultFindReplaceSettingTab extends PluginSettingTab {
     plugin: VaultFindReplacePlugin;
@@ -138,13 +139,39 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
             .setDesc(`Clear all saved search and replace patterns. Current history size: ${this.plugin.settings.searchHistory.length} search, ${this.plugin.settings.replaceHistory.length} replace.`)
             .addButton((button) =>
                 button
-                    .setButtonText("Clear All History")
+                    .setButtonText("Clear all history")
                     .setWarning()
                     .onClick(async () => {
-                        this.plugin.historyManager.clearAllHistory();
-                        await this.plugin.saveSettings();
-                        // Refresh the display to update the count
-                        this.display();
+                        // Show confirmation modal
+                        const modal = new ConfirmModal(
+                            this.app,
+                            "Are you sure you want to clear all search and replace history? This action cannot be undone.",
+                            {
+                                confirmText: "Clear",
+                                confirmClass: "mod-warning",
+                                cancelText: "Cancel"
+                            }
+                        );
+                        modal.open();
+
+                        // Wait for modal to close
+                        await new Promise<void>((resolve) => {
+                            const checkClosed = setInterval(() => {
+                                if (!modal.isOpen) {
+                                    clearInterval(checkClosed);
+                                    resolve();
+                                }
+                            }, 50);
+                        });
+
+                        // Only clear if user confirmed
+                        if (modal.result) {
+                            this.plugin.historyManager.clearAllHistory();
+                            await this.plugin.saveSettings();
+                            new Notice("Search and replace history cleared");
+                            // Refresh the display to update the count
+                            this.display();
+                        }
                     })
             );
 
