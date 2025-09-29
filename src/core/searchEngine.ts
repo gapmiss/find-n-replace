@@ -12,6 +12,7 @@ export class SearchEngine {
     private logger: Logger;
     private lastCompiledRegex: RegExp | null = null;
     private lastSearchOptions: string = '';
+    private failedFiles: string[] = []; // Track files that failed during search
 
     constructor(app: App, plugin: VaultFindReplacePlugin) {
         this.app = app;
@@ -159,6 +160,9 @@ export class SearchEngine {
         const trimmedQuery = query.trim();
         this.logger.debug('performSearch called:', { query: trimmedQuery, options });
 
+        // Clear previous failures
+        this.failedFiles = [];
+
         if (!trimmedQuery) {
             this.logger.debug('Empty query, returning 0 results');
             return [];
@@ -174,7 +178,9 @@ export class SearchEngine {
             (sessionFilters.excludePatterns && sessionFilters.excludePatterns.length > 0)
         );
 
-        const shouldUseAllFiles = hasSessionFilters;
+        // Always search all files when no specific filtering is configured
+        // This ensures comprehensive search coverage by default
+        const shouldUseAllFiles = hasSessionFilters || !sessionFilters;
 
         const allFiles = shouldUseAllFiles ?
             this.app.vault.getAllLoadedFiles() :
@@ -304,7 +310,12 @@ export class SearchEngine {
                 }
                 } catch (error) {
                     // Log file read errors but continue processing other files
-                    this.logger.warn(`Failed to read file ${file.path}:`, error);
+                    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+                    this.logger.warn(`Failed to read file ${file.path}: ${errorMsg}`, error);
+
+                    // Track failed files for user notification
+                    this.failedFiles.push(file.path);
+
                     // Skip this file and continue with others
                 }
             }));
@@ -327,8 +338,32 @@ export class SearchEngine {
             query: trimmedQuery,
             options,
             resultCount: results.length,
-            fileCount: files.length
+            fileCount: files.length,
+            failedFiles: this.failedFiles.length
         });
+
+        // Notify user about partial failures if any occurred
+        if (this.failedFiles.length > 0) {
+            const failedCount = this.failedFiles.length;
+            const totalCount = files.length;
+            const successfulCount = totalCount - failedCount;
+
+            if (failedCount < 5) {
+                // Show specific files if few failures
+                this.logger.error(
+                    `Search completed with ${failedCount} file${failedCount > 1 ? 's' : ''} inaccessible: ${this.failedFiles.join(', ')}`,
+                    undefined,
+                    true
+                );
+            } else {
+                // Show summary if many failures
+                this.logger.error(
+                    `Search partially completed: ${successfulCount}/${totalCount} files searched (${failedCount} files inaccessible)`,
+                    undefined,
+                    true
+                );
+            }
+        }
 
         return results;
     }

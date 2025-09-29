@@ -29,6 +29,11 @@ export class MockApp {
         this.vault.reset();
         this.workspace.reset();
     }
+
+    // Expose addFile method for tests
+    addTestFile(path: string, content: string): any {
+        return this.vault.addTestFile(path, content);
+    }
 }
 
 /**
@@ -37,6 +42,6 @@ export class MockApp {
 export function createMockApp(): App {
     const mockApp = new MockApp();
 
-    // Return as App type for compatibility
+    // Return as App type for compatibility - vault.addTestFile is already available
     return mockApp as unknown as App;
 }

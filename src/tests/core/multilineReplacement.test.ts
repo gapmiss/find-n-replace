@@ -473,7 +473,7 @@ Line three end`;
 
         it('should handle file-level multiline replace all operations', async () => {
             // Test file-level replace all with multiline patterns
-            const testFile = mockApp.vault.addFile('file-multiline-test.md',
+            const testFile = mockApp.vault.addTestFile('file-multiline-test.md',
                 'pattern one\ncontinues here\n\npattern two\ncontinues there');
 
             const searchOptions: SearchOptions = {

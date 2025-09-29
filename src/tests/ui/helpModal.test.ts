@@ -16,6 +16,8 @@ const createMockElement = (): any => ({
   setAttribute: vi.fn(),
   getAttribute: vi.fn(),
   removeAttribute: vi.fn(),
+  insertAdjacentText: vi.fn(),
+  insertAdjacentHTML: vi.fn(),
   style: {},
   className: '',
   classList: {
@@ -40,8 +42,15 @@ vi.mock('obsidian', async (importOriginal) => {
         this.app = app;
         this.contentEl = {
           empty: vi.fn(),
+          addClass: vi.fn(),
+          removeClass: vi.fn(),
           createEl: vi.fn().mockImplementation(() => createMockElement()),
-          createDiv: vi.fn().mockImplementation(() => createMockElement())
+          createDiv: vi.fn().mockImplementation(() => createMockElement()),
+          createSpan: vi.fn().mockImplementation(() => createMockElement()),
+          appendChild: vi.fn(),
+          setAttribute: vi.fn(),
+          innerHTML: '',
+          textContent: ''
         };
         this.modalEl = {
           addClass: vi.fn()

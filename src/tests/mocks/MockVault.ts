@@ -59,6 +59,19 @@ export class MockVault {
             'Date format: 2025-01-15 and 2025-12-31\n' +
             'Capture groups: [link](url) and [another](path)'
         );
+
+        // Add diverse file types for file filtering tests - CRUCIAL for test success
+        // These files are required by fileFiltering.test.ts
+        this.addFile('Notes/project.md', 'Project content with FINDME_NOTES');
+        this.addFile('Notes/meeting.txt', 'Meeting notes with FINDME_NOTES');
+        this.addFile('Archive/old.md', 'Archived content with FINDME_ARCHIVE');
+        this.addFile('Templates/template.md', 'Template content with FINDME_TEMPLATES');
+        this.addFile('Scripts/script.js', 'JavaScript code with FINDME_SCRIPTS');
+        this.addFile('Docs/readme.md', 'Documentation with FINDME_DOCS');
+        this.addFile('temp_file.tmp', 'Temporary file with FINDME_TEMP');
+        this.addFile('backup_notes.bak', 'Backup content with FINDME_BACKUP');
+        this.addFile('config.json', 'Configuration with FINDME_CONFIG');
+        this.addFile('styles.css', 'CSS content with FINDME_CSS');
     }
 
     private generateLargeContent(): string {

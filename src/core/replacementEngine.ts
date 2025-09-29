@@ -89,12 +89,16 @@ export class ReplacementEngine {
             case "file": {
                 // Replace all matches in a specific file
                 const file = target as TFile;
-                const fileResults = results.filter(r => r.file.path === file.path);
+                if (!file?.path) {
+                    this.logger.error("Invalid file target for replacement", file);
+                    break;
+                }
+                const fileResults = results.filter(r => r.file?.path === file.path);
                 if (fileResults.length) {
                     grouped.set(file, fileResults);
                     // Find all indices for results in this file
                     for (let i = 0; i < results.length; i++) {
-                        if (results[i].file.path === file.path) {
+                        if (results[i].file?.path === file.path) {
                             replacedResultIndices.push(i);
                         }
                     }
@@ -285,7 +289,8 @@ export class ReplacementEngine {
                 while ((matchArr = regex.exec(lineText)) !== null) {
                     // SECURITY: Check for timeout to prevent runaway regex (ReDoS protection)
                     if (Date.now() - startTime > REGEX_TIMEOUT_MS) {
-                        throw new Error(`Regex execution timeout after ${REGEX_TIMEOUT_MS}ms. Pattern may be too complex.`);
+                        this.logger.error(`Regex timeout in file ${file.path}`, undefined, true);
+                        throw new Error(`Regex execution timeout after ${REGEX_TIMEOUT_MS}ms. Pattern may be too complex or unsafe.`);
                     }
 
                     if (matchArr.index === res.col) {

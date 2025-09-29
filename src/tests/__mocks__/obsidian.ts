@@ -100,3 +100,8 @@ export function debounce(fn: Function, delay: number) {
 // Mock constants
 export const VIEW_TYPE_EMPTY = 'empty';
 export const WORKSPACE_LEAF_TYPE = 'leaf';
+
+// Global mock function for creating test files
+global.createMockFile = function(path: string, content: string = '') {
+  return new TFile(path);
+};
