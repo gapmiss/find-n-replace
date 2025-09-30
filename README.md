@@ -171,7 +171,7 @@ Click the **🔍** filter button to open the expandable filter panel with clear-
 #### User experience
 - **Confirm Destructive Actions**: Show confirmation modal before Replace All operations (default: enabled)
 - **Remember Search Options**: Persist Match Case, Whole Word, Regex, and Multiline toggle states across sessions (default: disabled)
-- **Remember File Group States**: Persist expand/collapse state of result file groups across searches (default: enabled)
+- **Remember File Group States Across Restarts**: Save expand/collapse state to disk. When enabled, states persist across Obsidian restarts. When disabled, states only persist during current session (default: enabled)
 
 #### Troubleshooting
 - **Console Logging Level**: Granular control over console output (Silent, Errors Only, Standard, Verbose, Debug, Trace)

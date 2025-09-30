@@ -13,6 +13,7 @@ export class UIRenderer {
     private isCollapsed: boolean = true; // Default to collapsed for better UX
     private plugin: VaultFindReplacePlugin; // Reference to plugin for settings access
     private logger: Logger;
+    private sessionFileGroupStates: Record<string, boolean> = {}; // Session-only state (not persisted)
 
     constructor(elements: FindReplaceElements, searchEngine: SearchEngine, plugin: VaultFindReplacePlugin) {
         this.elements = elements;
@@ -62,10 +63,19 @@ export class UIRenderer {
             // Set data attribute for file path to track state
             fileDiv.setAttribute('data-file-path', filePath);
 
-            // Determine collapse state: use saved state if persistence enabled, otherwise default to collapsed
-            const isFileCollapsed = this.plugin.settings.rememberFileGroupStates
-                ? (this.plugin.settings.fileGroupStates[filePath] ?? true)
-                : true; // Default to collapsed when persistence disabled
+            // Determine collapse state: priority order:
+            // 1. Session state (current session's user interactions)
+            // 2. Persisted state (saved to disk if rememberFileGroupStates enabled)
+            // 3. Default to collapsed
+            let isFileCollapsed = true;
+            if (this.sessionFileGroupStates.hasOwnProperty(filePath)) {
+                // Use session state if available (highest priority)
+                isFileCollapsed = this.sessionFileGroupStates[filePath];
+            } else if (this.plugin.settings.rememberFileGroupStates && this.plugin.settings.fileGroupStates[filePath] !== undefined) {
+                // Use persisted state if session state not available and persistence enabled
+                isFileCollapsed = this.plugin.settings.fileGroupStates[filePath];
+            }
+
             if (isFileCollapsed) {
                 fileDiv.addClass('collapsed');
             }
@@ -148,11 +158,17 @@ export class UIRenderer {
                 const isCurrentlyCollapsed = group.classList.contains('collapsed');
                 group.classList.toggle('collapsed');
 
-                // Track the new state for this specific file and save to plugin settings (if persistence enabled)
+                // Track the new state in session (always) and optionally persist to disk
                 const filePath = group.getAttribute('data-file-path');
-                if (filePath && this.plugin.settings.rememberFileGroupStates) {
-                    this.plugin.settings.fileGroupStates[filePath] = !isCurrentlyCollapsed;
-                    this.plugin.saveSettings(); // Persist the change
+                if (filePath) {
+                    // Always save to session state (persists during current view session)
+                    this.sessionFileGroupStates[filePath] = !isCurrentlyCollapsed;
+
+                    // Optionally save to disk if persistence enabled
+                    if (this.plugin.settings.rememberFileGroupStates) {
+                        this.plugin.settings.fileGroupStates[filePath] = !isCurrentlyCollapsed;
+                        this.plugin.saveSettings(); // Persist to disk
+                    }
                 }
 
                 // Update global toolbar button state based on all file groups
@@ -490,19 +506,31 @@ export class UIRenderer {
             if (targetState) {
                 // Currently collapsed, so expand all
                 htmlGroup.classList.remove("collapsed");
-                if (filePath && this.plugin.settings.rememberFileGroupStates) {
-                    this.plugin.settings.fileGroupStates[filePath] = false; // false = expanded
+                if (filePath) {
+                    // Always save to session state
+                    this.sessionFileGroupStates[filePath] = false; // false = expanded
+
+                    // Optionally persist to disk
+                    if (this.plugin.settings.rememberFileGroupStates) {
+                        this.plugin.settings.fileGroupStates[filePath] = false;
+                    }
                 }
             } else {
                 // Currently expanded, so collapse all
                 htmlGroup.classList.add("collapsed");
-                if (filePath && this.plugin.settings.rememberFileGroupStates) {
-                    this.plugin.settings.fileGroupStates[filePath] = true; // true = collapsed
+                if (filePath) {
+                    // Always save to session state
+                    this.sessionFileGroupStates[filePath] = true; // true = collapsed
+
+                    // Optionally persist to disk
+                    if (this.plugin.settings.rememberFileGroupStates) {
+                        this.plugin.settings.fileGroupStates[filePath] = true;
+                    }
                 }
             }
         });
 
-        // Save all the state changes to plugin settings (if persistence enabled)
+        // Save all state changes to disk (if persistence enabled)
         if (this.plugin.settings.rememberFileGroupStates) {
             this.plugin.saveSettings();
         }

@@ -307,8 +307,8 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
 
         // Remember file group states toggle
         new Setting(containerEl)
-            .setName("Remember file group states")
-            .setDesc("Persist expand/collapse state of result file groups across searches. When disabled, all file groups start collapsed each time.")
+            .setName("Remember file group states across restarts")
+            .setDesc("Persist expand/collapse state of result file groups to disk. When enabled, group states are saved across Obsidian restarts. When disabled, states only persist during current session (reset when view closes).")
             .addToggle((toggle) =>
                 toggle
                     .setValue(this.plugin.settings.rememberFileGroupStates)
