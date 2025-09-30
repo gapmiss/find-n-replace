@@ -95,7 +95,16 @@ export class SearchToolbar {
     }
 
     /**
-     * Sets the SelectionManager after construction (required for initialization order)
+     * Sets the SelectionManager after construction
+     * Required due to circular dependency between SearchToolbar and SelectionManager during initialization.
+     *
+     * @param {SelectionManager} selectionManager - The selection manager instance to use for multi-selection state
+     *
+     * @remarks
+     * This method exists to break the circular dependency during view initialization:
+     * - SearchToolbar needs SelectionManager for ellipsis menu state
+     * - SelectionManager needs elements created by SearchToolbar
+     * - Solution: Create SearchToolbar first, then inject SelectionManager reference
      */
     setSelectionManager(selectionManager: SelectionManager): void {
         this.selectionManager = selectionManager;
@@ -117,6 +126,17 @@ export class SearchToolbar {
 
     /**
      * Updates the replace callbacks after ActionHandler is initialized
+     * Required due to initialization order where ActionHandler is created after SearchToolbar.
+     *
+     * @param {function} replaceSelectedCallback - Function to call when user requests replacing selected matches
+     * @param {function} replaceAllVaultCallback - Function to call when user requests replacing all matches in vault
+     *
+     * @remarks
+     * This method updates the callbacks used by the ellipsis menu:
+     * - SearchToolbar creates UI during view initialization
+     * - ActionHandler is created later with actual replacement logic
+     * - This method links the two components together
+     * - Called once during FindReplaceView initialization
      */
     updateReplaceCallbacks(
         replaceSelectedCallback: () => Promise<void>,
@@ -128,6 +148,14 @@ export class SearchToolbar {
 
     /**
      * Creates the main search toolbar container
+     * Creates the root container element that holds all search UI components.
+     *
+     * @param {HTMLElement} containerEl - Parent element to attach the toolbar to
+     * @returns {HTMLElement} The created toolbar container element
+     *
+     * @remarks
+     * This is the first method called during UI construction. The returned element serves as
+     * the parent for all subsequent search UI elements (search input, replace input, filters, etc.)
      */
     createMainToolbar(containerEl: HTMLElement): HTMLElement {
         return containerEl.createDiv('find-replace-search-toolbar');
@@ -135,6 +163,30 @@ export class SearchToolbar {
 
     /**
      * Creates the search input row with inline options
+     * Builds the complete search input UI including text input, toggle buttons, and history navigation.
+     *
+     * @param {HTMLElement} searchToolbar - The toolbar container to attach the search row to
+     * @returns {SearchInputElements} Object containing all created search-related UI elements
+     * @returns {HTMLInputElement} returns.searchInput - The main search text input field
+     * @returns {HTMLButtonElement} returns.searchClearBtn - Clear button for search input
+     * @returns {HTMLElement} returns.matchCaseBtn - Case-sensitive toggle button
+     * @returns {HTMLElement} returns.wholeWordBtn - Whole word matching toggle button
+     * @returns {HTMLElement} returns.regexBtn - Regular expression mode toggle button
+     * @returns {HTMLElement} returns.multilineBtn - Multiline regex mode toggle button
+     *
+     * @remarks
+     * **Features:**
+     * - Search icon prefix using Lucide icons
+     * - Clear button (X) that appears when input has content
+     * - History navigation (↑↓ arrows) for previous searches
+     * - Four inline toggle buttons for search options
+     * - Complete keyboard navigation with proper tab order
+     * - Placeholder shows history navigation hint
+     *
+     * **Toggle Buttons:**
+     * - Initial state loaded from settings if "Remember Search Options" enabled
+     * - Auto-search triggered when toggles change (if query exists)
+     * - State saved to settings when changed (if remember option enabled)
      */
     createSearchInputRow(searchToolbar: HTMLElement): SearchInputElements {
         // Search input row with inline options
@@ -186,6 +238,23 @@ export class SearchToolbar {
 
     /**
      * Creates the replace input row with clear button
+     * Builds the complete replace input UI including text input, action buttons, and history navigation.
+     *
+     * @param {HTMLElement} searchToolbar - The toolbar container to attach the replace row to
+     * @returns {ReplaceInputElements} Object containing all created replace-related UI elements
+     * @returns {HTMLInputElement} returns.replaceInput - The main replace text input field
+     * @returns {HTMLButtonElement} returns.replaceClearBtn - Clear button for replace input
+     * @returns {HTMLButtonElement} returns.clearAllBtn - Button to clear all search/replace inputs and reset options
+     * @returns {HTMLButtonElement} returns.filterBtn - Button to toggle file filter panel visibility
+     *
+     * @remarks
+     * **Features:**
+     * - Replace icon prefix using Lucide icons
+     * - Clear button (X) that appears when input has content
+     * - History navigation (↑↓ arrows) for previous replace patterns
+     * - Clear All button (search-x icon) to reset entire search UI
+     * - Filter button to show/hide file filtering panel
+     * - Complete keyboard navigation with proper tab order
      */
     createReplaceInputRow(searchToolbar: HTMLElement): ReplaceInputElements {
         // Replace input row
@@ -247,6 +316,33 @@ export class SearchToolbar {
 
     /**
      * Creates the expandable filter panel (VSCode-style)
+     * Builds the file filtering UI with include/exclude pattern inputs matching VSCode's interface.
+     *
+     * @param {HTMLElement} searchToolbar - The toolbar container to attach the filter panel to
+     * @returns {FilterPanelElements} Object containing all created filter panel UI elements
+     * @returns {HTMLElement} returns.filterPanel - The main expandable filter panel container (starts hidden)
+     * @returns {HTMLInputElement} returns.includeInput - Input field for "files to include" patterns
+     * @returns {HTMLButtonElement} returns.includeClearBtn - Clear button for include input
+     * @returns {HTMLInputElement} returns.excludeInput - Input field for "files to exclude" patterns
+     * @returns {HTMLButtonElement} returns.excludeClearBtn - Clear button for exclude input
+     *
+     * @remarks
+     * **VSCode-Style Features:**
+     * - Two-row layout: "files to include" and "files to exclude"
+     * - Clear buttons (X) for each input field
+     * - Pattern syntax hints in placeholders
+     * - Session-only filter state (doesn't modify settings)
+     * - Settings provide default values on view initialization
+     *
+     * **Pattern Examples:**
+     * - Include: `.md, .txt` (extensions), `Notes/` (folders), `*.js` (globs)
+     * - Exclude: `*.tmp` (patterns), `Archive/` (folders), `*backup*` (globs)
+     *
+     * **Behavior:**
+     * - Panel toggles visibility via filter button
+     * - Changes trigger debounced search refresh (500ms)
+     * - Enter key triggers immediate search
+     * - Filter button shows active state and count badge
      */
     createFilterPanel(searchToolbar: HTMLElement): FilterPanelElements {
         // Filter panel container (initially hidden)
@@ -313,6 +409,15 @@ export class SearchToolbar {
 
     /**
      * Creates the results container
+     * Builds the main container element that will hold all search result items.
+     *
+     * @param {HTMLElement} containerEl - Parent element to attach the results container to
+     * @returns {HTMLElement} The created results container element
+     *
+     * @remarks
+     * This container is populated by UIRenderer with search results organized by file.
+     * The container is focusable (tabindex: 12) and serves as the target for keyboard navigation
+     * from the adaptive toolbar.
      */
     createResultsContainer(containerEl: HTMLElement): HTMLElement {
         return containerEl.createDiv({
@@ -323,6 +428,36 @@ export class SearchToolbar {
 
     /**
      * Creates the adaptive results toolbar
+     * Builds the contextual toolbar that appears when search results exist, showing result counts and actions.
+     *
+     * @param {HTMLElement} searchToolbar - The toolbar container to attach the adaptive toolbar to
+     * @returns {AdaptiveToolbarElements} Object containing all created adaptive toolbar UI elements
+     * @returns {HTMLElement} returns.adaptiveToolbar - The main adaptive toolbar container (starts hidden)
+     * @returns {HTMLElement} returns.resultsCountEl - Span displaying total result count
+     * @returns {HTMLElement} returns.selectedCountEl - Span displaying selected result count (hidden when none selected)
+     * @returns {HTMLButtonElement} returns.ellipsisMenuBtn - Menu button for replace actions (starts disabled)
+     * @returns {HTMLButtonElement} returns.toolbarBtn - Expand/collapse all button
+     *
+     * @remarks
+     * **Visibility:**
+     * - Toolbar hidden by default (no results)
+     * - Shown automatically when search results exist
+     * - Hidden again when results cleared
+     *
+     * **Result Counts:**
+     * - resultsCountEl: Shows "X results" or "X results (limited to Y)"
+     * - selectedCountEl: Shows "• X selected" only when items selected
+     *
+     * **Ellipsis Menu:**
+     * - Contains "Replace Selected" and "Replace All in Vault" actions
+     * - Also includes "Help" menu item
+     * - Disabled when no results exist
+     * - "Replace Selected" disabled when no items selected
+     *
+     * **Expand/Collapse Button:**
+     * - Toggles expand/collapse state for all file groups
+     * - Icon changes between copy-plus (expand) and copy-minus (collapse)
+     * - State saved to session and optionally to disk
      */
     createAdaptiveToolbar(searchToolbar: HTMLElement): AdaptiveToolbarElements {
         // === ADAPTIVE RESULTS TOOLBAR ===
@@ -395,6 +530,28 @@ export class SearchToolbar {
 
     /**
      * Sets up filter button toggle functionality
+     * Configures the filter button to show/hide the filter panel and manages filter state changes.
+     *
+     * @param {HTMLButtonElement} filterBtn - The filter button to set up click handling for
+     * @param {HTMLElement} filterPanel - The filter panel to show/hide
+     * @param {HTMLInputElement} includeInput - The "files to include" input field
+     * @param {HTMLInputElement} excludeInput - The "files to exclude" input field
+     *
+     * @remarks
+     * **Button Click Behavior:**
+     * - Toggles filter panel visibility
+     * - Focuses include input when panel opens
+     * - Hides panel when clicked again
+     *
+     * **Filter Changes:**
+     * - Debounced search refresh (500ms delay) on input changes
+     * - Immediate search on Enter key press
+     * - Session filters updated (settings NOT modified)
+     * - Filter button shows active state and count badge
+     *
+     * **Initialization:**
+     * - Loads session filter values into inputs from settings defaults
+     * - Updates filter button visual state based on active filters
      */
     setupFilterToggle(filterBtn: HTMLButtonElement, filterPanel: HTMLElement, includeInput: HTMLInputElement, excludeInput: HTMLInputElement): void {
         let isFilterPanelVisible = false;
@@ -470,8 +627,27 @@ export class SearchToolbar {
     }
 
     /**
-     * Creates session filters from current session filter inputs (does NOT modify plugin settings)
-     * @returns SessionFilters object for use with SearchEngine
+     * Creates session filters from current session filter inputs
+     * Parses filter input values into structured SessionFilters object for SearchEngine.
+     * **IMPORTANT:** This method does NOT modify plugin settings - filters are session-only.
+     *
+     * @returns {SessionFilters} Structured filter object with parsed patterns
+     * @returns {string[]} returns.fileExtensions - Extensions from include patterns (e.g., ["md", "txt"])
+     * @returns {string[]} returns.searchInFolders - Folders from include patterns (e.g., ["Notes", "Projects"])
+     * @returns {string[]} returns.includePatterns - Glob patterns from include input (e.g., ["*.js"])
+     * @returns {string[]} returns.excludePatterns - Glob patterns from exclude input (e.g., ["*.tmp"])
+     * @returns {string[]} returns.excludeFolders - Folders from exclude patterns (e.g., ["Archive"])
+     *
+     * @remarks
+     * **Pattern Parsing:**
+     * - `.md` → fileExtensions array (dot removed)
+     * - `Notes/` → searchInFolders or excludeFolders (trailing slash removed)
+     * - `*.js` → includePatterns or excludePatterns (contains wildcards)
+     *
+     * **Session-Only Behavior:**
+     * - Reads from sessionFilters property (in-memory state)
+     * - Settings provide initial defaults, but changes are temporary
+     * - Close and reopen view to load fresh defaults from settings
      */
     getSessionFilters(): SessionFilters {
         const sessionFilters: SessionFilters = {};
@@ -533,6 +709,21 @@ export class SearchToolbar {
 
     /**
      * Sets up expand/collapse button navigation
+     * Configures keyboard navigation from expand/collapse button to first search result.
+     *
+     * @param {HTMLButtonElement} expandCollapseBtn - The expand/collapse button to set up navigation for
+     * @param {HTMLElement} resultsContainer - The results container to navigate to
+     *
+     * @remarks
+     * **Tab Navigation:**
+     * - Tab key moves focus from expand/collapse button to first focusable result
+     * - Shift+Tab moves back naturally via DOM order
+     * - Ensures smooth keyboard navigation flow through entire UI
+     *
+     * **Focusable Results:**
+     * - Searches for first `.snippet` or `[role="button"]` element
+     * - Prevents default tab behavior to control focus precisely
+     * - Only activates if focusable result exists
      */
     setupExpandCollapseNavigation(expandCollapseBtn: HTMLButtonElement, resultsContainer: HTMLElement): void {
         // Handle tab navigation from last adaptive button to results
@@ -550,6 +741,35 @@ export class SearchToolbar {
 
     /**
      * Sets up clear icon functionality for all input fields
+     * Configures clear (X) buttons for all text inputs with contextual visibility and focus management.
+     *
+     * @param {HTMLInputElement} searchInput - The search input field
+     * @param {HTMLButtonElement} searchClearBtn - Clear button for search input
+     * @param {HTMLInputElement} replaceInput - The replace input field
+     * @param {HTMLButtonElement} replaceClearBtn - Clear button for replace input
+     * @param {HTMLInputElement} includeInput - The "files to include" input field
+     * @param {HTMLButtonElement} includeClearBtn - Clear button for include input
+     * @param {HTMLInputElement} excludeInput - The "files to exclude" input field
+     * @param {HTMLButtonElement} excludeClearBtn - Clear button for exclude input
+     * @param {function} [onInputChange] - Optional callback triggered when any input is cleared
+     *
+     * @remarks
+     * **Clear Button Behavior:**
+     * - Shows when input has content (via 'visible' class)
+     * - Hides when input is empty
+     * - Clicking clears input and restores focus
+     * - Triggers input event for downstream handlers
+     *
+     * **User Experience:**
+     * - Professional VSCode-style clear icons
+     * - Contextual visibility (only when needed)
+     * - Smooth CSS transitions via styles.css
+     * - Focus management ensures keyboard accessibility
+     *
+     * **Initialization:**
+     * - Sets initial visibility state for all inputs
+     * - Attaches event listeners for input changes
+     * - Configures click handlers for clear buttons
      */
     setupClearIcons(
         searchInput: HTMLInputElement,
