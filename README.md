@@ -166,7 +166,12 @@ Click the **🔍** filter button to open the expandable filter panel with clear-
 #### Core settings
 - **Max Results**: Maximum search results to display (default: 1000)
 - **Search Debounce Delay**: Delay before auto-search triggers (default: 300ms)
-- **Enable Auto Search**: Toggle automatic search-as-you-type
+- **Enable Auto Search**: Toggle automatic search-as-you-type. When disabled, press Enter to search
+
+#### User experience
+- **Confirm Destructive Actions**: Show confirmation modal before Replace All operations (default: enabled)
+- **Remember Search Options**: Persist Match Case, Whole Word, Regex, and Multiline toggle states across sessions (default: disabled)
+- **Remember File Group States**: Persist expand/collapse state of result file groups across searches (default: enabled)
 
 #### Troubleshooting
 - **Console Logging Level**: Granular control over console output (Silent, Errors Only, Standard, Verbose, Debug, Trace)

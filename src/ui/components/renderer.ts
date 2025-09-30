@@ -62,8 +62,10 @@ export class UIRenderer {
             // Set data attribute for file path to track state
             fileDiv.setAttribute('data-file-path', filePath);
 
-            // Determine collapse state: use saved state or default to collapsed
-            const isFileCollapsed = this.plugin.settings.fileGroupStates[filePath] ?? true; // Default to collapsed
+            // Determine collapse state: use saved state if persistence enabled, otherwise default to collapsed
+            const isFileCollapsed = this.plugin.settings.rememberFileGroupStates
+                ? (this.plugin.settings.fileGroupStates[filePath] ?? true)
+                : true; // Default to collapsed when persistence disabled
             if (isFileCollapsed) {
                 fileDiv.addClass('collapsed');
             }
@@ -146,9 +148,9 @@ export class UIRenderer {
                 const isCurrentlyCollapsed = group.classList.contains('collapsed');
                 group.classList.toggle('collapsed');
 
-                // Track the new state for this specific file and save to plugin settings
+                // Track the new state for this specific file and save to plugin settings (if persistence enabled)
                 const filePath = group.getAttribute('data-file-path');
-                if (filePath) {
+                if (filePath && this.plugin.settings.rememberFileGroupStates) {
                     this.plugin.settings.fileGroupStates[filePath] = !isCurrentlyCollapsed;
                     this.plugin.saveSettings(); // Persist the change
                 }
@@ -488,20 +490,22 @@ export class UIRenderer {
             if (targetState) {
                 // Currently collapsed, so expand all
                 htmlGroup.classList.remove("collapsed");
-                if (filePath) {
+                if (filePath && this.plugin.settings.rememberFileGroupStates) {
                     this.plugin.settings.fileGroupStates[filePath] = false; // false = expanded
                 }
             } else {
                 // Currently expanded, so collapse all
                 htmlGroup.classList.add("collapsed");
-                if (filePath) {
+                if (filePath && this.plugin.settings.rememberFileGroupStates) {
                     this.plugin.settings.fileGroupStates[filePath] = true; // true = collapsed
                 }
             }
         });
 
-        // Save all the state changes to plugin settings
-        this.plugin.saveSettings();
+        // Save all the state changes to plugin settings (if persistence enabled)
+        if (this.plugin.settings.rememberFileGroupStates) {
+            this.plugin.saveSettings();
+        }
 
         // Update the toolbar button state
         this.isCollapsed = !this.isCollapsed;

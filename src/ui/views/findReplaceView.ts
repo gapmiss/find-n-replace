@@ -211,7 +211,11 @@ export class FindReplaceView extends ItemView {
 
         // Set up search functionality using SearchController
         this.searchController.setupBasicNavigation();
-        this.searchController.setupAutoSearch();
+
+        // Only set up auto-search if enabled in settings
+        if (this.plugin.settings.enableAutoSearch) {
+            this.searchController.setupAutoSearch();
+        }
 
         // Set up all event handlers using ActionHandler
         this.actionHandler.setupEventHandlers();

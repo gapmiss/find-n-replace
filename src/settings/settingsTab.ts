@@ -305,6 +305,19 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                     })
             );
 
+        // Remember file group states toggle
+        new Setting(containerEl)
+            .setName("Remember file group states")
+            .setDesc("Persist expand/collapse state of result file groups across searches. When disabled, all file groups start collapsed each time.")
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.rememberFileGroupStates)
+                    .onChange(async (value) => {
+                        this.plugin.settings.rememberFileGroupStates = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
+
         // Troubleshooting section
         new Setting(containerEl)
             .setName('Troubleshooting')
