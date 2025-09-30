@@ -1,4 +1,4 @@
-import { App, Modal, Setting } from 'obsidian';
+import { App, Modal, Setting, setIcon } from 'obsidian';
 import VaultFindReplacePlugin from '../main';
 
 interface CommandInfo {
@@ -7,6 +7,16 @@ interface CommandInfo {
     recommendedHotkey: string;
     description: string;
     category: string;
+}
+
+interface TipItem {
+    text: string;
+    keys?: string[];
+    icon?: string;
+    code?: string;
+    middle?: string;
+    code2?: string;
+    suffix?: string;
 }
 
 export class HelpModal extends Modal {
@@ -328,7 +338,9 @@ export class HelpModal extends Modal {
         const introP = filterGuideDiv.createEl('p');
         introP.insertAdjacentText('beforeend', 'Use the ');
         const filterBtnStrong = introP.createEl('strong');
-        filterBtnStrong.insertAdjacentText('beforeend', 'filter button (🔍)');
+        filterBtnStrong.insertAdjacentText('beforeend', 'filter button ');
+        const filterIcon = filterBtnStrong.createEl('span', { cls: 'help-tip-icon' });
+        setIcon(filterIcon, 'filter');
         introP.insertAdjacentText('beforeend', ' next to the Clear button to open the VSCode-style expandable filtering panel with ');
         const includeStrong = introP.createEl('strong');
         includeStrong.insertAdjacentText('beforeend', '"files to include"');
@@ -462,16 +474,16 @@ export class HelpModal extends Modal {
 
         const tipsList = tipsDiv.createEl('ul');
 
-        const tips = [
+        const tips: (string | TipItem)[] = [
             { text: 'Use ', keys: ['Ctrl/Cmd', 'Shift', 'F'], suffix: ' to quickly open the plugin from anywhere in Obsidian' },
             { text: 'Regex mode supports capture groups (', code: '$1', middle: ', ', code2: '$2', suffix: ') for advanced replacements' },
-            { text: 'Select specific results before using "Replace Selected" for precise control' },
-            { text: 'Use the filter button (🔍) to search only specific file types or folders' },
-            { text: 'Set default filters in Settings to avoid retyping common patterns' },
+            'Select specific results before using "Replace Selected" for precise control',
+            { text: 'Use the filter button ', icon: 'filter', suffix: ' to search only specific file types or folders' },
+            'Set default filters in Settings to avoid retyping common patterns',
             { text: 'Use ', keys: ['Ctrl/Cmd', 'K'], suffix: ' prefix for less common actions to avoid hotkey conflicts' },
-            { text: 'The plugin remembers your expand/collapse preferences per file' },
-            { text: 'Multi-line replacements work great with regex patterns' },
-            { text: 'Include/exclude patterns are session-only; settings provide defaults' }
+            'The plugin remembers your expand/collapse preferences per file',
+            'Multi-line replacements work great with regex patterns',
+            'Include/exclude patterns are session-only; settings provide defaults'
         ];
 
         tips.forEach(tip => {
@@ -490,6 +502,11 @@ export class HelpModal extends Modal {
                         const kbd = li.createEl('kbd');
                         kbd.insertAdjacentText('beforeend', key);
                     });
+                }
+
+                if (tip.icon) {
+                    const iconSpan = li.createEl('span', { cls: 'help-tip-icon' });
+                    setIcon(iconSpan, tip.icon);
                 }
 
                 if (tip.code) {
