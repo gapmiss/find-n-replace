@@ -24,13 +24,40 @@ export class UIRenderer {
 
     /**
      * Renders all search results in the UI
-     * Groups results by file and creates collapsible sections
-     * @param results - Array of search results to render
-     * @param replaceText - Current replacement text for preview
-     * @param searchOptions - Current search options (for regex replacement preview)
-     * @param totalResults - Total results found (before limiting)
-     * @param isLimited - Whether results are limited
-     * @returns Array of line elements for selection management
+     * Groups results by file and creates collapsible sections with full keyboard accessibility.
+     *
+     * @param {SearchResult[]} results - Array of search results to render
+     * @param {string} replaceText - Current replacement text for preview display
+     * @param {Object} searchOptions - Current search options for regex replacement preview
+     * @param {boolean} searchOptions.matchCase - Case-sensitive search enabled
+     * @param {boolean} searchOptions.wholeWord - Whole word matching enabled
+     * @param {boolean} searchOptions.useRegex - Regular expression mode enabled
+     * @param {number} [totalResults] - Total results found before limiting (for UI feedback)
+     * @param {boolean} [isLimited] - Whether results are limited by max results setting
+     * @returns {HTMLDivElement[]} Array of line elements for selection management
+     *
+     * @remarks
+     * **Grouping and Display:**
+     * - Results organized by file path with collapsible file groups
+     * - Each file group shows result count
+     * - Sequential tab order: toolbar → file headers → replace buttons → matches → replace buttons
+     *
+     * **File Group State:**
+     * - 3-tier state priority: session → disk → default collapsed
+     * - Session state always maintained (in-memory)
+     * - Disk persistence optional (respects rememberFileGroupStates setting)
+     * - States cleaned up for deleted files
+     *
+     * **Replacement Preview:**
+     * - Live preview shows replacement text with regex capture group expansion
+     * - Multiline matches show truncated preview with hover tooltip
+     * - Preview only shown when different from original match
+     *
+     * **UI Updates:**
+     * - Result count display updated (with "limited" indicator if applicable)
+     * - Adaptive toolbar shown/hidden based on results
+     * - Expand/collapse button state updated
+     * - Ellipsis menu enabled/disabled based on results
      */
     renderResults(results: SearchResult[], replaceText: string, searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean }, totalResults?: number, isLimited?: boolean): HTMLDivElement[] {
         // Clear previous results
@@ -432,10 +459,30 @@ export class UIRenderer {
 
     /**
      * Updates UI elements based on current results state
-     * @param resultCount - Number of search results (displayed)
-     * @param fileCount - Number of files containing results
-     * @param totalResults - Total results found (before limiting)
-     * @param isLimited - Whether results are limited
+     * Manages result count display, adaptive toolbar visibility, and action button states.
+     *
+     * @param {number} resultCount - Number of search results being displayed
+     * @param {number} [fileCount=0] - Number of files containing results
+     * @param {number} [totalResults] - Total results found before limiting (for "limited" message)
+     * @param {boolean} [isLimited] - Whether results are limited by max results setting
+     *
+     * @remarks
+     * **Result Count Display:**
+     * - No results: "0 results"
+     * - Limited results: "X of Y results in Z files (limited)"
+     * - Full results: "X results in Z files"
+     * - Proper singular/plural handling for "result" and "file"
+     *
+     * **Adaptive Toolbar:**
+     * - Hidden when no results exist
+     * - Shown when results are present
+     * - Ellipsis menu enabled/disabled based on results
+     * - Expand/collapse button shown/hidden and state updated
+     *
+     * **Button States:**
+     * - Expand/collapse button: Hidden when no results, state updated when visible
+     * - Ellipsis menu: Disabled when no results, enabled when results exist
+     * - Individual menu items handle their own enable/disable state
      */
     updateResultsUI(resultCount: number, fileCount: number = 0, totalResults?: number, isLimited?: boolean): void {
         const hasResults = resultCount > 0;
@@ -495,6 +542,25 @@ export class UIRenderer {
 
     /**
      * Toggles expand/collapse state for all file groups
+     * Expands all groups if currently collapsed, collapses all if currently expanded.
+     *
+     * @remarks
+     * **State Management:**
+     * - Uses current isCollapsed flag to determine target state
+     * - All file groups set to same state (all expanded OR all collapsed)
+     * - Session state always updated for all groups
+     * - Disk persistence optional (respects rememberFileGroupStates setting)
+     *
+     * **Behavior:**
+     * - Currently collapsed → expand all groups
+     * - Currently expanded → collapse all groups
+     * - Toolbar button icon updated (copy-plus for expand, copy-minus for collapse)
+     * - Settings saved to disk if persistence enabled
+     *
+     * **Performance:**
+     * - Batch state updates before saving to disk
+     * - Single saveSettings() call after all changes
+     * - Efficient DOM manipulation with classList operations
      */
     toggleExpandCollapseAll(): void {
         const targetState = this.isCollapsed; // If currently collapsed, we want to expand (false), and vice versa
@@ -542,6 +608,21 @@ export class UIRenderer {
 
     /**
      * Clears all results from the UI
+     * Removes all result elements and resets UI to empty state.
+     *
+     * @remarks
+     * **Actions Performed:**
+     * - Empties results container (removes all DOM elements)
+     * - Resets result count to 0
+     * - Hides adaptive toolbar
+     * - Disables ellipsis menu button
+     * - Hides expand/collapse button
+     *
+     * **When Called:**
+     * - User clears search input
+     * - Empty search query submitted
+     * - Search returns no results
+     * - Clear All button clicked
      */
     clearResults(): void {
         this.elements.resultsContainer.empty();
@@ -623,7 +704,23 @@ export class UIRenderer {
 
     /**
      * Cleanup method for when the renderer is no longer needed
-     * Clears all references and cached data
+     * Clears all references and cached data to prevent memory leaks.
+     *
+     * @remarks
+     * **Cleanup Actions:**
+     * - Clears element references (DOM cleaned by Obsidian)
+     * - Nullifies searchEngine reference
+     * - Releases all object references for garbage collection
+     *
+     * **When Called:**
+     * - View is closed by user
+     * - Plugin is unloaded
+     * - View is destroyed during Obsidian shutdown
+     *
+     * **Memory Management:**
+     * - Essential for preventing memory leaks
+     * - Breaks circular references
+     * - Allows proper garbage collection
      */
     dispose(): void {
         // Clear DOM references (elements are cleaned by Obsidian)
