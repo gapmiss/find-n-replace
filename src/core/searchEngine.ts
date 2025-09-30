@@ -342,7 +342,7 @@ export class SearchEngine {
             failedFiles: this.failedFiles.length
         });
 
-        // Notify user about partial failures if any occurred
+        // Log partial failures if any occurred (warnings only, no user notifications)
         if (this.failedFiles.length > 0) {
             const failedCount = this.failedFiles.length;
             const totalCount = files.length;
@@ -350,17 +350,13 @@ export class SearchEngine {
 
             if (failedCount < 5) {
                 // Show specific files if few failures
-                this.logger.error(
-                    `Search completed with ${failedCount} file${failedCount > 1 ? 's' : ''} inaccessible: ${this.failedFiles.join(', ')}`,
-                    undefined,
-                    true
+                this.logger.warn(
+                    `Search completed with ${failedCount} file${failedCount > 1 ? 's' : ''} inaccessible: ${this.failedFiles.join(', ')}`
                 );
             } else {
                 // Show summary if many failures
-                this.logger.error(
-                    `Search partially completed: ${successfulCount}/${totalCount} files searched (${failedCount} files inaccessible)`,
-                    undefined,
-                    true
+                this.logger.warn(
+                    `Search partially completed: ${successfulCount}/${totalCount} files searched (${failedCount} files inaccessible)`
                 );
             }
         }
