@@ -41,6 +41,11 @@ export class ActionHandler {
 
     /**
      * Sets up all event handlers for the UI
+     * Initializes event listeners for replace input, toggle buttons, clear button, and expand/collapse.
+     *
+     * @remarks
+     * This method must be called during view initialization to enable user interactions.
+     * Calls multiple setup methods to organize event handler registration.
      */
     setupEventHandlers(): void {
         this.setupReplaceInputHandler();
@@ -51,6 +56,9 @@ export class ActionHandler {
 
     /**
      * Updates the isSearching state (called from SearchController)
+     * Used to coordinate state between SearchController and ActionHandler.
+     *
+     * @param {boolean} isSearching - True if search is in progress, false otherwise
      */
     setSearchingState(isSearching: boolean): void {
         this.isSearching = isSearching;
@@ -58,6 +66,13 @@ export class ActionHandler {
 
     /**
      * Sets callbacks for accessing view state
+     * Required for replace operations to access current search results and selections.
+     *
+     * @param {function} getResultsCallback - Function that returns current search results array
+     * @param {function} getSelectedIndicesCallback - Function that returns Set of selected result indices
+     *
+     * @remarks
+     * Must be called before any replace operations to ensure state access is available.
      */
     setStateCallbacks(
         getResultsCallback: () => any[],
@@ -68,7 +83,10 @@ export class ActionHandler {
     }
 
     /**
-     * Sets the expand/collapse callback
+     * Sets the expand/collapse callback for toolbar button
+     * Enables the expand/collapse all button functionality.
+     *
+     * @param {function} callback - Function to call when expand/collapse button is clicked
      */
     setExpandCollapseCallback(callback: () => void): void {
         this.toggleExpandCollapseCallback = callback;
@@ -172,7 +190,28 @@ export class ActionHandler {
     }
 
     /**
-     * Replace all selected matches
+     * Replace all currently selected matches
+     * Replaces only the matches that user has selected via multi-selection.
+     *
+     * @returns {Promise<void>} Resolves when replacement operation completes
+     *
+     * @remarks
+     * **Prerequisites:**
+     * - getSelectedIndicesCallback must be set via setStateCallbacks()
+     * - getResultsCallback must be set via setStateCallbacks()
+     *
+     * **Behavior:**
+     * - Shows confirmation if replacing with empty string
+     * - Adds replace text to history on success
+     * - Triggers search refresh to update UI
+     * - Logs detailed operation progress
+     *
+     * **Error Handling:**
+     * - Returns early if no matches selected
+     * - Shows user notification on failure
+     * - Logs errors with full context
+     *
+     * @throws Will log error and show user notification on replacement failure
      */
     async replaceSelectedMatches(): Promise<void> {
         this.logger.debug('=== REPLACE SELECTED START ===');
@@ -233,7 +272,34 @@ export class ActionHandler {
     }
 
     /**
-     * Replace all matches in the entire vault
+     * Replace all matches across the entire vault
+     * Destructive operation that replaces every match found in all search results.
+     *
+     * @returns {Promise<void>} Resolves when replacement operation completes
+     *
+     * @remarks
+     * **Prerequisites:**
+     * - getResultsCallback must be set via setStateCallbacks()
+     * - Search query must exist in search input
+     *
+     * **Safety Features:**
+     * - Shows confirmation modal if confirmDestructiveActions setting enabled
+     * - Different message for empty replacement (deletion)
+     * - User can cancel operation
+     *
+     * **Behavior:**
+     * - Replaces ALL matches in current search results
+     * - Adds replace text to history on success
+     * - Triggers search refresh to update UI
+     * - Shows success notification with counts
+     *
+     * **Error Handling:**
+     * - Returns early if no search query
+     * - Returns if user cancels confirmation
+     * - Shows user notification on failure
+     * - Logs errors with full context
+     *
+     * @throws Will log error and show user notification on replacement failure
      */
     async replaceAllInVault(): Promise<void> {
         this.logger.debug('=== REPLACE ALL IN VAULT START ===');
@@ -343,6 +409,20 @@ export class ActionHandler {
 
     /**
      * Sets up keyboard shortcuts for replace operations
+     * Registers document-level keyboard event listeners for global shortcuts.
+     *
+     * @remarks
+     * **Registered Shortcuts:**
+     * - Ctrl/Cmd + Enter: Replace All in Vault (when focus is within plugin container)
+     *
+     * **Scope:**
+     * - Event listener attached to document for global access
+     * - Only triggers when activeElement is within `.find-replace-container`
+     * - Prevents default browser behavior for registered shortcuts
+     *
+     * **Important:**
+     * - Must call corresponding cleanup method when view is destroyed
+     * - Event listener persists until explicitly removed
      */
     setupKeyboardShortcuts(): void {
         // Ctrl/Cmd + Enter: Replace all
