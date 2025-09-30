@@ -43,6 +43,7 @@ export class SearchController {
 
     /**
      * Gets the current searching state
+     * @returns {boolean} True if a search is currently in progress, false otherwise
      */
     getSearchingState(): boolean {
         return this.isSearching;
@@ -50,6 +51,13 @@ export class SearchController {
 
     /**
      * Sets up basic navigation with Enter key search functionality
+     * Attaches keyboard event listeners to search and replace inputs for Enter key handling.
+     * Also adds Enter/Space key support for toggle buttons.
+     *
+     * @remarks
+     * - Enter in search input: saves query to history and triggers search
+     * - Enter in replace input: saves replace text to history (if query exists) and triggers search
+     * - Enter/Space on toggle buttons: activates the toggle
      */
     setupBasicNavigation(): void {
         // Set up Enter key handler for search input
@@ -106,6 +114,13 @@ export class SearchController {
 
     /**
      * Sets up auto-search with proper debouncing
+     * Attaches a debounced input event listener to the search input field.
+     * Only called when `enableAutoSearch` setting is true.
+     *
+     * @remarks
+     * - Debounce delay configured via `plugin.settings.searchDebounceDelay`
+     * - Empty queries trigger result clearing instead of search
+     * - Non-empty queries trigger full search operation
      */
     setupAutoSearch(): void {
         const debouncedSearch = debounce(async () => {
@@ -130,6 +145,18 @@ export class SearchController {
 
     /**
      * Main search function - handles all search logic and state management
+     * Executes vault-wide search with current query and options, then renders results.
+     *
+     * @returns {Promise<void>} Resolves when search and render are complete
+     *
+     * @remarks
+     * **Search Serialization:** Cancels any in-progress search before starting new one
+     * **Empty Query Handling:** Clears results when query is empty
+     * **Error Handling:** Shows user notifications for timeouts and failures
+     * **Result Limiting:** Enforces max results setting with user notification
+     * **State Management:** Updates isSearching flag and result state
+     *
+     * @throws Will log errors and show user notification on search failure
      */
     async performSearch(): Promise<void> {
         const callId = Date.now().toString();
@@ -296,7 +323,19 @@ export class SearchController {
     }
 
     /**
-     * Gets current search options (for non-search operations)
+     * Gets current search options from toggle button states
+     * Used by replacement operations and other components that need current search configuration.
+     *
+     * @returns {Object} Search options object with boolean flags
+     * @returns {boolean} returns.matchCase - Case-sensitive matching enabled
+     * @returns {boolean} returns.wholeWord - Whole word matching enabled
+     * @returns {boolean} returns.useRegex - Regular expression mode enabled
+     * @returns {boolean} returns.multiline - Multiline regex mode enabled
+     *
+     * @remarks
+     * - Reads current state from UI toggle buttons
+     * - Logs warning if called while search is in progress (potential race condition)
+     * - Primarily used by replacement engine for maintaining search consistency
      */
     getSearchOptions(): { matchCase: boolean; wholeWord: boolean; useRegex: boolean; multiline: boolean } {
         const matchCase = this.getToggleValue(this.elements.matchCaseCheckbox);
