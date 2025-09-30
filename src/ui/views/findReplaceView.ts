@@ -114,9 +114,6 @@ export class FindReplaceView extends ItemView {
         // Create adaptive toolbar using SearchToolbar
         const adaptiveElements = this.searchToolbar.createAdaptiveToolbar(searchToolbar);
 
-        // Set up clear button navigation using SearchToolbar
-        this.searchToolbar.setupClearButtonNavigation(replaceElements.clearAllBtn, adaptiveElements.adaptiveToolbar, resultsContainer);
-
         // Set up expand/collapse button navigation using SearchToolbar
         this.searchToolbar.setupExpandCollapseNavigation(adaptiveElements.toolbarBtn, resultsContainer);
 

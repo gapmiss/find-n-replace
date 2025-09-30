@@ -388,6 +388,7 @@ export class ReplacementEngine {
 
     /**
      * Validates replacement text for potential issues
+     * @internal Test utility - validation not yet implemented in UI
      * @param replaceText - The replacement text to validate
      * @param searchOptions - Current search options
      * @returns Object with validation result and any warnings

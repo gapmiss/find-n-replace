@@ -300,57 +300,6 @@ export class SelectionManager {
         this.updateSelectionUI();
     }
 
-    /**
-     * Selects a range of results
-     * Selects all indices from startIndex to endIndex (inclusive), regardless of order.
-     *
-     * @param {number} startIndex - Starting index (inclusive, zero-based)
-     * @param {number} endIndex - Ending index (inclusive, zero-based)
-     *
-     * @remarks
-     * **Range Handling:**
-     * - Automatically determines min and max (order doesn't matter)
-     * - Inclusive on both ends
-     * - Bounds checking prevents out-of-range selection
-     *
-     * **Use Cases:**
-     * - Shift+Click range selection (future feature)
-     * - Programmatic bulk selection
-     */
-    selectRange(startIndex: number, endIndex: number): void {
-        const start = Math.min(startIndex, endIndex);
-        const end = Math.max(startIndex, endIndex);
-
-        for (let i = start; i <= end && i < this.lineElements.length; i++) {
-            this.selectedIndices.add(i);
-        }
-        this.updateSelectionUI();
-    }
-
-    /**
-     * Inverts the current selection
-     * Selects all currently unselected results and deselects all currently selected results.
-     *
-     * @remarks
-     * **Behavior:**
-     * - Unselected results become selected
-     * - Selected results become unselected
-     * - Total selection count = lineElements.length - previous count
-     *
-     * **Use Cases:**
-     * - Quick selection inversion for bulk operations
-     * - "Select everything except..." workflows
-     */
-    invertSelection(): void {
-        const newSelection = new Set<number>();
-        for (let i = 0; i < this.lineElements.length; i++) {
-            if (!this.selectedIndices.has(i)) {
-                newSelection.add(i);
-            }
-        }
-        this.selectedIndices = newSelection;
-        this.updateSelectionUI();
-    }
 
     /**
      * Adjusts selection indices when results are removed from the array

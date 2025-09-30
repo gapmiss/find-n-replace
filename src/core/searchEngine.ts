@@ -425,6 +425,7 @@ export class SearchEngine {
 
     /**
      * Validates if a search query is valid for the given options
+     * @internal Test utility - validation happens in view layer in production
      * @param query - The search query to validate
      * @param options - Search configuration options
      * @returns true if valid, false otherwise

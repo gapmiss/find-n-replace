@@ -23,6 +23,3 @@ data.json
 
 .hotreload
 *.copy.ts
-
-# Backup files
-CLAUDE_FULL_BACKUP.md

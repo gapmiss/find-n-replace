@@ -153,6 +153,7 @@ export class HistoryNavigator {
 
     /**
      * Gets the current history position (-1 if not in history mode)
+     * @internal Test utility - not used in production code
      */
     getCurrentIndex(): number {
         return this.currentIndex;
@@ -160,6 +161,7 @@ export class HistoryNavigator {
 
     /**
      * Checks if currently navigating history
+     * @internal Test utility - not used in production code
      */
     isInHistoryMode(): boolean {
         return this.currentIndex !== -1;
@@ -167,6 +169,7 @@ export class HistoryNavigator {
 
     /**
      * Detaches the navigator (cleanup)
+     * @internal Test utility - cleanup happens via component disposal in production
      */
     detach(): void {
         this.input = null;

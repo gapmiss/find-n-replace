@@ -1,4 +1,4 @@
-import { App, MarkdownView, TFile, WorkspaceLeaf, TFolder, TAbstractFile, Editor } from 'obsidian';
+import { App, MarkdownView, TFile, WorkspaceLeaf, Editor } from 'obsidian';
 import { Logger } from '../utils';
 import VaultFindReplacePlugin from '../main';
 
@@ -88,73 +88,6 @@ export class FileOperations {
         }
     }
 
-    /**
-     * Opens a file without navigating to a specific location
-     * @param file - The file to open
-     * @param newLeaf - Whether to open in a new leaf
-     */
-    async openFile(file: TFile, newLeaf: boolean = false): Promise<void> {
-        try {
-            if (newLeaf) {
-                const leaf = this.app.workspace.getLeaf(true);
-                await leaf.openFile(file);
-                this.app.workspace.revealLeaf(leaf);
-            } else {
-                await this.app.workspace.openLinkText(file.path, '', false);
-            }
-        } catch (error) {
-            this.logger.error('Error opening file:', error);
-        }
-    }
-
-    /**
-     * Gets the currently active markdown file
-     * @returns The active file or null if none
-     */
-    getActiveFile(): TFile | null {
-        const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-        return activeView?.file || null;
-    }
-
-    /**
-     * Checks if a file is currently open in any leaf
-     * @param file - The file to check
-     * @returns true if the file is open
-     */
-    isFileOpen(file: TFile): boolean {
-        const leaves = this.app.workspace.getLeavesOfType('markdown');
-        return leaves.some(leaf => {
-            const view = leaf.view as MarkdownView;
-            return view.file?.path === file.path;
-        });
-    }
-
-    /**
-     * Gets all open markdown files
-     * @returns Array of open TFile objects
-     */
-    getOpenFiles(): TFile[] {
-        const leaves = this.app.workspace.getLeavesOfType('markdown');
-        return leaves
-            .map(leaf => (leaf.view as MarkdownView).file)
-            .filter((file): file is TFile => file !== null);
-    }
-
-    /**
-     * Closes a specific file if it's open
-     * @param file - The file to close
-     */
-    async closeFile(file: TFile): Promise<void> {
-        const leaves = this.app.workspace.getLeavesOfType('markdown');
-        const targetLeaf = leaves.find(leaf => {
-            const view = leaf.view as MarkdownView;
-            return view.file?.path === file.path;
-        });
-
-        if (targetLeaf) {
-            await targetLeaf.detach();
-        }
-    }
 
     /**
      * Ensures a leaf is in source mode (not preview mode)
@@ -227,42 +160,6 @@ export class FileOperations {
     }
 
     /**
-     * Gets file statistics for the current vault
-     * @returns Object with file counts and sizes
-     */
-    async getVaultStatistics(): Promise<{
-        totalFiles: number;
-        markdownFiles: number;
-        totalSize: number;
-    }> {
-        const allFiles = this.app.vault.getAllLoadedFiles();
-        const markdownFiles = this.app.vault.getMarkdownFiles();
-
-        let totalSize = 0;
-        for (const file of allFiles) {
-            if (file instanceof TFile) {
-                totalSize += file.stat.size;
-            }
-        }
-
-        return {
-            totalFiles: allFiles.length,
-            markdownFiles: markdownFiles.length,
-            totalSize
-        };
-    }
-
-    /**
-     * Checks if a file path exists in the vault
-     * @param path - The file path to check
-     * @returns true if the file exists
-     */
-    fileExists(path: string): boolean {
-        const file = this.app.vault.getAbstractFileByPath(path);
-        return file instanceof TFile;
-    }
-
-    /**
      * Gets a file by its path
      * @param path - The file path
      * @returns The file or null if not found
@@ -270,55 +167,6 @@ export class FileOperations {
     getFileByPath(path: string): TFile | null {
         const file = this.app.vault.getAbstractFileByPath(path);
         return file instanceof TFile ? file : null;
-    }
-
-    /**
-     * Gets the relative path for a file
-     * @param file - The file
-     * @returns The relative path from vault root
-     */
-    getRelativePath(file: TFile): string {
-        return file.path;
-    }
-
-    /**
-     * Gets the basename of a file (filename without extension)
-     * @param file - The file
-     * @returns The basename
-     */
-    getBasename(file: TFile): string {
-        return file.basename;
-    }
-
-    /**
-     * Gets all files in a specific folder
-     * @param folderPath - Path to the folder
-     * @returns Array of files in the folder
-     */
-    getFilesInFolder(folderPath: string): TFile[] {
-        const abstractFile = this.app.vault.getAbstractFileByPath(folderPath);
-        if (!(abstractFile instanceof TFolder)) {
-            return [];
-        }
-
-        const folder = abstractFile as TFolder;
-        const files: TFile[] = [];
-
-        const collectFiles = (items: TAbstractFile[]) => {
-            for (const item of items) {
-                if (item instanceof TFile && item.extension === 'md') {
-                    files.push(item);
-                } else if (item instanceof TFolder && item.children) {
-                    collectFiles(item.children);
-                }
-            }
-        };
-
-        if (folder.children) {
-            collectFiles(folder.children);
-        }
-
-        return files;
     }
 
     /**

@@ -167,6 +167,7 @@ export class HistoryManager {
 
     /**
      * Removes a specific entry from search history
+     * @internal Test utility - individual entry removal UI not implemented
      * @param pattern - The pattern to remove
      */
     removeSearchEntry(pattern: string): void {
@@ -181,6 +182,7 @@ export class HistoryManager {
 
     /**
      * Removes a specific entry from replace history
+     * @internal Test utility - individual entry removal UI not implemented
      * @param pattern - The pattern to remove
      */
     removeReplaceEntry(pattern: string): void {
@@ -193,21 +195,4 @@ export class HistoryManager {
         }
     }
 
-    /**
-     * Updates max history size and trims existing history if needed
-     * Called when settings change
-     */
-    updateMaxSize(): void {
-        const maxSize = this.getMaxSize();
-
-        // Trim existing histories if needed
-        if (this.plugin.settings.searchHistory.length > maxSize) {
-            this.plugin.settings.searchHistory.length = maxSize;
-            this.logger.debug(`Trimmed search history to ${maxSize} entries`);
-        }
-        if (this.plugin.settings.replaceHistory.length > maxSize) {
-            this.plugin.settings.replaceHistory.length = maxSize;
-            this.logger.debug(`Trimmed replace history to ${maxSize} entries`);
-        }
-    }
 }

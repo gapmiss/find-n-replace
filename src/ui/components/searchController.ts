@@ -363,32 +363,6 @@ export class SearchController {
         return toggleBtn.getAttribute('aria-pressed') === 'true';
     }
 
-    /**
-     * Validates search input and provides visual feedback
-     */
-    validateSearchInput(query: string, useRegex: boolean): boolean {
-        const input = this.elements.searchInput;
-
-        // Remove any existing validation classes
-        input.classList.remove('invalid-regex', 'empty-search');
-
-        if (!query.trim()) {
-            input.classList.add('empty-search');
-            return false;
-        }
-
-        if (useRegex) {
-            try {
-                new RegExp(query);
-                return true;
-            } catch {
-                input.classList.add('invalid-regex');
-                return false;
-            }
-        }
-
-        return true;
-    }
 
     /**
      * Cancels any ongoing search operation

@@ -521,12 +521,6 @@ export class SearchToolbar {
         };
     }
 
-    /**
-     * Sets up tab navigation for the clear button
-     */
-    setupClearButtonNavigation(clearAllBtn: HTMLButtonElement, adaptiveToolbar: HTMLElement, resultsContainer: HTMLElement): void {
-        // No custom tab navigation - let browser handle natural DOM order
-    }
 
     /**
      * Sets up filter button toggle functionality
