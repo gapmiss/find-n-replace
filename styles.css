@@ -2,11 +2,11 @@
 /* All view-specific styles are scoped to prevent conflicts with other plugins */
 
 /* --- Container --- */
-[data-type="find-replace-view"] .find-replace-container {
+[data-type="find-replace-view"] {
     display: flex;
     flex-direction: column;
     gap: var(--size-4-2);
-    padding: var(--size-4-3);
+    padding: var(--size-4-2);
 }
 
 /* --- Find-n-Replace Help Modal Styling (Globally Scoped - Modals) --- */
