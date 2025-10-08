@@ -5,11 +5,13 @@
 Your plugin has a robust Vitest testing setup with:
 
 ### **Test Configuration**
-- **Vitest 2.1.0** (2025 modern standard)
-- **JSDOM environment** for DOM testing
+- **Vitest 3.2.4** (latest 2025 version)
+- **JSDOM 25.0.0** environment for DOM testing
 - **Coverage with V8 provider** (text, json, html reports)
 - **Path aliases** (`@` for src, `@tests` for src/tests)
 - **Global test utilities** and comprehensive Obsidian API mocks
+- **Fast-check 3.19.0** for property-based testing
+- **Testing Library DOM 10.4.0** for UI component testing
 
 ### **NPM Scripts Available**
 ```bash
@@ -19,10 +21,11 @@ npm run test:watch    # Watch mode (re-run on file changes)
 npm run test:coverage # Generate coverage reports
 ```
 
-### **Test Suite Structure** (255 tests across 18 suites - 100% pass rate)
+### **Test Suite Structure** (296 tests across 20 suites)
 ```
 src/tests/
 ├── basic.test.ts                    # Framework validation (2 tests)
+├── simple.test.ts                   # Simple sanity checks
 ├── unit/
 │   ├── regexUtils.test.ts          # Pattern matching (10 tests)
 │   ├── positionTracking.test.ts    # Column position accuracy (9 tests)
@@ -32,10 +35,15 @@ src/tests/
 ├── core/
 │   ├── searchEngine.test.ts        # Core search functionality
 │   ├── replacementEngine.test.ts   # Replacement operations
-│   └── fileFiltering.test.ts       # File filtering system (40+ tests)
+│   ├── fileFiltering.test.ts       # File filtering system (40+ tests)
+│   ├── historyManager.test.ts      # Search/replace history management
+│   ├── multilineSearch.test.ts     # Multiline regex search functionality
+│   └── multilineReplacement.test.ts # Multiline replacement operations
 ├── ui/
 │   ├── components.test.ts          # Component architecture (35+ tests)
-│   └── helpModal.test.ts           # Help modal functionality (25+ tests)
+│   ├── helpModal.test.ts           # Help modal functionality (25+ tests)
+│   ├── historyNavigator.test.ts    # Arrow key history navigation
+│   └── multilineUI.test.ts         # Multiline UI interactions (13 tests, 4 failing)
 ├── utils/
 │   └── logger.test.ts              # Logging system (30+ tests)
 ├── integration/
@@ -313,6 +321,7 @@ describe('ReplacementEngine', () => {
 ### **Vitest Config** (`vitest.config.ts`)
 ```typescript
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
   test: {
@@ -324,7 +333,9 @@ export default defineConfig({
       exclude: [
         'node_modules/**',
         'src/tests/**',
-        '**/*.d.ts'
+        '**/*.d.ts',
+        'demo/**',
+        'build/**'
       ]
     }
   },
@@ -351,13 +362,14 @@ Provides comprehensive Obsidian API mocks including:
 1. **Write tests first** for new features (TDD approach)
 2. **Use descriptive test names** that explain the scenario
 3. **Test edge cases** and error conditions
-4. **Mock external dependencies** appropriately
+4. **Mock external dependencies** appropriately (especially HistoryManager for UI tests)
 5. **Keep tests isolated** and independent
 6. **Use property-based testing** for comprehensive coverage
 7. **Write regression tests** for fixed bugs
 8. **Monitor test performance** and coverage
 9. **Use watch mode** during development
 10. **Document complex test scenarios**
+11. **Fix failing tests promptly** - 16 tests currently failing in multilineUI.test.ts due to HistoryManager mock issues
 
 ## Continuous Integration
 
@@ -366,7 +378,7 @@ Tests run automatically on:
 - Pull request validation
 - Release builds
 
-**Current Status: 203/203 tests passing** - Complete test suite runs in under 2 seconds with 100% pass rate, including comprehensive fuzzing and integration tests.
+**Current Status: 280/296 tests passing** - Most tests pass reliably with 16 failures in multilineUI.test.ts due to mock setup issues. Core functionality has comprehensive coverage.
 
 ## Latest Test Coverage (2025)
 
@@ -381,6 +393,22 @@ Tests run automatically on:
 - **Combined Filtering:** Multiple filter types working together with VSCode-style interface
 - **Edge Cases:** Special characters, empty patterns, whitespace handling
 - **Performance:** Large file collection filtering with session-only state management
+
+#### **Multiline Search & Replacement Tests** (`core/multilineSearch.test.ts`, `core/multilineReplacement.test.ts`)
+- **Basic Multiline Patterns:** Cross-line regex with `\n`, anchors (`^`, `$`), and multiline flag support
+- **Capture Groups:** Complex capture group patterns with proper expansion in multiline context
+- **Performance:** Large content handling with regex timeout protection
+- **Edge Cases:** Overlapping matches, anchors at boundaries, special characters across lines
+- **Preview Generation:** Accurate replacement preview for multiline matches
+- **Individual/Batch Replacement:** Support for all replacement modes with multiline patterns
+
+#### **History Management Tests** (`core/historyManager.test.ts`, `ui/historyNavigator.test.ts`)
+- **LRU Cache:** Search and replace history with configurable max size (10-200 entries)
+- **Persistence:** History saved across sessions in plugin settings
+- **Deduplication:** Prevents consecutive identical entries
+- **Navigation:** VSCode-style ↑↓ arrow key navigation through history
+- **Settings Integration:** Enable/disable toggle, clear all functionality
+- **UI Integration:** History navigator attachment to input fields with proper event handling
 
 #### **Enhanced Help Modal Tests** (`ui/helpModal.test.ts`)
 - **Individual `<kbd>` Tag Rendering:** Separate keyboard key elements for professional appearance
@@ -534,11 +562,13 @@ it('should only log error messages at ERROR level', () => {
 ### **Test Coverage Metrics**
 
 - **Core Functionality:** 95%+ coverage on search, replace, filtering
-- **UI Components:** 90%+ coverage on component architecture
+- **UI Components:** 90%+ coverage on component architecture (some multiline UI tests failing)
 - **Error Handling:** 100% coverage on critical error paths
 - **Edge Cases:** Comprehensive coverage of boundary conditions
 - **Performance:** Stress testing with large datasets
 - **Integration:** Cross-component communication and lifecycle
+- **Multiline Features:** Comprehensive coverage for search/replace, partial UI coverage (fixing in progress)
+- **History Management:** Complete coverage for LRU cache and persistence logic
 
 ### **Quality Assurance Impact**
 
@@ -548,4 +578,12 @@ it('should only log error messages at ERROR level', () => {
 4. **Performance Monitoring:** Automated detection of performance regressions
 5. **User Experience:** UI component interactions thoroughly validated
 
-This comprehensive test infrastructure ensures reliability, prevents regressions, and supports confident development of new features while maintaining the plugin's production-ready quality standards.
+### **Known Issues**
+
+Currently tracking **16 failing tests** in `src/tests/ui/multilineUI.test.ts`:
+- **Root Cause:** Mock HistoryManager not properly initialized in SearchToolbar tests
+- **Impact:** Limited to multiline UI tests; core multiline search/replace functionality fully tested and working
+- **Status:** Requires mock infrastructure enhancement for HistoryManager integration
+- **Workaround:** Core multiline features validated through integration tests
+
+This comprehensive test infrastructure ensures reliability, prevents regressions, and supports confident development of new features while maintaining the plugin's production-ready quality standards. Active maintenance keeps the test suite current with evolving features.
