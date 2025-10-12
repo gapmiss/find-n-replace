@@ -515,6 +515,9 @@ export class UIRenderer {
 
         // Show/hide adaptive toolbar based on whether we have results
         this.elements.adaptiveToolbar?.classList.toggle('hidden', !hasResults);
+
+        // Hide results container when no results to prevent keyboard focus on empty div
+        this.elements.resultsContainer?.classList.toggle('hidden', !hasResults);
     }
 
     /**

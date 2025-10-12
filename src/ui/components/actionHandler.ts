@@ -151,6 +151,10 @@ export class ActionHandler {
             this.elements.searchInput.value = '';
             this.elements.replaceInput.value = '';
 
+            // Dispatch input events to update clear icon visibility
+            this.elements.searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            this.elements.replaceInput.dispatchEvent(new Event('input', { bubbles: true }));
+
             // Reset toggle states to inactive
             const toggleButtons = [
                 this.elements.matchCaseCheckbox,

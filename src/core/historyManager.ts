@@ -195,4 +195,28 @@ export class HistoryManager {
         }
     }
 
+    /**
+     * Trims history arrays to match current max size setting
+     * Called when max history size setting is changed
+     */
+    updateMaxSize(): void {
+        const maxSize = this.getMaxSize();
+
+        // Trim search history if needed
+        if (this.plugin.settings.searchHistory.length > maxSize) {
+            const removed = this.plugin.settings.searchHistory.length - maxSize;
+            this.plugin.settings.searchHistory.splice(maxSize);
+            this.logger.info(`Trimmed search history to ${maxSize} entries (removed ${removed})`);
+        }
+
+        // Trim replace history if needed
+        if (this.plugin.settings.replaceHistory.length > maxSize) {
+            const removed = this.plugin.settings.replaceHistory.length - maxSize;
+            this.plugin.settings.replaceHistory.splice(maxSize);
+            this.logger.info(`Trimmed replace history to ${maxSize} entries (removed ${removed})`);
+        }
+
+        this.plugin.saveSettings();
+    }
+
 }

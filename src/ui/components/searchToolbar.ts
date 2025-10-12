@@ -418,10 +418,11 @@ export class SearchToolbar {
      * This container is populated by UIRenderer with search results organized by file.
      * The container is focusable (tabindex: 12) and serves as the target for keyboard navigation
      * from the adaptive toolbar.
+     * Initially hidden until results are rendered.
      */
     createResultsContainer(containerEl: HTMLElement): HTMLElement {
         return containerEl.createDiv({
-            cls: 'find-replace-results',
+            cls: 'find-replace-results hidden',
             attr: { 'tabindex': '12' }
         });
     }
