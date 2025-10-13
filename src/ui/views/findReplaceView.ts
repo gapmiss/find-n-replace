@@ -248,7 +248,7 @@ export class FindReplaceView extends ItemView {
         this.state.lineElements = [];
 
         // Clear element references (DOM cleanup handled by Obsidian)
-        this.elements = null as any;
+        this.elements = null!;
     }
 
     /**

@@ -403,6 +403,6 @@ export class SelectionManager {
         this.selectedIndices.clear();
         this.lineElements = [];
         // Clear reference to elements for garbage collection
-        this.elements = null as any;
+        this.elements = null!;
     }
 }

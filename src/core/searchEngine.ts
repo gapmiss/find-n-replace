@@ -1,4 +1,4 @@
-import { App, Notice } from 'obsidian';
+import { App, Notice, TAbstractFile, TFile } from 'obsidian';
 import { SearchResult, SearchOptions, SessionFilters } from '../types';
 import { Logger } from '../utils';
 import VaultFindReplacePlugin from '../main';
@@ -36,7 +36,7 @@ export class SearchEngine {
      * @param sessionFilters - Optional session-only filters (overrides plugin settings)
      * @returns Filtered array of files
      */
-    private filterFiles(files: any[], sessionFilters?: SessionFilters): any[] {
+    private filterFiles(files: TAbstractFile[], sessionFilters?: SessionFilters): TFile[] {
         // Use session filters if provided, otherwise fall back to plugin settings
         const settings = sessionFilters ? {
             fileExtensions: sessionFilters.fileExtensions || [],
@@ -61,17 +61,20 @@ export class SearchEngine {
             excludePatterns: settings.excludePatterns
         });
 
+        // Filter out folders - we only want files
+        filteredFiles = filteredFiles.filter(file => 'extension' in file) as TFile[];
+
         // Filter by file extensions if specified
         if (settings.fileExtensions.length > 0) {
             filteredFiles = filteredFiles.filter(file => {
-                const extension = file.extension;
+                const extension = (file as TFile).extension;
                 // Support both '.md' and 'md' formats in settings
                 const included = settings.fileExtensions.some(ext =>
                     ext === extension || ext === '.' + extension
                 );
                 this.logger.trace(`File ${file.path}: extension ${extension}, included: ${included}`);
                 return included;
-            });
+            }) as TFile[];
         }
 
         // Filter by folder inclusion if specified
@@ -127,7 +130,7 @@ export class SearchEngine {
         }
 
         this.logger.debug(`Filtered ${files.length} files down to ${filteredFiles.length} files`);
-        return filteredFiles;
+        return filteredFiles as TFile[];
     }
 
     /**
@@ -450,7 +453,6 @@ export class SearchEngine {
      */
     dispose(): void {
         this.clearCache();
-        // Clear reference to app for garbage collection
-        this.app = null as any;
+        // No need to clear app reference - TypeScript null safety handles this
     }
 }

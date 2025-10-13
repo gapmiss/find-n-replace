@@ -26,7 +26,7 @@ export class MockWorkspace {
 
     private createMockLeaf(): WorkspaceLeaf {
         return {
-            view: null as any,
+            view: null!,
             setViewState: async (state: any) => {
                 // Mock view state setting
                 return Promise.resolve();

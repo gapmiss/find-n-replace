@@ -19,6 +19,31 @@ interface TipItem {
     suffix?: string;
 }
 
+interface HotkeyData {
+    modifiers?: string[];
+    key?: string;
+}
+
+interface ScopeKeyData {
+    modifiers?: number;
+    key?: string;
+    func?: () => unknown;
+}
+
+interface ObsidianInternalApp {
+    hotkeyManager?: {
+        customKeys?: Record<string, HotkeyData[]>;
+    };
+    scope?: {
+        keys?: ScopeKeyData[];
+    };
+    commands?: {
+        commands?: Record<string, {
+            hotkeys?: HotkeyData[];
+        }>;
+    };
+}
+
 export class HelpModal extends Modal {
     private plugin: VaultFindReplacePlugin;
 
@@ -170,7 +195,7 @@ export class HelpModal extends Modal {
         console.debug(`[Help Modal] Looking for hotkey for command: ${fullCommandId}`);
 
         // Try multiple ways to access hotkey data
-        const app = this.app as any;
+        const app = this.app as unknown as ObsidianInternalApp;
 
         // Method 1: Check hotkeyManager
         if (app.hotkeyManager?.customKeys?.[fullCommandId]) {
@@ -212,7 +237,7 @@ export class HelpModal extends Modal {
         return 'Not set';
     }
 
-    private formatHotkeys(hotkeyArray: any[]): string {
+    private formatHotkeys(hotkeyArray: HotkeyData[]): string {
         if (hotkeyArray.length === 1) {
             return this.formatHotkey(hotkeyArray[0]);
         } else if (hotkeyArray.length > 1) {
@@ -222,7 +247,7 @@ export class HelpModal extends Modal {
         return 'Not set';
     }
 
-    private formatHotkey(hotkeyData: any): string {
+    private formatHotkey(hotkeyData: HotkeyData): string {
         const modifiers = [];
         if (hotkeyData.modifiers) {
             if (hotkeyData.modifiers.includes('Mod')) modifiers.push('Ctrl/Cmd');
@@ -238,7 +263,7 @@ export class HelpModal extends Modal {
         return keys.map(k => `<kbd>${k}</kbd>`).join('+');
     }
 
-    private formatHotkeyFromScope(scopeKey: any): string {
+    private formatHotkeyFromScope(scopeKey: ScopeKeyData): string {
         const modifiers = [];
 
         // Check scope key modifiers

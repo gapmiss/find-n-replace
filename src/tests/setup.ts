@@ -116,7 +116,7 @@ global.createMockFile = (path: string, content: string) => ({
   basename: path.split('/').pop()?.replace(/\.[^.]*$/, '') || path,
   extension: path.split('.').pop() || '',
   stat: { mtime: Date.now(), ctime: Date.now(), size: content.length },
-  vault: null as any
+  vault: null!
 });
 
 // Console override for clean test output

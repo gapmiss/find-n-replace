@@ -1,7 +1,7 @@
 import { debounce } from 'obsidian';
 import { Logger } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
-import { FindReplaceElements, SearchOptions, ReplacementResult } from '../../types';
+import { FindReplaceElements, SearchOptions, ReplacementResult, SearchResult } from '../../types';
 import { SearchEngine, ReplacementEngine } from '../../core';
 import { ConfirmModal } from '../../modals';
 
@@ -18,7 +18,7 @@ export class ActionHandler {
     private performSearchCallback: () => Promise<void>;
     private renderResultsCallback: (preserveSelection?: boolean) => void;
     private isSearching: boolean = false;
-    private getResultsCallback?: () => any[];
+    private getResultsCallback?: () => SearchResult[];
     private getSelectedIndicesCallback?: () => Set<number>;
     private toggleExpandCollapseCallback?: () => void;
 
@@ -75,7 +75,7 @@ export class ActionHandler {
      * Must be called before any replace operations to ensure state access is available.
      */
     setStateCallbacks(
-        getResultsCallback: () => any[],
+        getResultsCallback: () => SearchResult[],
         getSelectedIndicesCallback: () => Set<number>
     ): void {
         this.getResultsCallback = getResultsCallback;

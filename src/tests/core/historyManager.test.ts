@@ -106,8 +106,8 @@ describe('HistoryManager', () => {
         });
 
         it('should skip null/undefined replace patterns', () => {
-            historyManager.addReplace(null as any);
-            historyManager.addReplace(undefined as any);
+            historyManager.addReplace(null as unknown as string);
+            historyManager.addReplace(undefined as unknown as string);
 
             const history = historyManager.getReplaceHistory();
             expect(history).toHaveLength(0);

@@ -81,7 +81,7 @@ describe('Component Architecture', () => {
   describe('Component Error Handling', () => {
     it('should handle component initialization errors gracefully', () => {
       expect(() => {
-        new SelectionManager(null as any, mockPlugin);
+        new SelectionManager(null!, mockPlugin);
       }).not.toThrow();
     });
 
@@ -93,7 +93,7 @@ describe('Component Architecture', () => {
       } as any;
 
       expect(() => {
-        new SelectionManager(mockElements, null as any);
+        new SelectionManager(mockElements, null!);
       }).not.toThrow();
     });
   });

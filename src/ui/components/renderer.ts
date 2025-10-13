@@ -727,7 +727,7 @@ export class UIRenderer {
      */
     dispose(): void {
         // Clear DOM references (elements are cleaned by Obsidian)
-        this.elements = null as any;
-        this.searchEngine = null as any;
+        this.elements = null!;
+        this.searchEngine = null!;
     }
 }

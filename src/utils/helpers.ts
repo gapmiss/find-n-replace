@@ -75,7 +75,7 @@ export function getTextContent(element: HTMLElement | null): string {
  * @param obj - Object to create key from
  * @returns Cache key string
  */
-export function createCacheKey(obj: any): string {
+export function createCacheKey(obj: unknown): string {
     return JSON.stringify(obj);
 }
 
@@ -113,10 +113,10 @@ export function truncateText(text: string, maxLength: number): string {
 export function createDeferredPromise<T>(): {
     promise: Promise<T>;
     resolve: (value: T) => void;
-    reject: (reason?: any) => void;
+    reject: (reason?: unknown) => void;
 } {
     let resolve: (value: T) => void;
-    let reject: (reason?: any) => void;
+    let reject: (reason?: unknown) => void;
 
     const promise = new Promise<T>((res, rej) => {
         resolve = res;

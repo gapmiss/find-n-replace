@@ -302,7 +302,7 @@ describe('Logger', () => {
       mockPlugin.settings.logLevel = LogLevel.INFO;
       logger = Logger.create(mockPlugin, 'TestComponent');
 
-      logger.info(undefined as any);
+      logger.info(undefined as unknown as string);
 
       expect(mockConsole.info).toHaveBeenCalledWith(
         '[TestComponent] INFO:',
@@ -314,7 +314,7 @@ describe('Logger', () => {
       mockPlugin.settings.logLevel = LogLevel.INFO;
       logger = Logger.create(mockPlugin, 'TestComponent');
 
-      logger.info(null as any);
+      logger.info(null as unknown as string);
 
       expect(mockConsole.info).toHaveBeenCalledWith(
         '[TestComponent] INFO:',

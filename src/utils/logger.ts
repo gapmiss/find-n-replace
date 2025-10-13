@@ -17,7 +17,7 @@ export class Logger {
     /**
      * Trace logging - maximum verbosity for core development
      */
-    trace(message: string, ...data: any[]): void {
+    trace(message: string, ...data: unknown[]): void {
         if (this.plugin.settings.logLevel >= LogLevel.TRACE) {
             console.log(`[${this.context}] TRACE:`, message, ...data);
         }
@@ -26,7 +26,7 @@ export class Logger {
     /**
      * Debug logging - detailed information for troubleshooting
      */
-    debug(message: string, ...data: any[]): void {
+    debug(message: string, ...data: unknown[]): void {
         if (this.plugin.settings.logLevel >= LogLevel.DEBUG) {
             console.log(`[${this.context}] DEBUG:`, message, ...data);
         }
@@ -35,7 +35,7 @@ export class Logger {
     /**
      * Info logging - general operational information
      */
-    info(message: string, ...data: any[]): void {
+    info(message: string, ...data: unknown[]): void {
         if (this.plugin.settings.logLevel >= LogLevel.INFO) {
             console.info(`[${this.context}] INFO:`, message, ...data);
         }
@@ -44,7 +44,7 @@ export class Logger {
     /**
      * Warning logging - important events that should be noted
      */
-    warn(message: string, ...data: any[]): void {
+    warn(message: string, ...data: unknown[]): void {
         if (this.plugin.settings.logLevel >= LogLevel.WARN) {
             console.warn(`[${this.context}] WARN:`, message, ...data);
         }

@@ -175,7 +175,7 @@ export class FileOperations {
      */
     dispose(): void {
         // Clear references for garbage collection
-        this.app = null as any;
-        this.logger = null as any;
+        this.app = null!;
+        this.logger = null!;
     }
 }
