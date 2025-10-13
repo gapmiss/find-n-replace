@@ -65,10 +65,17 @@ export class HelpModal extends Modal {
         // Modal title
         contentEl.createEl('h2', { text: 'Find-n-Replace - Keyboard Shortcuts' });
 
+        // Subtitle explaining what the plugin does
+        const subtitleDiv = contentEl.createDiv('help-subtitle');
+        subtitleDiv.createEl('p', {
+            text: 'Vault-wide search and replace with advanced filtering and multi-selection',
+            cls: 'help-subtitle-text'
+        });
+
         // Introduction
         const introDiv = contentEl.createDiv('help-intro');
         introDiv.createEl('p', {
-            text: 'Below are the recommended keyboard shortcuts for efficient use of the plugin. You can customize these hotkeys in Obsidian\'s Settings → Hotkeys.'
+            text: 'Find-n-Replace helps you locate content across your vault using powerful search operations, then replace matches efficiently. Below are the recommended keyboard shortcuts for efficient use. You can customize these hotkeys in Obsidian\'s Settings → Hotkeys.'
         });
 
         // Get command info with user's actual hotkeys

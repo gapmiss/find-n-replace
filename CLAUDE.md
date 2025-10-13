@@ -7,6 +7,24 @@
 **Purpose:** VSCode-style vault-wide find and replace functionality with advanced search options
 **Architecture:** TypeScript-based modular architecture with clean separation of concerns
 
+## Branding and Terminology
+
+**Design Decision:** This plugin intentionally uses dual terminology - "Find" in the name and "Search" in the operations.
+
+**Rationale:**
+- **Plugin Name:** "Find-n-Replace" follows established industry patterns from tools like VSCode ("Find in Files"), Sublime Text ("Find & Replace"), and other professional editors
+- **Operation Names:** The UI and internal operations use "search" terminology (search input, search options, search engine)
+- **Semantic Distinction:** "Find" represents the feature/discovery capability, while "search" describes the specific operation being performed
+- **User Understanding:** This mirrors how users think about the feature: "I want to **find** content" (goal) → "I'll **search** for a pattern" (action)
+
+**Industry Pattern:**
+- **VSCode:** Feature is "Find in Files" but uses "Search Editors" and "Search Results"
+- **Sublime Text:** Feature is "Find & Replace" but operations are "searching"
+- **IntelliJ IDEA:** Feature is "Find in Path" but shows "Search Results"
+
+**Documentation Approach:**
+This duality is intentionally preserved and clarified in user-facing documentation (README, Help Modal) to bridge both perspectives without forcing artificial consistency that would contradict established software patterns.
+
 ## Core Functionality
 
 - **Vault-wide search** across all markdown files with comprehensive file filtering
