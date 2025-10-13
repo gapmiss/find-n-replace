@@ -3,7 +3,7 @@
 	"name": "Find-n-Replace",
 	"version": "1.0.0",
 	"minAppVersion": "1.2.0",
-	"description": "A VSCode-style vault-wide Find & Replace sidebar view",
+	"description": "A VSCode-style vault-wide search & replace sidebar view.",
 	"author": "@gapmiss",
 	"authorUrl": "https://github.com/gapmiss",
 	"isDesktopOnly": false
