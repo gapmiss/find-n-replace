@@ -82,8 +82,8 @@ Unlike Obsidian's built-in search, Find-n-Replace is designed specifically for b
 
 ### Community Plugins (Recommended)
 
-> [!WARNING] Notice
-> Plugin has not been reviewed by Obsidian. Until then, use manual or BRAT installation.
+> [!WARNING]
+> As of 2025-10-13, this plugin has not been reviewed by Obsidian. Until then, use manual or BRAT installation.
 
 1. Open Obsidian Settings
 2. Go to Community Plugins and disable Safe Mode
