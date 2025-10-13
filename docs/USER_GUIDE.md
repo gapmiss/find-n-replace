@@ -129,7 +129,9 @@ Click the **🔍 filter button** to open the expandable filter panel with two in
 
 #### Files to Include
 
-Limit search to specific file types, folders, or glob patterns:
+Limit search to specific file types, folders, or glob patterns.
+
+**Note:** By default, the plugin searches **all text-based files** in your vault (`.md`, `.txt`, `.js`, `.css`, `.json`, `.ts`, `.yaml`, `.xml`, and more). Use filters to narrow the scope for better performance or focused searches.
 
 **Pattern Types:**
 - **Extensions**: `.md`, `.txt`, `.js` - Search only these file types

@@ -27,7 +27,8 @@ This duality is intentionally preserved and clarified in user-facing documentati
 
 ## Core Functionality
 
-- **Vault-wide search** across all markdown files with comprehensive file filtering
+- **Vault-wide search** across all text files (markdown, txt, js, css, json, and any text-based format) with comprehensive file filtering
+- **Universal file type support** - searches all file types by default, not limited to markdown
 - **Advanced replace operations** (individual, file-level, vault-wide, selected)
 - **Search options:** Match case, whole word, regex support with multiline patterns and capture group expansion
 - **VSCode-style UI** with sidebar view, expandable filter panel, and result navigation
@@ -148,7 +149,7 @@ src/
 ### User Experience Enhancements
 25. **Partial Search Failure Alerts** - Intelligent notifications showing which files couldn't be accessed, with different messaging for small vs. large failure counts
 26. **Timeout Protection UX** - User-friendly messages when regex execution times out, suggesting pattern simplification
-27. **Comprehensive File Support** - Default search now includes all file types (.md, .txt, .js, .json, .css, etc.) when no filters specified
+27. **Universal File Type Support** - Default search includes ALL text-based file types (.md, .txt, .js, .ts, .css, .json, .yaml, .xml, etc.) when no filters specified, making the plugin useful beyond just markdown workflows
 28. **Session Filter Reliability** - Updated filter system ensures consistent behavior across all file types and search scenarios
 
 ### Testing Infrastructure Improvements
@@ -190,6 +191,7 @@ src/
 - **Settings:** Standard Obsidian settings architecture with migration support
 
 ### Key Features for Users
+- **Universal File Type Support:** Searches all text-based files by default (.md, .txt, .js, .css, .json, .ts, .yaml, .xml, etc.) - not limited to markdown
 - **VSCode-Style File Filtering:** "files to include" / "files to exclude" inputs with familiar pattern syntax and session-only behavior
 - **Settings as Defaults:** Plugin settings populate filter inputs when opening view; changes are temporary
 - **Multi-Selection:** Targeted replacements with visual feedback and individual `<kbd>` tag styling

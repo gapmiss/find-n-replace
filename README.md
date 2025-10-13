@@ -18,7 +18,8 @@ Unlike Obsidian's built-in search, Find-n-Replace is designed specifically for b
 ## Core Features
 
 ### Search Capabilities
-- **Full-text search** across all markdown files in your vault
+- **Full-text search** across all text files in your vault (markdown, txt, js, css, json, and more)
+- **Universal file type support** - works with any text-based file format by default
 - **File filtering system** with extensions, folders, and glob patterns for large vault performance
 - **Regular expression pattern matching** with JavaScript regex syntax
 - **Case-sensitive and whole-word matching** options
@@ -146,6 +147,7 @@ Click the **🔍** filter button to open the expandable filter panel with clear-
 
 **files to include Examples:**
 - `.md, .txt` - Only search markdown and text files
+- `.js, .css, .json` - Only search JavaScript, CSS, and JSON files
 - `Notes/, Daily/` - Only search in Notes and Daily folders
 - `.md, Projects/` - Only markdown files in Projects folder
 - Use the X button to quickly clear include patterns
@@ -267,6 +269,20 @@ Result: Replace multiple consecutive spaces with single space
 files to include: .md, .txt
 Search: TODO
 Result: Only searches markdown and text files, ignoring other formats
+```
+
+### Search Across Code Files
+```
+files to include: .js, .ts, .css
+Search: console\.log
+Result: Finds all console.log statements in JavaScript, TypeScript, and CSS files
+```
+
+### Search Configuration Files
+```
+files to include: .json, .yaml, .xml
+Search: "version"
+Result: Searches only in configuration files (JSON, YAML, XML)
 ```
 
 ### Update Links Only in Project Folder

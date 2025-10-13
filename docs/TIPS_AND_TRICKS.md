@@ -29,6 +29,7 @@ Power user techniques, performance optimization, and workflow acceleration.
 
 ```
 files to include: .md              → Only markdown files
+files to include: .js, .ts         → Only JavaScript/TypeScript files
 files to include: Daily/, Projects/ → Only specific folders
 files to exclude: Archive/, Attachments/ → Skip large folders
 ```
@@ -490,6 +491,12 @@ Settings → Default files to exclude: Archive/, Old/, Completed/
 ```
 Settings → Default files to include: .md
 Settings → Default files to exclude: *.js, *.ts, *.json
+```
+
+**Scenario 4: Code Files Only (No Markdown)**
+```
+Settings → Default files to include: .js, .ts, .css, .json
+Settings → Default files to exclude: .md, .txt
 ```
 
 **Workflow:**
