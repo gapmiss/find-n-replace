@@ -88,6 +88,35 @@ Unlike Obsidian's built-in search, Find-n-Replace is designed specifically for b
 2. Extract to `.obsidian/plugins/vault-find-replace/` in your vault
 3. Enable in Obsidian Community Plugins settings
 
+## Documentation
+
+📚 **Comprehensive documentation is available in the [`docs/`](docs/) directory:**
+
+- **[Complete User Guide](docs/USER_GUIDE.md)** - Step-by-step instructions for all features with screenshots
+  - Getting Started tutorials
+  - Basic and advanced features explained
+  - Settings configuration guide
+
+- **[Real-World Workflows](docs/WORKFLOWS.md)** - Practical scenarios and use cases
+  - Content refactoring workflows
+  - Tag and metadata management
+  - Link and reference updates
+  - Clean-up and formatting tasks
+  - Bulk editing operations
+
+- **[Tips & Tricks](docs/TIPS_AND_TRICKS.md)** - Power user features and optimization techniques
+  - Performance optimization strategies
+  - Keyboard shortcut mastery
+  - Advanced regex patterns
+  - Common pitfalls to avoid
+
+- **[Screenshot Style Guide](docs/SCREENSHOT_GUIDE.md)** - For contributors creating documentation images
+  - Technical specifications and standards
+  - Annotation guidelines
+  - Professional screenshot creation workflow
+
+**Quick Start:** See the [Usage Guide](#usage-guide) below for basic operations, or dive into the [Complete User Guide](docs/USER_GUIDE.md) for comprehensive tutorials with visual examples.
+
 ## Usage Guide
 
 ### Opening the Plugin
