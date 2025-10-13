@@ -433,13 +433,13 @@ npm run release
 - **Event-driven**: Reactive UI updates based on state changes
 - **Modular**: Separation of concerns between search, UI, and state
 - **Testable**: Isolated components with dependency injection
-- **Test Coverage**: 105 automated tests preventing regressions and edge cases (61 existing + 44 new multiline tests)
+- **Test Coverage**: 296 automated tests preventing regressions and edge cases (100% pass rate)
 
 ### Contributing Guidelines
 1. Follow existing code style and TypeScript conventions
 2. Add comprehensive logging for debugging
 3. Include error handling for all async operations
-4. **Run test suite before submitting:** `npm test` (105+ tests must pass)
+4. **Run test suite before submitting:** `npm test` (296 tests must pass)
 5. **Add tests for new features:** Follow existing test patterns in `src/tests/unit/`
 6. Test with large vaults to ensure performance
 7. Update documentation for any API changes
@@ -465,23 +465,34 @@ npm run release
 - Debounced user input to prevent excessive search requests
 
 ### Quality Assurance
-- **Comprehensive Test Suite**: 203 automated tests covering core functionality
-- **Regression Prevention**: Specific tests for known bugs (e.g., second match replacement)
+- **Comprehensive Test Suite**: 296 automated tests covering core functionality (100% pass rate)
+- **Regression Prevention**: Specific tests for known bugs with robust test isolation
 - **Edge Case Coverage**: Unicode, overlapping patterns, performance limits
 - **Property-Based Testing**: Random input generation to discover unknown edge cases
-- **Fast Execution**: Complete test suite runs in under 2 seconds
+- **Fast Execution**: Complete test suite runs in ~3 seconds
 - **Zero Dependencies**: Tests run independently without Obsidian API requirements
+- **Mock Infrastructure**: Fresh test instances prevent state leakage between tests
 
 #### Test Structure
 ```
 src/tests/
-├── unit/                    # Isolated unit tests
+├── unit/                    # Isolated unit tests (59 tests)
 │   ├── regexUtils.test.ts       # Pattern matching (10 tests)
 │   ├── positionTracking.test.ts # Position accuracy (9 tests)
 │   ├── bugRegression.test.ts    # Bug prevention (13 tests)
 │   ├── performance.test.ts      # Performance limits (15 tests)
 │   └── testDataGenerators.test.ts # Property-based (12 tests)
-└── basic.test.ts            # Framework validation (2 tests)
+├── core/                    # Core functionality tests (187 tests)
+│   ├── searchEngine.test.ts     # Search operations
+│   ├── replacementEngine.test.ts # Replacement logic
+│   ├── fileFiltering.test.ts    # File filtering system
+│   ├── historyManager.test.ts   # History management
+│   ├── multilineSearch.test.ts  # Multiline search
+│   └── multilineReplacement.test.ts # Multiline replacement
+├── ui/                      # UI component tests (88 tests)
+├── integration/             # Workflow tests (15 tests)
+├── fuzzing/                 # Property-based tests (8 tests)
+└── basic.test.ts            # Framework validation (7 tests)
 ```
 
 ## License

@@ -15,10 +15,17 @@ export class Logger {
     }
 
     /**
+     * Safely get log level with fallback to ERROR if settings not available
+     */
+    private getLogLevel(): LogLevel {
+        return this.plugin?.settings?.logLevel ?? LogLevel.ERROR;
+    }
+
+    /**
      * Trace logging - maximum verbosity for core development
      */
     trace(message: string, ...data: unknown[]): void {
-        if (this.plugin.settings.logLevel >= LogLevel.TRACE) {
+        if (this.getLogLevel() >= LogLevel.TRACE) {
             console.log(`[${this.context}] TRACE:`, message, ...data);
         }
     }
@@ -27,7 +34,7 @@ export class Logger {
      * Debug logging - detailed information for troubleshooting
      */
     debug(message: string, ...data: unknown[]): void {
-        if (this.plugin.settings.logLevel >= LogLevel.DEBUG) {
+        if (this.getLogLevel() >= LogLevel.DEBUG) {
             console.log(`[${this.context}] DEBUG:`, message, ...data);
         }
     }
@@ -36,7 +43,7 @@ export class Logger {
      * Info logging - general operational information
      */
     info(message: string, ...data: unknown[]): void {
-        if (this.plugin.settings.logLevel >= LogLevel.INFO) {
+        if (this.getLogLevel() >= LogLevel.INFO) {
             console.info(`[${this.context}] INFO:`, message, ...data);
         }
     }
@@ -45,7 +52,7 @@ export class Logger {
      * Warning logging - important events that should be noted
      */
     warn(message: string, ...data: unknown[]): void {
-        if (this.plugin.settings.logLevel >= LogLevel.WARN) {
+        if (this.getLogLevel() >= LogLevel.WARN) {
             console.warn(`[${this.context}] WARN:`, message, ...data);
         }
     }
@@ -54,14 +61,14 @@ export class Logger {
      * Error logging - critical failures (always shown unless SILENT)
      */
     error(message: string, error?: Error | unknown, showToUser: boolean = false): void {
-        if (this.plugin.settings.logLevel >= LogLevel.ERROR) {
+        if (this.getLogLevel() >= LogLevel.ERROR) {
             const fullMessage = `[${this.context}] ERROR: ${message}`;
 
             if (error) {
                 console.error(fullMessage, error);
 
                 // Show debug info if debug level or higher
-                if (this.plugin.settings.logLevel >= LogLevel.DEBUG && error instanceof Error) {
+                if (this.getLogLevel() >= LogLevel.DEBUG && error instanceof Error) {
                     console.error('Stack trace:', error.stack);
                 }
             } else {
@@ -94,7 +101,7 @@ export class Logger {
      * Performance timing utility - trace level
      */
     time(label: string): void {
-        if (this.plugin.settings.logLevel >= LogLevel.TRACE) {
+        if (this.getLogLevel() >= LogLevel.TRACE) {
             console.time(`[${this.context}] ${label}`);
         }
     }
@@ -103,7 +110,7 @@ export class Logger {
      * End performance timing - trace level
      */
     timeEnd(label: string): void {
-        if (this.plugin.settings.logLevel >= LogLevel.TRACE) {
+        if (this.getLogLevel() >= LogLevel.TRACE) {
             console.timeEnd(`[${this.context}] ${label}`);
         }
     }
