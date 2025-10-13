@@ -1,6 +1,6 @@
 # Find-n-Replace
 
-A comprehensive vault-wide **search and replace** plugin for Obsidian. Find-n-Replace helps you locate content across your entire vault through powerful search operations, then replace matches efficiently with regex support, multi-selection capabilities, file filtering, and real-time preview.
+A vault-wide **search and replace** plugin for Obsidian. Find-n-Replace helps you locate content across your entire vault through powerful search operations, then replace matches efficiently with regex support, multi-selection capabilities, file filtering, and real-time preview.
 
 ## What This Plugin Does
 
@@ -78,16 +78,32 @@ Unlike Obsidian's built-in search, Find-n-Replace is designed specifically for b
 
 ## Installation
 
+[Available on Obsidian.md/plugins](https://obsidian.md/plugins?search=find-n-replace)
+
 ### Community Plugins (Recommended)
+
+> [!WARNING] Notice
+> Plugin has not been reviewed by Obsidian. Until then, use manual or BRAT installation.
+
 1. Open Obsidian Settings
-2. Navigate to Community Plugins
-3. Browse for "Find-n-Replace"
-4. Install and enable
+2. Go to Community Plugins and disable Safe Mode
+3. Click Browse and search for "Find-n-Replace"
+4. Install the plugin and enable it
 
 ### Manual Installation
-1. Download the latest release from GitHub
-2. Extract to `.obsidian/plugins/vault-find-replace/` in your vault
-3. Enable in Obsidian Community Plugins settings
+
+1. Download `main.js`, `manifest.json` & `styles.css` from the latest [release](https://github.com/gapmiss/find-n-replace/releases/)
+2. Create a new folder `/path/to/vault/.obsidian/plugins/find-n-replace`
+3. Move all 3 files to `/path/to/vault/.obsidian/plugins/find-n-replace`
+4. Settings > Community plugins > Reload plugins
+5. Enable the "Find-n-Replace" plugin in the community plugin list
+
+### Via BRAT (Beta Reviewer's Auto-update Tool):
+
+1. Ensure the [BRAT](https://github.com/TfTHacker/obsidian42-brat) plugin is installed
+2. Trigger the command Obsidian42 - BRAT: Add a beta plugin for testing
+3. Enter this repository, gapmiss/find-n-replace
+4. Enable the "Find-n-Replace" plugin in the community plugin list
 
 ## Documentation
 
@@ -110,11 +126,6 @@ Unlike Obsidian's built-in search, Find-n-Replace is designed specifically for b
   - Keyboard shortcut mastery
   - Advanced regex patterns
   - Common pitfalls to avoid
-
-- **[Screenshot Style Guide](docs/SCREENSHOT_GUIDE.md)** - For contributors creating documentation images
-  - Technical specifications and standards
-  - Annotation guidelines
-  - Professional screenshot creation workflow
 
 **Quick Start:** See the [Usage Guide](#usage-guide) below for basic operations, or dive into the [Complete User Guide](docs/USER_GUIDE.md) for comprehensive tutorials with visual examples.
 
@@ -347,9 +358,9 @@ Result: Matches complete code blocks including language and content
 - **Enter/Space**: Execute replace action when replace button is focused
 
 ### Selection
-- **Ctrl/Cmd+A**: Select all results
-- **Escape**: Clear current selection
+<!-- - **Ctrl/Cmd+A**: Select all results -->
 - **Ctrl/Cmd+Click**: Toggle individual result selection
+- **Escape**: Clear current selection
 
 ### Search
 - **Enter** (in search/replace field): Execute search and save to history
