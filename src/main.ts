@@ -7,12 +7,17 @@ import {
 } from "./settings";
 import { LogLevel } from "./types";
 import { HistoryManager } from './core/historyManager';
+import { Logger } from './utils';
 
 export default class VaultFindReplacePlugin extends Plugin {
 	settings: VaultFindReplaceSettings;
 	historyManager: HistoryManager;
+	private logger: Logger;
 	async onload() {
 		await this.loadSettings();
+
+		// Initialize logger
+		this.logger = Logger.create(this, 'Plugin');
 
 		// Initialize history manager
 		this.historyManager = new HistoryManager(this);
@@ -177,7 +182,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			} else {
 				leaf = workspace.getRightLeaf(false);
 				if (!leaf) {
-					console.error("find-n-replace: failed to get or create leaf");
+					this.logger.error("Failed to get or create leaf", undefined, true);
 					return;
 				}
 				await leaf.setViewState({ type: VIEW_TYPE_FIND_REPLACE, active: true });
@@ -196,7 +201,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 				}
 			}, focusDelay);
 		} catch (error) {
-			console.error("find-n-replace: failed to activate view:", error);
+			this.logger.error("Failed to activate view", error, true);
 			// Don't throw - just log the error so plugin doesn't crash
 		}
 	}
@@ -214,7 +219,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			}
 			return null;
 		} catch (error) {
-			console.error("find-n-replace: failed to get active view:", error);
+			this.logger.error("Failed to get active view", error);
 			return null;
 		}
 	}
@@ -237,6 +242,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			const loadedData = await this.loadData() || {};
 			this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
 		} catch (error) {
+			// Logger not initialized yet during loadSettings, use console as fallback
 			console.error('find-n-replace: Failed to load settings, using defaults:', error);
 			this.settings = { ...DEFAULT_SETTINGS };
 		}
@@ -246,7 +252,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 		try {
 			await this.saveData(this.settings);
 		} catch (error) {
-			console.error('find-n-replace: Failed to save settings:', error);
+			this.logger.error('Failed to save settings', error, true);
 			// Don't throw - settings save failure shouldn't break the plugin
 		}
 	}

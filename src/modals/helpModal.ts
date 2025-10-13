@@ -1,5 +1,6 @@
 import { App, Modal, Setting, setIcon } from 'obsidian';
 import VaultFindReplacePlugin from '../main';
+import { Logger } from '../utils';
 
 interface CommandInfo {
     id: string;
@@ -46,10 +47,12 @@ interface ObsidianInternalApp {
 
 export class HelpModal extends Modal {
     private plugin: VaultFindReplacePlugin;
+    private logger: Logger;
 
     constructor(app: App, plugin: VaultFindReplacePlugin) {
         super(app);
         this.plugin = plugin;
+        this.logger = Logger.create(plugin, 'HelpModal');
     }
 
     onOpen() {
@@ -192,7 +195,7 @@ export class HelpModal extends Modal {
         const fullCommandId = `find-n-replace:${commandId}`;
 
         // Debug logging to help troubleshoot hotkey detection
-        console.debug(`[Help Modal] Looking for hotkey for command: ${fullCommandId}`);
+        this.logger.debug(`Looking for hotkey for command: ${fullCommandId}`);
 
         // Try multiple ways to access hotkey data
         const app = this.app as unknown as ObsidianInternalApp;
@@ -200,12 +203,12 @@ export class HelpModal extends Modal {
         // Method 1: Check hotkeyManager
         if (app.hotkeyManager?.customKeys?.[fullCommandId]) {
             const hotkeyData = app.hotkeyManager.customKeys[fullCommandId];
-            console.debug(`[Help Modal] Found in hotkeyManager.customKeys:`, hotkeyData);
+            this.logger.debug('Found in hotkeyManager.customKeys:', hotkeyData);
             if (hotkeyData.length > 0) {
                 return this.formatHotkeys(hotkeyData);
             }
         } else {
-            console.debug(`[Help Modal] Not found in hotkeyManager.customKeys. Available keys:`, Object.keys(app.hotkeyManager?.customKeys || {}));
+            this.logger.debug('Not found in hotkeyManager.customKeys. Available keys:', Object.keys(app.hotkeyManager?.customKeys || {}));
         }
 
         // Method 2: Check scope registry
@@ -225,13 +228,13 @@ export class HelpModal extends Modal {
         const commands = app.commands?.commands;
         if (commands && commands[fullCommandId]) {
             const command = commands[fullCommandId];
-            console.debug(`[Help Modal] Found command in registry:`, command);
+            this.logger.debug('Found command in registry:', command);
             if (command.hotkeys && command.hotkeys.length > 0) {
-                console.debug(`[Help Modal] Found hotkeys in command:`, command.hotkeys);
+                this.logger.debug('Found hotkeys in command:', command.hotkeys);
                 return this.formatHotkeys(command.hotkeys);
             }
         } else {
-            console.debug(`[Help Modal] Command not found in registry. Available commands:`, Object.keys(commands || {}));
+            this.logger.debug('Command not found in registry. Available commands:', Object.keys(commands || {}));
         }
 
         return 'Not set';
