@@ -142,6 +142,27 @@ Click the **⋯** (ellipsis) button in the toolbar and select **Help** to open t
 5. Browse results organized by file
 6. Click any result to navigate to that location in your vault
 
+### 💡 Quick How-To: Searching Different File Types
+
+**By default, the plugin searches ALL text files** (not just markdown). To search specific file types:
+
+**Search code files only:**
+1. Click the 🔍 filter button
+2. In "files to include": type `.js, .ts, .css`
+3. Search for your pattern (e.g., `console\.log`)
+
+**Search config files only:**
+1. Click the 🔍 filter button
+2. In "files to include": type `.json, .yaml, .xml`
+3. Search for your pattern (e.g., `"version"`)
+
+**Exclude non-markdown files:**
+1. Click the 🔍 filter button
+2. In "files to exclude": type `*.js, *.json, *.css`
+3. Now only markdown and text files will be searched
+
+**Pro tip:** Leave filters empty to search all file types at once!
+
 ### VSCode-Style File Filtering (Performance Optimization)
 Click the **🔍** filter button to open the expandable filter panel with clear-input enabled fields:
 
@@ -468,10 +489,35 @@ npm run test:watch
 
 # Generate coverage reports
 npm run test:coverage
-
-# Release build
-npm run release
 ```
+
+### Creating a Release
+
+The project includes an automated release script that handles version bumping, building, and publishing:
+
+```bash
+# Patch release (0.1.0 → 0.1.1) - Bug fixes
+node release.mjs patch
+
+# Minor release (0.1.0 → 0.2.0) - New features
+node release.mjs minor
+
+# Major release (0.1.0 → 1.0.0) - Breaking changes
+node release.mjs major
+```
+
+**What it does:**
+1. Updates versions in `package.json`, `manifest.json`, and `versions.json`
+2. Builds the production bundle (`npm run build`)
+3. Creates git commit and tag
+4. Pushes to GitHub
+5. Creates GitHub Release with assets (requires [GitHub CLI](https://cli.github.com/))
+
+**Prerequisites:**
+- Clean git working tree (no uncommitted changes)
+- GitHub CLI installed (optional, for automatic release creation)
+
+**See:** Full release documentation in [CLAUDE.md](CLAUDE.md#release-process)
 
 ### Code Architecture
 - **TypeScript**: Full type safety with strict mode

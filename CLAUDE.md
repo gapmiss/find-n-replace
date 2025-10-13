@@ -182,6 +182,115 @@ src/
 - **Testing:** `npm test` - Complete test suite (296 tests, 100% pass rate)
 - **Coverage:** `npm run test:coverage` - Generate coverage reports
 
+### Release Process
+
+The project includes an automated release script (`release.mjs`) that handles version bumping, building, tagging, and GitHub release creation.
+
+**Prerequisites:**
+- Clean git working tree (no uncommitted changes)
+- GitHub CLI (`gh`) installed for automatic GitHub release creation (optional): https://cli.github.com/
+- Push access to the GitHub repository
+
+**Release Commands:**
+```bash
+# Patch release (0.1.0 → 0.1.1) - Bug fixes, minor changes
+node release.mjs patch
+
+# Minor release (0.1.0 → 0.2.0) - New features, backward compatible
+node release.mjs minor
+
+# Major release (0.1.0 → 1.0.0) - Breaking changes
+node release.mjs major
+```
+
+**What the Release Script Does:**
+
+1. **Pre-flight Checks:**
+   - Verifies git working tree is clean (fails if uncommitted changes exist)
+   - Validates version type argument (patch/minor/major)
+
+2. **Version Updates:**
+   - Updates version in `package.json`
+   - Synchronizes version in `manifest.json`
+   - Adds new version entry to `versions.json` with minimum Obsidian version (0.15.0)
+
+3. **Build:**
+   - Runs `npm run build` to compile production bundle
+   - Generates `main.js`, `manifest.json`, `styles.css` in root directory
+
+4. **Git Operations:**
+   - Stages changed files: `package.json`, `manifest.json`, `versions.json`, `main.js`, `styles.css`
+   - Creates commit: `chore: release X.Y.Z`
+   - Creates git tag: `X.Y.Z`
+   - Pushes commit and tag to GitHub
+
+5. **GitHub Release (if GitHub CLI installed):**
+   - Creates GitHub Release with tag
+   - Attaches release assets: `main.js`, `manifest.json`, `styles.css`
+   - Generates changelog link comparing to previous tag
+   - Adds release notes with version and full changelog URL
+
+**Rollback on Failure:**
+- If any step fails, version changes in `package.json`, `manifest.json`, and `versions.json` are automatically rolled back
+- Git operations are atomic - if commit/tag/push fails, no changes are persisted
+
+**Example Workflow:**
+```bash
+# 1. Ensure all changes are committed
+git status  # Should show clean working tree
+
+# 2. Run tests to verify everything works
+npm test
+
+# 3. Create a patch release
+node release.mjs patch
+
+# Output:
+# 📦 Updated package.json version: 1.0.0 → 1.0.1
+# 📋 Updated manifest.json version: 1.0.0 → 1.0.1
+# 📋 Updated versions.json version: 1.0.0 → 1.0.1
+# 🔨 Starting project build...
+# ✅ Build completed
+# ✅ Commit created: chore: release 1.0.1
+# 🏷️ Tag created: 1.0.1
+# 🚀 Changes pushed to GitHub
+# 📦 Creating GitHub Release...
+# ✅ GitHub Release created: 1.0.1
+# 🎉 Release 1.0.1 completed successfully!
+```
+
+**Manual Release (without script):**
+
+If you need to create a release manually:
+
+1. Update versions in `package.json`, `manifest.json`, and `versions.json`
+2. Run `npm run build`
+3. Commit changes: `git commit -am "chore: release X.Y.Z"`
+4. Create tag: `git tag X.Y.Z`
+5. Push: `git push && git push --tags`
+6. Create GitHub Release manually and attach `main.js`, `manifest.json`, `styles.css`
+
+**Troubleshooting:**
+
+- **"Cannot proceed with release: You have uncommitted changes"**
+  - Commit or stash your changes before running release script
+
+- **"Build process failed"**
+  - Fix build errors and re-run release script
+  - Versions will be rolled back automatically
+
+- **"Failed to create GitHub Release"**
+  - Install GitHub CLI: https://cli.github.com/
+  - Or create release manually on GitHub
+  - Commit and tag are still created successfully
+
+- **Need to undo a release:**
+  - Delete local tag: `git tag -d X.Y.Z`
+  - Delete remote tag: `git push origin :refs/tags/X.Y.Z`
+  - Delete GitHub release from repository releases page
+  - Reset to previous commit: `git reset --hard HEAD~1`
+  - Force push: `git push --force`
+
 ## Plugin Integration
 
 ### Obsidian API Usage
