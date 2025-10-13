@@ -140,6 +140,7 @@ Limit search to specific file types, folders, or glob patterns.
 - **Combinations**: `.md, Projects/` - Multiple patterns (comma-separated)
 
 **Examples:**
+
 ```
 .md, .txt                    → Only markdown and text files
 Notes/, Daily/               → Only Notes and Daily folders
@@ -158,6 +159,7 @@ Skip specific files, folders, or patterns:
 - **Combinations**: `Archive/, *.tmp` - Multiple exclusions
 
 **Examples:**
+
 ```
 *.tmp, *backup*              → Skip temporary and backup files
 Archive/, Templates/         → Skip Archive and Templates folders
@@ -347,6 +349,7 @@ Access comprehensive help directly in the plugin:
 **Help Modal Contents:**
 
 #### Available Commands
+
 - Table showing all 13 plugin commands with descriptions
 - Your configured hotkeys displayed next to each command
 - "Not set" indicator for commands without hotkeys
@@ -359,25 +362,30 @@ Access comprehensive help directly in the plugin:
 - Result Management (Select All, Expand/Collapse)
 
 #### File Filtering Guide
+
 Complete documentation for include/exclude patterns with:
+
 - Pattern types explained (extensions, folders, globs)
 - Real-world examples for each pattern type
 - Common use cases with copy-paste ready patterns
 - Performance optimization tips
 
 #### Keyboard Shortcuts
+
 - Navigation shortcuts (Tab, Enter, Space)
 - Selection shortcuts (Ctrl/Cmd+A, Escape, Ctrl/Cmd+Click)
 - Search history navigation (↑↓ arrows)
 - Input clearing (Escape key)
 
 #### Usage Tips
+
 - Clear-input button usage
 - Search history workflow
 - Performance optimization suggestions
 - Quick workflow tips
 
 #### Hotkey Configuration Link
+
 Direct link to Obsidian Settings → Hotkeys to configure custom shortcuts
 
 **📸 Screenshot Placeholder:** `10-basic-help-modal.png`
@@ -445,6 +453,7 @@ Regular expressions enable powerful pattern matching and text transformation.
 Capture groups allow you to extract parts of the match and reuse them:
 
 **Basic Example - Date Format Conversion:**
+
 ```
 Search:  (\d{4})-(\d{2})-(\d{2})
 Replace: $2/$3/$1
@@ -474,6 +483,7 @@ The replacement preview shows actual expanded capture groups before execution, w
 #### Common Regex Examples
 
 **Example 1: Find all wikilinks**
+
 ```
 Search: \[\[([^\]]+)\]\]
 Matches: [[Link]], [[Another Link]], [[File|Alias]]
@@ -481,6 +491,7 @@ Use: Locate all internal links for review
 ```
 
 **Example 2: Convert markdown links to wikilinks**
+
 ```
 Search:  \[([^\]]+)\]\(([^)]+)\)
 Replace: [[$1|$2]]
@@ -490,6 +501,7 @@ Result:  [[Display Text|url]]
 ```
 
 **Example 3: Remove multiple spaces**
+
 ```
 Search:  \s{2,}
 Replace: (single space)
@@ -499,6 +511,7 @@ Result:  "word word", "line end"
 ```
 
 **Example 4: Standardize heading formats**
+
 ```
 Search:  ^#+\s*(.+?)\s*#+\s*$
 Replace: ## $1
@@ -508,6 +521,7 @@ Result:  "## Title", "## Title", "## Section"
 ```
 
 **Example 5: Extract and reformat tags**
+
 ```
 Search:  #([a-z0-9-]+)
 Replace: [[tags/$1]]
@@ -517,6 +531,7 @@ Result:  [[tags/projectname]], [[tags/todo]], [[tags/in-progress]]
 ```
 
 **Example 6: Find email addresses**
+
 ```
 Search: \b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b
 Matches: user@example.com, john.doe+tag@domain.co.uk
@@ -560,6 +575,7 @@ Search for patterns that span multiple lines.
 #### Enabling Multiline Mode
 
 Requirements:
+
 1. Enable **Use Regex** toggle (.*) first
 2. Enable **Multiline** toggle (⤓)
 3. Both toggles show accent color when active
@@ -584,6 +600,7 @@ Requirements:
 #### Multiline Examples
 
 **Example 1: TODO items with details**
+
 ```
 Regex + Multiline enabled:
 Search:  (TODO:.*)\n(.*)
@@ -599,6 +616,7 @@ Result:
 ```
 
 **Example 2: Remove empty lines after headings**
+
 ```
 Regex + Multiline enabled:
 Search:  (^##.+)\n\n+
@@ -616,7 +634,8 @@ Result:
 ```
 
 **Example 3: Find code blocks**
-```
+
+`````
 Regex + Multiline enabled:
 Search: ```(\w+)\n([\s\S]*?)\n```
 
@@ -628,9 +647,10 @@ Matches:
   ```
 
 Result: Captures language and entire code block content
-```
+`````
 
 **Example 4: Combine consecutive list items**
+
 ```
 Regex + Multiline enabled:
 Search:  ^- (.*)\n- (.*)$
@@ -645,6 +665,7 @@ Result:
 ```
 
 **Example 5: Find paragraphs with specific structure**
+
 ```
 Regex + Multiline enabled:
 Search: ^(.*TODO.*)\n\n(.*completed.*)$
@@ -660,6 +681,7 @@ Use: Find TODO items that are marked completed
 #### Multiline Preview
 
 Multiline matches show in results with:
+
 - **Truncated display**: First 50 characters with "..." if longer
 - **Line breaks visible**: `\n` shown as actual breaks in snippets
 - **Full content on hover**: Tooltip shows complete match
