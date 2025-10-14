@@ -1,3 +1,6 @@
+> [!INFO]
+> This documentation is a work-in-progress.
+
 # Find-n-Replace Documentation
 
 Welcome to the comprehensive documentation for **Find-n-Replace**, a VSCode-style vault-wide search and replace plugin for Obsidian.

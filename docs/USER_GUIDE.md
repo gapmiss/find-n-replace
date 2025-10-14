@@ -1,3 +1,6 @@
+> [!INFO]
+> This documentation is a work-in-progress.
+
 # Find-n-Replace User Guide
 
 A comprehensive guide to using Find-n-Replace for vault-wide search and replace operations in Obsidian.
@@ -29,14 +32,12 @@ A comprehensive guide to using Find-n-Replace for vault-wide search and replace 
 Access Find-n-Replace through Obsidian's Command Palette:
 
 1. Press `Ctrl/Cmd+P` to open the Command Palette
-2. Type "Find-n-Replace: Open"
-3. Press Enter
+2. Type "Open Find"
+3. Press Enter when command is highlighted
 
 The plugin opens in a dedicated pane that can be docked anywhere in your Obsidian workspace (left sidebar, right sidebar, or as a tab).
 
-**📸 Screenshot Placeholder:** `01-getting-started-opening-plugin.png`
-- Show: Command Palette with "Find-n-Replace: Open" highlighted
-- Annotation: Arrow pointing to command, note about docking flexibility
+![](./images/01-getting-started-opening-plugin.png)
 
 ### Understanding the Interface
 
