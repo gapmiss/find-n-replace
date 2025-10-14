@@ -177,14 +177,14 @@ export class SearchController {
 
         // WAIT for any previous search to fully complete before starting new one
         if (this.isSearching) {
-            this.logger.error(`[${callId}] CONCURRENT SEARCH DETECTED! Waiting for completion...`);
+            this.logger.debug(`[${callId}] Concurrent search detected, waiting for completion...`);
             let waitCount = 0;
             while (this.isSearching && waitCount < 100) { // Max 1000ms wait
                 await sleep(10);
                 waitCount++;
             }
             if (this.isSearching) {
-                this.logger.error(`[${callId}] Previous search FAILED to complete, FORCE RESETTING`);
+                this.logger.warn(`[${callId}] Previous search failed to complete within timeout, force resetting`);
                 this.isSearching = false;
             }
         }
@@ -347,7 +347,7 @@ export class SearchController {
 
         // If search is in progress, warn about option state changes
         if (this.isSearching) {
-            this.logger.error('RACE CONDITION: Search options read while search is in progress!');
+            this.logger.warn('Search options read while search is in progress (potential race condition)');
         }
 
         return optionsSnapshot;
