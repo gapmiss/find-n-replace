@@ -2,6 +2,8 @@
 
 A vault-wide **search and replace** plugin for Obsidian. Find-n-Replace helps you locate content across your entire vault through powerful search operations, then replace matches efficiently with regex support, multi-selection capabilities, file filtering, and real-time preview.
 
+![alt text](./docs/images/readme-screenshot-1.png)
+
 ## What This Plugin Does
 
 **Find-n-Replace** provides a dedicated search interface that helps you find and modify content across your vault. The plugin allows you to:
