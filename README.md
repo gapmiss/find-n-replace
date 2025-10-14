@@ -15,6 +15,9 @@ A vault-wide **search and replace** plugin for Obsidian. Find-n-Replace helps yo
 
 Unlike Obsidian's built-in search, Find-n-Replace is designed specifically for bulk editing operations across multiple files simultaneously, combining the discovery power of search with precise replacement capabilities.
 
+> [!DANGER]
+> **This plugin directly modifies your vault files!** All replace operations permanently change file contents. While the plugin includes safety features and error handling, **you are responsible for maintaining backups of your vault**. Always ensure you have a recent backup before performing bulk replacements, especially when using regex patterns or vault-wide operations. Consider using Git version control or Obsidian's built-in sync/backup features to protect your data.
+
 ## Core Features
 
 ### Search Capabilities
