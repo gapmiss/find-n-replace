@@ -1462,29 +1462,29 @@ To use this test vault with the Find-n-Replace plugin:
 - Search within task lists: \`- \\[ \\] \` (unchecked), \`- \\[x\\] \` (checked)
 
 ### Regex Pattern Matching
-- Convert date formats: \`(\\\\d{4})-(\\\\d{2})-(\\\\d{2})\` → \`$2/$3/$1\`
-- Find email addresses: \`\\\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Z|a-z]{2,}\\\\b\`
-- Extract version numbers: \`v\\\\d+\\\\.\\\\d+\\\\.\\\\d+(-\\\\w+)?\`
+- Convert date formats: \`(\\d{4})-(\\d{2})-(\\d{2})\` → \`$2/$3/$1\`
+- Find email addresses: \`\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b\`
+- Extract version numbers: \`v\\d+\\.\\d+\\.\\d+(-\\w+)?\`
 - Find UUIDs: \`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\`
-- Match phone numbers: \`\\\\(\\\\d{3}\\\\) \\\\d{3}-\\\\d{4}\`
-- Find URLs: \`https?://[^\\\\s]+\`
+- Match phone numbers: \`\\(\\d{3}\\) \\d{3}-\\d{4}\`
+- Find URLs: \`https?://[^\\s]+\`
 
 ### Link Operations
-- Replace markdown links with wikilinks: \`\\\\[([^\\\\]]+)\\\\]\\\\(([^)]+)\\\\.md\\\\)\` → \`[[$1]]\`
-- Find broken wikilinks: \`\\\\[\\\\[([^\\\\]]+)\\\\]\\\\]\`
+- Replace markdown links with wikilinks: \`\\[([^\\]]+)\\]\\(([^)]+)\\.md\\)\` → \`[[$1]]\`
+- Find broken wikilinks: \`\\[\\[([^\\]]+)\\]\\]\`
 - Update external URLs: Replace old domains with new domains
-- Convert tags to links: \`#([\\\\w-]+)\` → \`[[Tags/$1]]\`
+- Convert tags to links: \`#([\\w-]+)\` → \`[[Tags/$1]]\`
 
 ### Advanced Operations
-- Standardize heading formats: \`^#+\\\\s*(.+?)\\\\s*#+\\\\s*$\` → \`## $1\`
-- Clean up multiple spaces: \`\\\\s{2,}\` → \` \` (single space)
+- Standardize heading formats: \`^#+\\s*(.+?)\\s*#+\\s*$\` → \`## $1\`
+- Clean up multiple spaces: \`\\s{2,}\` → \` \` (single space)
 - Format code blocks: Single backticks to triple backticks
-- Find and replace function names: \`function ([\\\\w]+)\` → \`const $1 = \`
-- Convert formatting: \`\\\\*\\\\*([^*]+)\\\\*\\\\*\` → \`__$1__\` (bold syntax conversion)
+- Find and replace function names: \`function ([\\w]+)\` → \`const $1 = \`
+- Convert formatting: \`\\*\\*([^*]+)\\*\\*\` → \`__$1__\` (bold syntax conversion)
 - Remove strikethrough: \`~~([^~]+)~~\` → \`$1\`
-- Extract footnote content: \`\\\\[\\\\^(\\\\d+)\\\\]: (.+)\` → capture definitions
+- Extract footnote content: \`\\[\\^(\\d+)\\]: (.+)\` → capture definitions
 - Convert lists: \`^- \` → \`1. \` (unordered to ordered)
-- Clean task lists: \`- \\\\[x\\\\] \` → \`- [ ] \` (uncheck all tasks)
+- Clean task lists: \`- \\[x\\] \` → \`- [ ] \` (uncheck all tasks)
 
 ### Multi-Selection Tests
 - Search for "function" and test multi-selection across files
@@ -1689,29 +1689,29 @@ To use this test vault with the Find-n-Replace plugin:
 - Search within task lists: \`- \\[ \\] \` (unchecked), \`- \\[x\\] \` (checked)
 
 ### Regex Pattern Matching
-- Convert date formats: \`(\\\\d{4})-(\\\\d{2})-(\\\\d{2})\` → \`$2/$3/$1\`
-- Find email addresses: \`\\\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Z|a-z]{2,}\\\\b\`
-- Extract version numbers: \`v\\\\d+\\\\.\\\\d+\\\\.\\\\d+(-\\\\w+)?\`
+- Convert date formats: \`(\\d{4})-(\\d{2})-(\\d{2})\` → \`$2/$3/$1\`
+- Find email addresses: \`\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b\`
+- Extract version numbers: \`v\\d+\\.\\d+\\.\\d+(-\\w+)?\`
 - Find UUIDs: \`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\`
-- Match phone numbers: \`\\\\(\\\\d{3}\\\\) \\\\d{3}-\\\\d{4}\`
-- Find URLs: \`https?://[^\\\\s]+\`
+- Match phone numbers: \`\\(\\d{3}\\) \\d{3}-\\d{4}\`
+- Find URLs: \`https?://[^\\s]+\`
 
 ### Link Operations
-- Replace markdown links with wikilinks: \`\\\\[([^\\\\]]+)\\\\]\\\\(([^)]+)\\\\.md\\\\)\` → \`[[$1]]\`
-- Find broken wikilinks: \`\\\\[\\\\[([^\\\\]]+)\\\\]\\\\]\`
+- Replace markdown links with wikilinks: \`\\[([^\\]]+)\\]\\(([^)]+)\\.md\\)\` → \`[[$1]]\`
+- Find broken wikilinks: \`\\[\\[([^\\]]+)\\]\\]\`
 - Update external URLs: Replace old domains with new domains
-- Convert tags to links: \`#([\\\\w-]+)\` → \`[[Tags/$1]]\`
+- Convert tags to links: \`#([\\w-]+)\` → \`[[Tags/$1]]\`
 
 ### Advanced Operations
-- Standardize heading formats: \`^#+\\\\s*(.+?)\\\\s*#+\\\\s*$\` → \`## $1\`
-- Clean up multiple spaces: \`\\\\s{2,}\` → \` \` (single space)
+- Standardize heading formats: \`^#+\\s*(.+?)\\s*#+\\s*$\` → \`## $1\`
+- Clean up multiple spaces: \`\\s{2,}\` → \` \` (single space)
 - Format code blocks: Single backticks to triple backticks
-- Find and replace function names: \`function ([\\\\w]+)\` → \`const $1 = \`
-- Convert formatting: \`\\\\*\\\\*([^*]+)\\\\*\\\\*\` → \`__$1__\` (bold syntax conversion)
+- Find and replace function names: \`function ([\\w]+)\` → \`const $1 = \`
+- Convert formatting: \`\\*\\*([^*]+)\\*\\*\` → \`__$1__\` (bold syntax conversion)
 - Remove strikethrough: \`~~([^~]+)~~\` → \`$1\`
-- Extract footnote content: \`\\\\[\\\\^(\\\\d+)\\\\]: (.+)\` → capture definitions
+- Extract footnote content: \`\\[\\^(\\d+)\\]: (.+)\` → capture definitions
 - Convert lists: \`^- \` → \`1. \` (unordered to ordered)
-- Clean task lists: \`- \\\\[x\\\\] \` → \`- [ ] \` (uncheck all tasks)
+- Clean task lists: \`- \\[x\\] \` → \`- [ ] \` (uncheck all tasks)
 
 ### Multi-Selection Tests
 - Search for "function" and test multi-selection across files
