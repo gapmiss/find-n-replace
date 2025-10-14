@@ -215,7 +215,7 @@ export class SearchController {
             }
 
             // Check if search was cancelled
-            if (this.currentSearchController.signal.aborted) {
+            if (this.currentSearchController?.signal.aborted) {
                 this.logger.debug(`[${searchId}] Search cancelled before starting`);
                 return;
             }
@@ -232,7 +232,7 @@ export class SearchController {
             }
 
             // Check if search was cancelled before performing search
-            if (this.currentSearchController.signal.aborted) {
+            if (this.currentSearchController?.signal.aborted) {
                 this.logger.debug(`[${searchId}] Search cancelled before execution`);
                 return;
             }
@@ -245,7 +245,7 @@ export class SearchController {
             this.logger.debug(`[${searchId}] SearchEngine.performSearch completed: ${results.length} results`);
 
             // Check if search was cancelled after completion
-            if (this.currentSearchController.signal.aborted) {
+            if (this.currentSearchController?.signal.aborted) {
                 this.logger.debug(`[${searchId}] Search cancelled after completion, not updating UI`);
                 return;
             }
