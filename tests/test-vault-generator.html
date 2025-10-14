@@ -136,6 +136,44 @@
             color: #2b6cb0;
             font-size: 0.9em;
         }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 30px 0;
+            display: none;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+
+        .stat-value {
+            font-size: 3em;
+            font-weight: 700;
+            color: #667eea;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .stat-label {
+            text-transform: uppercase;
+            font-size: 0.85em;
+            color: #718096;
+            letter-spacing: 0.05em;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        .stat-card.status .stat-value {
+            font-size: 2.5em;
+            color: #48bb78;
+        }
     </style>
 </head>
 <body>
@@ -147,13 +185,17 @@
             <h3>What's Included</h3>
             <ul>
                 <li><strong>5000 markdown files</strong> with varied content and naming</li>
-                <li><strong>Diverse text patterns</strong> for comprehensive search testing</li>
-                <li><strong>Multiple content types:</strong> articles, notes, code snippets, lists</li>
-                <li><strong>Common search targets:</strong> repeated phrases, technical terms, dates</li>
-                <li><strong>Folder structure:</strong> organized into logical categories</li>
-                <li><strong>Special characters:</strong> regex-testable patterns and edge cases</li>
-                <li><strong>Real-world scenarios:</strong> duplicated content, similar phrases</li>
-                <li><strong>Interconnected files:</strong> realistic wikilinks and external URLs</li>
+                <li><strong>Complete markdown syntax:</strong> bold, italic, strikethrough, highlight, inline code</li>
+                <li><strong>Lists:</strong> unordered, ordered, nested, with task checkboxes (- [ ] / - [x])</li>
+                <li><strong>YAML frontmatter</strong> with metadata (30% of files)</li>
+                <li><strong>Obsidian callouts</strong> (NOTE, INFO, WARNING, TIP, etc.)</li>
+                <li><strong>Tables</strong> with category-specific data (20% of files)</li>
+                <li><strong>Blockquotes</strong> for inspirational quotes and callouts</li>
+                <li><strong>Horizontal rules</strong> (---) as section dividers</li>
+                <li><strong>Code blocks</strong> in multiple languages (JS, Python, SQL, Rust, Go)</li>
+                <li><strong>Images</strong> via placeholder service (15% of files)</li>
+                <li><strong>Links:</strong> wikilinks [[...]], markdown links, external URLs</li>
+                <li><strong>Regex-testable patterns:</strong> dates, emails, UUIDs, phone numbers</li>
             </ul>
         </div>
 
@@ -167,6 +209,25 @@
             <div class="progress-text" id="progressText">Preparing...</div>
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <div id="stats" class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="statFiles">5000</div>
+                <div class="stat-label">FILES</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statSize">~5MB</div>
+                <div class="stat-label">SIZE</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statFolders">27</div>
+                <div class="stat-label">FOLDERS</div>
+            </div>
+            <div class="stat-card status">
+                <div class="stat-value" id="statStatus">Ready</div>
+                <div class="stat-label">STATUS</div>
             </div>
         </div>
     </div>
@@ -311,6 +372,544 @@
                     'transport layer security', 'secure socket layer', 'https protocol', 'certificate pinning', 'perfect forward secrecy'
                 ];
 
+                this.calloutTypes = ['NOTE', 'INFO', 'TIP', 'SUCCESS', 'QUESTION', 'WARNING', 'DANGER', 'ABSTRACT', 'EXAMPLE', 'QUOTE'];
+
+                this.calloutContent = [
+                    'This is an important consideration for implementation.',
+                    'Consider the performance implications of this approach.',
+                    'Remember to test edge cases thoroughly.',
+                    'Documentation should be updated to reflect these changes.',
+                    'This pattern is widely used in modern applications.',
+                    'Security review required before deployment.',
+                    'Backward compatibility must be maintained.',
+                    'Consider using a more efficient data structure.',
+                    'This approach scales well for large datasets.',
+                    'Error handling needs improvement in this section.',
+                    'User feedback indicates this feature is highly valued.',
+                    'Research shows significant benefits from this approach.',
+                    'Historical data supports this decision.',
+                    'Industry standards recommend this practice.',
+                    'Team consensus favors this direction.',
+                    'Cost-benefit analysis suggests positive ROI.',
+                    'Risk assessment indicates acceptable trade-offs.',
+                    'Stakeholder input has been incorporated.',
+                    'Regulatory requirements must be met.',
+                    'Accessibility standards apply here.',
+                    'Mobile optimization is essential.',
+                    'Browser compatibility needs verification.',
+                    'Internationalization should be considered.',
+                    'Localization affects user experience.',
+                    'Privacy concerns require attention.',
+                    'Data protection regulations apply.',
+                    'Performance benchmarks guide decisions.',
+                    'Scalability requirements inform architecture.',
+                    'Maintainability impacts long-term costs.',
+                    'Technical debt should be addressed.',
+                    'Code quality metrics show improvement.',
+                    'Test coverage reaches acceptable levels.',
+                    'CI/CD pipeline ensures reliability.',
+                    'Monitoring provides operational visibility.',
+                    'Logging facilitates troubleshooting.',
+                    'Documentation enables knowledge transfer.',
+                    'Training materials support adoption.',
+                    'Support resources help users succeed.',
+                    'Community engagement drives growth.',
+                    'Open source contributions welcome.',
+                    'Collaboration tools enhance productivity.',
+                    'Remote work requires clear communication.',
+                    'Asynchronous workflows need structure.',
+                    'Time zones affect scheduling.',
+                    'Cultural differences enrich perspectives.',
+                    'Language barriers require sensitivity.',
+                    'Inclusivity promotes belonging.',
+                    'Diversity strengthens teams.',
+                    'Equity ensures fairness.',
+                    'Transparency builds trust.'
+                ];
+
+                this.taskPhrases = [
+                    'Review the documentation',
+                    'Update unit tests',
+                    'Refactor legacy code',
+                    'Add error handling',
+                    'Implement caching layer',
+                    'Optimize database queries',
+                    'Add input validation',
+                    'Write integration tests',
+                    'Update dependencies',
+                    'Fix security vulnerabilities',
+                    'Improve performance',
+                    'Add logging statements',
+                    'Document API endpoints',
+                    'Setup CI/CD pipeline',
+                    'Configure monitoring',
+                    'Add feature flag',
+                    'Implement rate limiting',
+                    'Create backup strategy',
+                    'Review code coverage',
+                    'Update changelog',
+                    'Schedule team meeting',
+                    'Prepare presentation slides',
+                    'Research best practices',
+                    'Compare vendor options',
+                    'Draft project proposal',
+                    'Conduct user interviews',
+                    'Analyze survey results',
+                    'Create wireframes',
+                    'Design mockups',
+                    'Test accessibility',
+                    'Validate form inputs',
+                    'Implement authentication',
+                    'Configure permissions',
+                    'Setup staging environment',
+                    'Deploy to production',
+                    'Monitor error rates',
+                    'Investigate bug reports',
+                    'Respond to support tickets',
+                    'Update user guide',
+                    'Record demo video',
+                    'Write blog post',
+                    'Share on social media',
+                    'Collect feedback',
+                    'Prioritize backlog items',
+                    'Estimate story points',
+                    'Run load tests',
+                    'Audit security',
+                    'Review pull requests',
+                    'Merge feature branch',
+                    'Tag release version',
+                    'Announce new features',
+                    'Archive old projects',
+                    'Clean up codebase',
+                    'Organize project files',
+                    'Backup important data',
+                    'Renew SSL certificate',
+                    'Update privacy policy',
+                    'Comply with regulations',
+                    'Train new team members',
+                    'Document tribal knowledge',
+                    'Create troubleshooting guide'
+                ];
+
+                this.generalContent = {
+                    daily: [
+                        'Today was productive overall.',
+                        'Made significant progress on the main objectives.',
+                        'Encountered some unexpected challenges.',
+                        'Team collaboration went smoothly.',
+                        'Need to follow up on several items tomorrow.',
+                        'Successfully completed most planned tasks.',
+                        'Learned something new today.',
+                        'Had a great brainstorming session.',
+                        'Resolved blocking issues efficiently.',
+                        'Looking forward to tomorrow\'s milestones.',
+                        'The morning meeting clarified several outstanding questions.',
+                        'Spent quality time reviewing feedback from stakeholders.',
+                        'Made headway on the backlog items.',
+                        'Connected with colleagues about next steps.',
+                        'Identified areas needing improvement.',
+                        'Wrapped up loose ends before the weekend.',
+                        'Participated in meaningful discussions.',
+                        'Overcame initial hesitation and took action.',
+                        'Discovered helpful resources for future reference.',
+                        'Balanced multiple priorities effectively.',
+                        'Took time for reflection and planning.',
+                        'Addressed concerns raised in previous sessions.',
+                        'Celebrated small wins with the team.',
+                        'Adjusted approach based on recent insights.',
+                        'Maintained focus despite distractions.',
+                        'Documented key decisions and rationale.',
+                        'Reached out for assistance when needed.',
+                        'Cleared mental space for creative thinking.',
+                        'Reviewed past work to inform future direction.',
+                        'Experienced moments of clarity and understanding.'
+                    ],
+                    thoughts: [
+                        'Interesting perspective on problem-solving.',
+                        'This could lead to innovative solutions.',
+                        'Worth exploring alternative approaches.',
+                        'Need to research this topic more deeply.',
+                        'Could benefit from community feedback.',
+                        'This idea has potential for future development.',
+                        'Challenges present opportunities for growth.',
+                        'Balance between speed and quality is crucial.',
+                        'Collaboration enhances creative thinking.',
+                        'Continuous learning drives improvement.',
+                        'Sometimes the simplest solution is the best.',
+                        'Complexity emerges from interconnected systems.',
+                        'Context shapes interpretation significantly.',
+                        'Assumptions need periodic re-examination.',
+                        'Diverse viewpoints strengthen decision-making.',
+                        'Constraints can inspire creativity.',
+                        'First principles thinking reveals core truths.',
+                        'Patience yields better long-term results.',
+                        'Iteration leads to refinement.',
+                        'Questions matter more than immediate answers.',
+                        'Synthesis of ideas creates new possibilities.',
+                        'Uncertainty is an opportunity for discovery.',
+                        'Systems thinking reveals hidden connections.',
+                        'Incremental progress compounds over time.',
+                        'Feedback loops accelerate improvement.',
+                        'Mental models shape perception.',
+                        'Metacognition enhances learning effectiveness.',
+                        'Frameworks provide useful scaffolding.',
+                        'Analogies bridge understanding across domains.',
+                        'Curiosity drives deeper exploration.'
+                    ],
+                    observations: [
+                        'Patterns emerge with careful observation.',
+                        'Attention to detail makes a difference.',
+                        'User feedback provides valuable insights.',
+                        'Data-driven decisions lead to better outcomes.',
+                        'Small improvements accumulate over time.',
+                        'Communication clarity prevents misunderstandings.',
+                        'Documentation quality impacts productivity.',
+                        'Testing early saves time later.',
+                        'Automation reduces manual errors.',
+                        'Regular reviews maintain code quality.',
+                        'Consistency builds trust and reliability.',
+                        'Transparency facilitates collaboration.',
+                        'Flexibility allows adaptation to change.',
+                        'Simplicity reduces cognitive load.',
+                        'Structure provides helpful boundaries.',
+                        'Variety prevents stagnation.',
+                        'Rhythm creates sustainable momentum.',
+                        'Timing affects outcomes significantly.',
+                        'Context influences interpretation.',
+                        'Scale changes dynamics.',
+                        'Relationships matter more than transactions.',
+                        'Process shapes product quality.',
+                        'Environment affects behavior patterns.',
+                        'Incentives drive action.',
+                        'Culture emerges from collective behavior.',
+                        'Standards enable interoperability.',
+                        'Redundancy increases resilience.',
+                        'Modularity enables flexibility.',
+                        'Dependencies create coupling.',
+                        'Abstractions simplify complexity.'
+                    ],
+                    personal: [
+                        'Taking breaks improves overall focus.',
+                        'Morning routines set the tone for the day.',
+                        'Evening reflection helps process experiences.',
+                        'Physical activity boosts mental clarity.',
+                        'Reading widely expands perspectives.',
+                        'Writing clarifies thinking.',
+                        'Conversations spark new ideas.',
+                        'Nature walks restore energy.',
+                        'Music enhances mood and productivity.',
+                        'Adequate sleep improves decision-making.',
+                        'Healthy boundaries protect wellbeing.',
+                        'Gratitude shifts perspective positively.',
+                        'Mindfulness reduces reactive behavior.',
+                        'Hobbies provide creative outlets.',
+                        'Social connections enrich life.',
+                        'Laughter relieves tension.',
+                        'Challenges build resilience.',
+                        'Mistakes offer learning opportunities.',
+                        'Success requires consistent effort.',
+                        'Rest is productive, not wasteful.',
+                        'Self-compassion enables growth.',
+                        'Comparison diminishes joy.',
+                        'Presence enhances relationships.',
+                        'Purpose provides direction.',
+                        'Values guide decisions.',
+                        'Strengths deserve development.',
+                        'Weaknesses need acknowledgment.',
+                        'Progress matters more than perfection.',
+                        'Change is constant and natural.',
+                        'Acceptance reduces suffering.'
+                    ],
+                    project: [
+                        'The initial scope needs refinement.',
+                        'Stakeholder alignment is critical.',
+                        'Timeline estimates require buffer.',
+                        'Resource allocation affects delivery.',
+                        'Dependencies create scheduling challenges.',
+                        'Milestones provide checkpoints.',
+                        'Risks need mitigation strategies.',
+                        'Communication plan ensures visibility.',
+                        'Success criteria must be clear.',
+                        'Regular updates maintain momentum.',
+                        'Scope creep threatens deadlines.',
+                        'Early wins build confidence.',
+                        'Pivot decisions require data.',
+                        'Trade-offs need explicit discussion.',
+                        'Quality gates prevent regression.',
+                        'Documentation supports maintenance.',
+                        'Retrospectives improve processes.',
+                        'Continuous delivery reduces risk.',
+                        'User testing validates assumptions.',
+                        'Performance benchmarks guide optimization.',
+                        'Security reviews catch vulnerabilities.',
+                        'Accessibility audits ensure inclusivity.',
+                        'Code reviews share knowledge.',
+                        'Pair programming accelerates learning.',
+                        'Technical debt accumulates silently.',
+                        'Refactoring maintains code health.',
+                        'Monitoring provides visibility.',
+                        'Incident response needs preparation.',
+                        'Capacity planning prevents overload.',
+                        'Innovation requires exploration time.'
+                    ],
+                    meeting: [
+                        'Clear agenda improves meeting efficiency.',
+                        'Time limits encourage focused discussion.',
+                        'Action items need explicit ownership.',
+                        'Follow-up ensures accountability.',
+                        'Preparation maximizes participation value.',
+                        'Active listening builds understanding.',
+                        'Questions clarify ambiguity.',
+                        'Diverse perspectives enrich outcomes.',
+                        'Consensus requires compromise.',
+                        'Dissent deserves respectful hearing.',
+                        'Documentation captures decisions.',
+                        'Parking lot prevents tangents.',
+                        'Check-ins build team connection.',
+                        'Retrospectives enable improvement.',
+                        'Stand-ups maintain alignment.',
+                        'One-on-ones develop relationships.',
+                        'Skip-levels surface systemic issues.',
+                        'All-hands share broader context.',
+                        'Working sessions make progress.',
+                        'Brainstorms generate options.',
+                        'Decision meetings require closure.',
+                        'Status updates provide visibility.',
+                        'Reviews ensure quality.',
+                        'Demos showcase progress.',
+                        'Training develops capabilities.',
+                        'Workshops align understanding.',
+                        'Town halls address concerns.',
+                        'Board meetings guide strategy.',
+                        'Client meetings clarify needs.',
+                        'Vendor meetings manage relationships.'
+                    ],
+                    learning: [
+                        'Spaced repetition improves retention.',
+                        'Active recall strengthens memory.',
+                        'Elaboration deepens understanding.',
+                        'Interleaving enhances flexibility.',
+                        'Concrete examples clarify abstractions.',
+                        'Analogies connect new to known.',
+                        'Chunking reduces cognitive load.',
+                        'Schemas organize information.',
+                        'Metacognition guides learning strategy.',
+                        'Deliberate practice builds expertise.',
+                        'Immediate feedback accelerates improvement.',
+                        'Struggle indicates growth zone.',
+                        'Mistakes reveal misconceptions.',
+                        'Teaching reinforces understanding.',
+                        'Questions drive curiosity.',
+                        'Reflection consolidates learning.',
+                        'Application transfers knowledge.',
+                        'Context aids retrieval.',
+                        'Emotion affects memory formation.',
+                        'Sleep consolidates memories.',
+                        'Exercise enhances cognition.',
+                        'Nutrition supports brain function.',
+                        'Stress impairs learning.',
+                        'Motivation sustains effort.',
+                        'Interest increases engagement.',
+                        'Autonomy supports intrinsic motivation.',
+                        'Competence builds confidence.',
+                        'Relatedness enhances persistence.',
+                        'Growth mindset enables resilience.',
+                        'Fixed mindset limits potential.'
+                    ],
+                    creative: [
+                        'Inspiration strikes at unexpected moments.',
+                        'Creative constraints spark innovative solutions.',
+                        'Divergent thinking explores multiple possibilities.',
+                        'Convergent thinking refines and selects.',
+                        'Brainstorming quantity leads to quality.',
+                        'Prototyping makes ideas tangible.',
+                        'Iteration reveals hidden potential.',
+                        'Collaboration amplifies creative output.',
+                        'Solitude provides space for deep work.',
+                        'Cross-pollination generates novel combinations.',
+                        'Playfulness reduces creative blocks.',
+                        'Risk-taking enables breakthrough discoveries.',
+                        'Observation feeds creative imagination.',
+                        'Experimentation uncovers new techniques.',
+                        'Documentation preserves creative insights.',
+                        'Critique sharpens creative judgment.',
+                        'Deadlines focus creative energy.',
+                        'Freedom allows exploration.',
+                        'Structure provides direction.',
+                        'Constraints force creative solutions.',
+                        'Rest incubates ideas.',
+                        'Movement stimulates thinking.',
+                        'Environment influences creativity.',
+                        'Tools shape creative expression.',
+                        'Practice develops creative skills.',
+                        'Originality builds on existing work.',
+                        'Synthesis creates new wholes.',
+                        'Metaphors bridge concepts.',
+                        'Stories communicate ideas powerfully.',
+                        'Simplicity reveals essence.'
+                    ],
+                    reading: [
+                        'This book offers valuable insights.',
+                        'The author presents compelling arguments.',
+                        'Key concepts deserve further exploration.',
+                        'Historical context enriches understanding.',
+                        'Personal anecdotes illustrate principles.',
+                        'Research findings support main claims.',
+                        'Counterarguments receive fair treatment.',
+                        'Writing style engages reader attention.',
+                        'Chapter structure aids comprehension.',
+                        'Examples clarify abstract concepts.',
+                        'Connections to other works emerge.',
+                        'Questions arise for future investigation.',
+                        'Practical applications suggest themselves.',
+                        'Theoretical frameworks organize ideas.',
+                        'Citations point to additional resources.',
+                        'Diagrams enhance explanation.',
+                        'Summaries reinforce key points.',
+                        'Exercises promote active learning.',
+                        'Case studies demonstrate application.',
+                        'Glossary defines technical terms.',
+                        'Index facilitates reference.',
+                        'Appendices provide supplementary detail.',
+                        'Bibliography suggests further reading.',
+                        'Foreword contextualizes content.',
+                        'Introduction outlines scope.',
+                        'Conclusion synthesizes insights.',
+                        'Chapters build progressively.',
+                        'Sections organize topics logically.',
+                        'Headings guide navigation.',
+                        'Footnotes add nuance.'
+                    ],
+                    travel: [
+                        'Local cuisine reveals cultural values.',
+                        'Architecture tells historical stories.',
+                        'Public spaces reflect social priorities.',
+                        'Transportation shapes urban experience.',
+                        'Markets buzz with authentic life.',
+                        'Museums preserve collective memory.',
+                        'Parks offer respite and recreation.',
+                        'Neighborhoods have distinct characters.',
+                        'Street art expresses community identity.',
+                        'Cafes serve as social hubs.',
+                        'Landmarks anchor tourist itineraries.',
+                        'Hidden gems reward exploration.',
+                        'Locals share insider knowledge.',
+                        'Language barriers inspire creativity.',
+                        'Currency exchange teaches economics.',
+                        'Weather influences daily rhythms.',
+                        'Seasons transform landscapes.',
+                        'Festivals celebrate traditions.',
+                        'Rituals maintain continuity.',
+                        'Customs vary across regions.',
+                        'Hospitality bridges cultures.',
+                        'Stories connect people.',
+                        'Music transcends language.',
+                        'Dance embodies cultural expression.',
+                        'Crafts preserve traditional skills.',
+                        'Textiles reflect aesthetic sensibilities.',
+                        'Colors carry symbolic meanings.',
+                        'Patterns encode cultural information.',
+                        'Materials reflect local resources.',
+                        'Techniques pass through generations.'
+                    ],
+                    health: [
+                        'Regular exercise maintains physical fitness.',
+                        'Balanced nutrition supports bodily functions.',
+                        'Adequate hydration improves performance.',
+                        'Quality sleep enables recovery.',
+                        'Stress management protects wellbeing.',
+                        'Social connections boost immune system.',
+                        'Preventive care catches issues early.',
+                        'Regular checkups monitor health status.',
+                        'Vaccinations prevent serious diseases.',
+                        'Hand washing reduces infection transmission.',
+                        'Sunscreen protects skin health.',
+                        'Dental care prevents complications.',
+                        'Vision screening detects problems.',
+                        'Hearing protection preserves function.',
+                        'Posture affects musculoskeletal health.',
+                        'Ergonomics prevents repetitive strain.',
+                        'Breaks reduce mental fatigue.',
+                        'Fresh air improves alertness.',
+                        'Natural light regulates circadian rhythm.',
+                        'Green spaces reduce stress.',
+                        'Meditation calms nervous system.',
+                        'Breathing exercises promote relaxation.',
+                        'Stretching maintains flexibility.',
+                        'Strength training builds resilience.',
+                        'Cardiovascular exercise improves endurance.',
+                        'Balance training prevents falls.',
+                        'Coordination develops through practice.',
+                        'Variety prevents overuse injuries.',
+                        'Rest days enable adaptation.',
+                        'Progressive overload builds capacity.'
+                    ],
+                    cooking: [
+                        'Fresh ingredients make better meals.',
+                        'Seasoning layers build depth of flavor.',
+                        'Temperature control affects texture.',
+                        'Timing impacts doneness.',
+                        'Knife skills improve efficiency.',
+                        'Mise en place streamlines cooking.',
+                        'Tasting throughout guides adjustments.',
+                        'Balance involves sweet, salty, sour, bitter.',
+                        'Umami adds savory richness.',
+                        'Fat carries flavor compounds.',
+                        'Acid brightens and balances.',
+                        'Salt enhances natural flavors.',
+                        'Herbs add fresh aromatics.',
+                        'Spices contribute warmth and complexity.',
+                        'Browning develops savory notes.',
+                        'Deglazing captures fond.',
+                        'Reducing concentrates flavors.',
+                        'Emulsifying creates smooth sauces.',
+                        'Resting redistributes juices.',
+                        'Garnishing adds visual appeal.',
+                        'Plating presents food attractively.',
+                        'Texture contrast creates interest.',
+                        'Color variety pleases the eye.',
+                        'Temperature serving matters.',
+                        'Portions affect satisfaction.',
+                        'Pairing complements flavors.',
+                        'Leftovers inspire creativity.',
+                        'Batch cooking saves time.',
+                        'Meal planning reduces waste.',
+                        'Recipe testing ensures success.'
+                    ],
+                    quotes: [
+                        'The journey of a thousand miles begins with a single step.',
+                        'What we think, we become.',
+                        'Simplicity is the ultimate sophistication.',
+                        'Innovation distinguishes between a leader and a follower.',
+                        'The only way to do great work is to love what you do.',
+                        'Life is what happens when you\'re busy making other plans.',
+                        'The unexamined life is not worth living.',
+                        'Be the change you wish to see in the world.',
+                        'The best time to plant a tree was twenty years ago.',
+                        'A goal without a plan is just a wish.',
+                        'Knowledge speaks, but wisdom listens.',
+                        'The mind is everything; what you think you become.',
+                        'Action is the foundational key to all success.',
+                        'Quality is not an act, it is a habit.',
+                        'We are what we repeatedly do.',
+                        'The secret of getting ahead is getting started.',
+                        'Don\'t watch the clock; do what it does.',
+                        'The future belongs to those who prepare for it.',
+                        'Success is not final, failure is not fatal.',
+                        'It always seems impossible until it\'s done.',
+                        'The only impossible journey is the one you never begin.',
+                        'Believe you can and you\'re halfway there.',
+                        'Everything you can imagine is real.',
+                        'Do what you can with what you have.',
+                        'Dream big and dare to fail.',
+                        'Change your thoughts and you change your world.',
+                        'The best preparation for tomorrow is doing your best today.',
+                        'You miss one hundred percent of the shots you don\'t take.',
+                        'Whether you think you can or you think you can\'t, you\'re right.',
+                        'Strive not to be a success, but rather to be of value.'
+                    ]
+                };
+
                 this.dates = [
                     '2024-01-15', '2024-02-28', '2024-03-10', '2024-04-22', '2024-05-08',
                     '2023-12-25', '2023-11-30', '2023-10-15', '2023-09-05', '2023-08-20',
@@ -355,12 +954,41 @@
                 const category = folder.split('/')[0].toLowerCase();
                 const subcategory = folder.split('/')[1]?.toLowerCase() || '';
 
-                let content = `# ${filename.replace('.md', '').replace(/[-_]/g, ' ')}\n\n`;
+                let content = '';
 
-                // Add metadata
-                content += `**Created:** ${this.randomDate()}\n`;
-                content += `**Category:** ${category}\n`;
-                content += `**Tags:** #${category} #${subcategory}\n\n`;
+                // Add frontmatter (30% of files)
+                if (Math.random() < 0.3) {
+                    content += '---\n';
+                    content += `title: ${filename.replace('.md', '').replace(/[-_]/g, ' ')}\n`;
+                    content += `created: ${this.randomDate()}\n`;
+                    content += `updated: ${this.randomDate()}\n`;
+                    content += `category: ${category}\n`;
+                    content += `tags: [${category}, ${subcategory}]\n`;
+                    if (Math.random() < 0.5) {
+                        content += `author: ${this.randomElement(['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'])}\n`;
+                    }
+                    if (Math.random() < 0.4) {
+                        content += `status: ${this.randomElement(['draft', 'in-progress', 'complete', 'archived'])}\n`;
+                    }
+                    content += '---\n\n';
+                }
+
+                content += `# ${filename.replace('.md', '').replace(/[-_]/g, ' ')}\n\n`;
+
+                // Add metadata (if no frontmatter)
+                if (!content.includes('---')) {
+                    content += `**Created:** ${this.randomDate()}\n`;
+                    content += `**Category:** ${category}\n`;
+                    content += `**Tags:** #${category} #${subcategory}\n\n`;
+                }
+
+                // Add callout (25% of files)
+                if (Math.random() < 0.25) {
+                    const calloutType = this.randomElement(this.calloutTypes);
+                    const isCollapsible = Math.random() < 0.5 ? '+' : '';
+                    content += `> [!${calloutType}]${isCollapsible} ${calloutType.charAt(0) + calloutType.slice(1).toLowerCase()}\n`;
+                    content += `> ${this.randomElement(this.calloutContent)}\n\n`;
+                }
 
                 // Add common phrases for testing
                 if (Math.random() < 0.3) {
@@ -375,8 +1003,69 @@
                     content += `\n## Technical Notes\n\n`;
                     const terms = this.randomElements(this.technicalTerms, 3);
                     terms.forEach(term => {
-                        content += `- **${term}**: ${this.generateSentence()}\n`;
+                        let sentence = this.generateSentence();
+                        // Add formatting to definitions
+                        if (Math.random() < 0.4) {
+                            sentence = this.addMarkdownFormatting(sentence);
+                        }
+                        content += `- **${term}**: ${sentence}\n`;
                     });
+                }
+
+                // Add definition list with emphasis (10% of files)
+                if (Math.random() < 0.1) {
+                    content += `\n## Definitions\n\n`;
+                    const defCount = 2 + Math.floor(Math.random() * 4);
+                    for (let i = 0; i < defCount; i++) {
+                        const term = this.randomElement(['Term', 'Concept', 'Principle', 'Method', 'Approach', 'Technique']);
+                        content += `**${term} ${i + 1}**\n: ${this.generateSentence()}\n\n`;
+                    }
+                }
+
+                // Add task list (35% of files)
+                if (Math.random() < 0.35) {
+                    content += `\n## Tasks\n\n`;
+                    const numTasks = 3 + Math.floor(Math.random() * 5);
+                    for (let i = 0; i < numTasks; i++) {
+                        const isChecked = Math.random() < 0.3 ? 'x' : ' ';
+                        content += `- [${isChecked}] ${this.randomElement(this.taskPhrases)}\n`;
+                    }
+                    content += '\n';
+                }
+
+                // Add table (20% of files)
+                if (Math.random() < 0.2) {
+                    content += `\n## Summary Table\n\n`;
+                    content += this.generateTable(category);
+                    content += '\n';
+                }
+
+                // Add image (15% of files)
+                if (Math.random() < 0.15) {
+                    const width = 200 + Math.floor(Math.random() * 400);
+                    const height = 200 + Math.floor(Math.random() * 400);
+                    content += `\n## Visual Reference\n\n`;
+                    content += `![Placeholder image](https://via.placeholder.com/${width}x${height})\n\n`;
+                }
+
+                // Add inspirational quote (20% of files)
+                if (Math.random() < 0.2) {
+                    content += `\n## Reflection\n\n`;
+                    content += `> ${this.randomElement(this.generalContent.quotes)}\n\n`;
+                }
+
+                // Add footnotes (10% of files)
+                if (Math.random() < 0.1) {
+                    content += `\n## Additional Notes\n\n`;
+                    const footnoteCount = 2 + Math.floor(Math.random() * 3);
+                    for (let i = 1; i <= footnoteCount; i++) {
+                        content += `This point requires elaboration[^${i}]. `;
+                    }
+                    content += '\n\n';
+                    for (let i = 1; i <= footnoteCount; i++) {
+                        content += `[^${i}]: ${this.generateSentence()}\n`;
+                    }
+                    content += '\n';
                 }
 
                 // Add code blocks for some files
@@ -466,20 +1155,145 @@
                 // Generate 2-4 paragraphs
                 const paragraphs = 2 + Math.floor(Math.random() * 3);
                 for (let i = 0; i < paragraphs; i++) {
-                    content += this.generateParagraph(subjects) + '\n\n';
+                    // Mix technical and general content
+                    // Notes category heavily favors general content (80%)
+                    // Other categories have 30% chance of general content
+                    const useGeneralContent = (category === 'notes' && Math.random() < 0.8) ||
+                                             (category !== 'notes' && Math.random() < 0.3);
+
+                    let paragraph;
+                    if (useGeneralContent) {
+                        paragraph = this.generateGeneralParagraph();
+                    } else {
+                        paragraph = this.generateParagraph(subjects);
+                    }
+
+                    // Add formatting to some paragraphs
+                    if (Math.random() < 0.25) {
+                        paragraph = this.addMarkdownFormatting(paragraph);
+                    }
+
+                    content += paragraph + '\n\n';
+
+                    // Occasionally add horizontal rule between sections
+                    if (Math.random() < 0.15 && i < paragraphs - 1) {
+                        content += '---\n\n';
+                    }
                 }
 
-                // Add a list
+                // Add a list (unordered or ordered)
                 if (Math.random() < 0.5) {
+                    const useOrderedList = Math.random() < 0.5;
                     content += `## Key Points\n\n`;
                     const items = 3 + Math.floor(Math.random() * 5);
                     for (let i = 0; i < items; i++) {
-                        content += `- ${this.generateSentence(subjects)}\n`;
+                        const prefix = useOrderedList ? `${i + 1}.` : '-';
+                        let item = this.generateSentence(subjects);
+
+                        // Add markdown formatting to some list items
+                        if (Math.random() < 0.3) {
+                            item = this.addMarkdownFormatting(item);
+                        }
+
+                        content += `${prefix} ${item}\n`;
+
+                        // Sometimes add nested list items
+                        if (Math.random() < 0.2) {
+                            const nestedCount = 1 + Math.floor(Math.random() * 3);
+                            for (let j = 0; j < nestedCount; j++) {
+                                const nestedPrefix = useOrderedList ? `   ${j + 1}.` : '   -';
+                                content += `${nestedPrefix} ${this.generateSentence(subjects)}\n`;
+                            }
+                        }
                     }
                     content += '\n';
                 }
 
                 return content;
+            }
+
+            addMarkdownFormatting(text) {
+                // Add bold, italic, strikethrough, inline code, highlight randomly
+                const words = text.split(' ');
+                const formattedWords = words.map((word, index) => {
+                    // Skip punctuation and short words
+                    if (word.length <= 3 || word.match(/^[.,;:!?-]+$/)) {
+                        return word;
+                    }
+
+                    const rand = Math.random();
+                    if (rand < 0.05) {
+                        return `**${word}**`; // Bold
+                    } else if (rand < 0.10) {
+                        return `*${word}*`; // Italic
+                    } else if (rand < 0.12) {
+                        return `~~${word}~~`; // Strikethrough
+                    } else if (rand < 0.14) {
+                        return `\`${word}\``; // Inline code
+                    } else if (rand < 0.16) {
+                        return `***${word}***`; // Bold + Italic
+                    } else if (rand < 0.17) {
+                        return `==` + word + `==`; // Highlight (Obsidian syntax)
+                    } else if (rand < 0.18) {
+                        return `__${word}__`; // Alternative bold syntax
+                    } else if (rand < 0.19) {
+                        return `_${word}_`; // Alternative italic syntax
+                    }
+                    return word;
+                });
+                return formattedWords.join(' ');
+            }
+
+            generateGeneralParagraph() {
+                const contentTypes = ['daily', 'thoughts', 'observations', 'personal', 'project', 'meeting', 'learning', 'creative', 'reading', 'travel', 'health', 'cooking', 'quotes'];
+                const contentType = this.randomElement(contentTypes);
+                const sentences = this.generalContent[contentType];
+                const numSentences = 3 + Math.floor(Math.random() * 4);
+                let paragraph = '';
+                for (let i = 0; i < numSentences; i++) {
+                    paragraph += this.randomElement(sentences) + ' ';
+                }
+                return paragraph.trim();
+            }
+
+            generateTable(category) {
+                const tables = {
+                    technology: () => {
+                        let table = '| Technology | Version | Status |\n| --- | --- | --- |\n';
+                        const techs = this.randomElements(['React', 'Vue', 'Angular', 'Node.js', 'Python', 'TypeScript', 'Docker', 'Kubernetes'], 4);
+                        techs.forEach(tech => {
+                            const version = `${Math.floor(Math.random() * 5) + 1}.${Math.floor(Math.random() * 20)}.${Math.floor(Math.random() * 10)}`;
+                            const status = this.randomElement(['Stable', 'Beta', 'LTS', 'Latest']);
+                            table += `| ${tech} | ${version} | ${status} |\n`;
+                        });
+                        return table;
+                    },
+                    science: () => {
+                        let table = '| Element | Symbol | Atomic Number |\n| --- | --- | --- |\n';
+                        const elements = [
+                            ['Hydrogen', 'H', '1'],
+                            ['Carbon', 'C', '6'],
+                            ['Oxygen', 'O', '8'],
+                            ['Nitrogen', 'N', '7'],
+                            ['Iron', 'Fe', '26']
+                        ];
+                        this.randomElements(elements, 4).forEach(([name, symbol, num]) => {
+                            table += `| ${name} | ${symbol} | ${num} |\n`;
+                        });
+                        return table;
+                    },
+                    default: () => {
+                        let table = '| Item | Value | Notes |\n| --- | --- | --- |\n';
+                        const items = 3 + Math.floor(Math.random() * 3);
+                        for (let i = 0; i < items; i++) {
+                            table += `| Item ${i + 1} | ${Math.floor(Math.random() * 1000)} | ${this.randomElement(['Important', 'Review', 'Pending', 'Complete'])} |\n`;
+                        }
+                        return table;
+                    }
+                };
+
+                const generator = tables[category] || tables.default;
+                return generator();
             }
 
             generateParagraph(subjects) {
@@ -594,7 +1408,7 @@ To use this test vault with the Find-n-Replace plugin:
 1. Copy this vault to your Obsidian vaults directory
 2. Open it in Obsidian
 3. Install the **Find-n-Replace** plugin from:
-   - **GitHub Repository**: https://github.com/your-username/vault-find-replace
+   - **GitHub Repository**: https://github.com/gapmiss/find-n-replace
    - **Obsidian Community Plugins**: Search for "Find-n-Replace"
 
 ## Test Content Features
@@ -690,9 +1504,11 @@ Happy testing with the Find-n-Replace plugin!
             async generateVault() {
                 const button = document.getElementById('generateBtn');
                 const progress = document.getElementById('progress');
+                const stats = document.getElementById('stats');
 
                 button.disabled = true;
                 progress.style.display = 'block';
+                stats.style.display = 'none';
 
                 try {
                     const zip = new JSZip();
@@ -738,17 +1554,27 @@ Happy testing with the Find-n-Replace plugin!
                         compressionOptions: { level: 6 }
                     });
 
+                    // Calculate actual size
+                    const sizeMB = (blob.size / (1024 * 1024)).toFixed(1);
+
                     // Download the ZIP file
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'vault-find-replace-test-vault.zip';
+                    a.download = 'find-n-replace-test-vault.zip';
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
                     URL.revokeObjectURL(url);
 
                     this.updateProgress(totalFiles, totalFiles, 'Complete! Download started.');
+
+                    // Show stats
+                    document.getElementById('statFiles').textContent = totalFiles;
+                    document.getElementById('statSize').textContent = `~${sizeMB}MB`;
+                    document.getElementById('statFolders').textContent = this.folders.length;
+                    document.getElementById('statStatus').textContent = 'Ready';
+                    stats.style.display = 'grid';
 
                 } catch (error) {
                     console.error('Error generating vault:', error);
@@ -777,7 +1603,7 @@ To use this test vault with the Find-n-Replace plugin:
 1. Copy this vault to your Obsidian vaults directory
 2. Open it in Obsidian
 3. Install the **Find-n-Replace** plugin from:
-   - **GitHub Repository**: https://github.com/your-username/vault-find-replace
+   - **GitHub Repository**: https://github.com/gapmiss/find-n-replace
    - **Obsidian Community Plugins**: Search for "Find-n-Replace"
 
 ## Test Content Features
