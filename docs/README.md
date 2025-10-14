@@ -29,14 +29,6 @@ Welcome to the comprehensive documentation for **Find-n-Replace**, a VSCode-styl
   - Workflow automation
   - Common pitfalls to avoid
 
-### For Contributors
-
-- **[Screenshot Guide](SCREENSHOT_GUIDE.md)** - Creating consistent documentation screenshots
-  - Technical specifications
-  - Annotation standards
-  - Naming conventions
-  - Style guidelines
-
 ## 🚀 Quick Start
 
 New to Find-n-Replace? Start here:
