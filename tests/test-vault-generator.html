@@ -194,6 +194,7 @@
                 <li><strong>Horizontal rules</strong> (---) as section dividers</li>
                 <li><strong>Code blocks</strong> in multiple languages (JS, Python, SQL, Rust, Go)</li>
                 <li><strong>Images</strong> via placeholder service (15% of files)</li>
+                <li><strong>Footnotes</strong> with academic-style references [^1] (10% of files)</li>
                 <li><strong>Links:</strong> wikilinks [[...]], markdown links, external URLs</li>
                 <li><strong>Regex-testable patterns:</strong> dates, emails, UUIDs, phone numbers</li>
             </ul>
@@ -1413,14 +1414,30 @@ To use this test vault with the Find-n-Replace plugin:
 
 ## Test Content Features
 
+### Core Content
 - **5000 markdown files** across 27 organized folders
-- **Interconnected wikilinks**: Files reference each other with \`[[filename]]\` patterns
-- **External URLs**: Real documentation and website links
-- **Markdown links**: \`[text](url)\` patterns linking to internal files
-- **Common search patterns**: TODO, FIXME, NOTE, HACK, BUG, REVIEW, DEPRECATED, ENHANCEMENT
-- **Technical terms**: Programming concepts, frameworks, and tools
-- **Regex-testable patterns**: dates, emails, phone numbers, URLs, UUIDs, version numbers
-- **Multiple content types**: articles, notes, code snippets, lists, and documentation
+- **390+ unique sentences** across 13 content categories (daily, thoughts, observations, personal, project, meeting, learning, creative, reading, travel, health, cooking, quotes)
+- **60 task phrases** covering technical work, project management, deployment, and collaboration
+- **50 callout messages** spanning implementation, security, accessibility, and team dynamics
+- **Multiple content types**: technical documentation, personal notes, project logs, book notes, travel journals, health tracking, recipes
+
+### Markdown Syntax (Complete Coverage)
+- **Text formatting**: bold (\`**text**\`), italic (\`*text*\`), strikethrough (\`~~text~~\`), highlight (\`==text==\`), inline code (\`\\\`code\\\`\`)
+- **Alternative syntax**: \`__bold__\`, \`_italic_\`, \`***bold+italic***\`
+- **Lists**: unordered (\`-\`), ordered (\`1. 2. 3.\`), nested (3 levels), task checkboxes (\`- [ ]\` / \`- [x]\`)
+- **Block elements**: headings, blockquotes (\`>\`), horizontal rules (\`---\`), code blocks with syntax highlighting
+- **Obsidian-specific**: callouts (\`> [!NOTE]\`, \`> [!INFO]\`, etc.), wikilinks (\`[[page]]\`), frontmatter (YAML)
+- **Tables**: category-specific data with headers and multiple rows
+- **Links**: wikilinks, markdown links (\`[text](url)\`), external URLs
+- **Images**: placeholder images via external service
+- **Advanced**: footnotes (\`[^1]\`), definition lists
+
+### Search & Replace Testing Patterns
+- **Common markers**: TODO, FIXME, NOTE, HACK, BUG, REVIEW, DEPRECATED, ENHANCEMENT
+- **Technical terms**: 60+ programming concepts, frameworks, design patterns
+- **Regex patterns**: dates (YYYY-MM-DD), emails, phone numbers, URLs, UUIDs, version numbers
+- **Link types**: wikilinks, markdown links, external URLs for conversion testing
+- **Formatting**: mixed bold/italic/strikethrough for syntax-aware find/replace
 
 ## Folder Structure
 
@@ -1441,6 +1458,8 @@ To use this test vault with the Find-n-Replace plugin:
 - Find deprecated features: \`DEPRECATED\`
 - Locate security issues: \`BUG.*security\`
 - Search for programming languages: \`javascript\`, \`python\`, \`typescript\`
+- Find formatted text: \`\\*\\*important\\*\\*\` (bold), \`~~removed~~\` (strikethrough), \`==highlighted==\`
+- Search within task lists: \`- \\[ \\] \` (unchecked), \`- \\[x\\] \` (checked)
 
 ### Regex Pattern Matching
 - Convert date formats: \`(\\\\d{4})-(\\\\d{2})-(\\\\d{2})\` → \`$2/$3/$1\`
@@ -1461,6 +1480,11 @@ To use this test vault with the Find-n-Replace plugin:
 - Clean up multiple spaces: \`\\\\s{2,}\` → \` \` (single space)
 - Format code blocks: Single backticks to triple backticks
 - Find and replace function names: \`function ([\\\\w]+)\` → \`const $1 = \`
+- Convert formatting: \`\\\\*\\\\*([^*]+)\\\\*\\\\*\` → \`__$1__\` (bold syntax conversion)
+- Remove strikethrough: \`~~([^~]+)~~\` → \`$1\`
+- Extract footnote content: \`\\\\[\\\\^(\\\\d+)\\\\]: (.+)\` → capture definitions
+- Convert lists: \`^- \` → \`1. \` (unordered to ordered)
+- Clean task lists: \`- \\\\[x\\\\] \` → \`- [ ] \` (uncheck all tasks)
 
 ### Multi-Selection Tests
 - Search for "function" and test multi-selection across files
@@ -1476,14 +1500,23 @@ To use this test vault with the Find-n-Replace plugin:
 
 ## File Content Patterns
 
-Each generated file contains:
-- **Metadata**: Creation date, category, tags
-- **Main content**: 2-4 paragraphs of category-relevant text
-- **Technical notes**: Programming terms and concepts (40% of files)
-- **Code examples**: JavaScript, TypeScript, Python, SQL, etc. (20% of files)
+Each generated file may contain:
+- **Frontmatter**: YAML metadata with title, dates, category, tags, author, status (30% of files)
+- **Callouts**: Obsidian-style with all types - NOTE, INFO, TIP, SUCCESS, WARNING, etc. (25% of files)
+- **Main content**: 2-4 paragraphs with realistic markdown formatting (25% formatted)
+- **Lists**: Unordered, ordered, or nested with optional formatting (50% of files)
+- **Task lists**: Checked and unchecked items with realistic task descriptions (35% of files)
+- **Tables**: Category-specific data (technology versions, scientific elements, etc.) (20% of files)
+- **Technical notes**: Programming terms and concepts with definitions (40% of files)
+- **Definition lists**: Formatted term definitions (10% of files)
+- **Code blocks**: JavaScript, TypeScript, Python, SQL, Rust, Go, Angular (20% of files)
+- **Images**: Placeholder images with random dimensions (15% of files)
+- **Quotes**: Inspirational blockquotes (20% of files)
+- **Footnotes**: Academic-style references with definitions (10% of files)
 - **References**: Wikilinks to other files and external URLs (50% of files)
-- **Special patterns**: Email addresses, phone numbers, UUIDs (10% of files)
-- **Timeline data**: Dates and version numbers (40% of files)
+- **Special patterns**: Emails, phone numbers, UUIDs, version numbers (10% of files)
+- **Timeline data**: Dates in various sections (40% of files)
+- **Horizontal rules**: Section dividers (15% of paragraphs)
 
 ## Cross-References
 
@@ -1608,14 +1641,30 @@ To use this test vault with the Find-n-Replace plugin:
 
 ## Test Content Features
 
+### Core Content
 - **5000 markdown files** across 27 organized folders
-- **Interconnected wikilinks**: Files reference each other with \`[[filename]]\` patterns
-- **External URLs**: Real documentation and website links
-- **Markdown links**: \`[text](url)\` patterns linking to internal files
-- **Common search patterns**: TODO, FIXME, NOTE, HACK, BUG, REVIEW, DEPRECATED, ENHANCEMENT
-- **Technical terms**: Programming concepts, frameworks, and tools
-- **Regex-testable patterns**: dates, emails, phone numbers, URLs, UUIDs, version numbers
-- **Multiple content types**: articles, notes, code snippets, lists, and documentation
+- **390+ unique sentences** across 13 content categories (daily, thoughts, observations, personal, project, meeting, learning, creative, reading, travel, health, cooking, quotes)
+- **60 task phrases** covering technical work, project management, deployment, and collaboration
+- **50 callout messages** spanning implementation, security, accessibility, and team dynamics
+- **Multiple content types**: technical documentation, personal notes, project logs, book notes, travel journals, health tracking, recipes
+
+### Markdown Syntax (Complete Coverage)
+- **Text formatting**: bold (\`**text**\`), italic (\`*text*\`), strikethrough (\`~~text~~\`), highlight (\`==text==\`), inline code (\`\\\`code\\\`\`)
+- **Alternative syntax**: \`__bold__\`, \`_italic_\`, \`***bold+italic***\`
+- **Lists**: unordered (\`-\`), ordered (\`1. 2. 3.\`), nested (3 levels), task checkboxes (\`- [ ]\` / \`- [x]\`)
+- **Block elements**: headings, blockquotes (\`>\`), horizontal rules (\`---\`), code blocks with syntax highlighting
+- **Obsidian-specific**: callouts (\`> [!NOTE]\`, \`> [!INFO]\`, etc.), wikilinks (\`[[page]]\`), frontmatter (YAML)
+- **Tables**: category-specific data with headers and multiple rows
+- **Links**: wikilinks, markdown links (\`[text](url)\`), external URLs
+- **Images**: placeholder images via external service
+- **Advanced**: footnotes (\`[^1]\`), definition lists
+
+### Search & Replace Testing Patterns
+- **Common markers**: TODO, FIXME, NOTE, HACK, BUG, REVIEW, DEPRECATED, ENHANCEMENT
+- **Technical terms**: 60+ programming concepts, frameworks, design patterns
+- **Regex patterns**: dates (YYYY-MM-DD), emails, phone numbers, URLs, UUIDs, version numbers
+- **Link types**: wikilinks, markdown links, external URLs for conversion testing
+- **Formatting**: mixed bold/italic/strikethrough for syntax-aware find/replace
 
 ## Folder Structure
 
@@ -1636,6 +1685,8 @@ To use this test vault with the Find-n-Replace plugin:
 - Find deprecated features: \`DEPRECATED\`
 - Locate security issues: \`BUG.*security\`
 - Search for programming languages: \`javascript\`, \`python\`, \`typescript\`
+- Find formatted text: \`\\*\\*important\\*\\*\` (bold), \`~~removed~~\` (strikethrough), \`==highlighted==\`
+- Search within task lists: \`- \\[ \\] \` (unchecked), \`- \\[x\\] \` (checked)
 
 ### Regex Pattern Matching
 - Convert date formats: \`(\\\\d{4})-(\\\\d{2})-(\\\\d{2})\` → \`$2/$3/$1\`
@@ -1656,6 +1707,11 @@ To use this test vault with the Find-n-Replace plugin:
 - Clean up multiple spaces: \`\\\\s{2,}\` → \` \` (single space)
 - Format code blocks: Single backticks to triple backticks
 - Find and replace function names: \`function ([\\\\w]+)\` → \`const $1 = \`
+- Convert formatting: \`\\\\*\\\\*([^*]+)\\\\*\\\\*\` → \`__$1__\` (bold syntax conversion)
+- Remove strikethrough: \`~~([^~]+)~~\` → \`$1\`
+- Extract footnote content: \`\\\\[\\\\^(\\\\d+)\\\\]: (.+)\` → capture definitions
+- Convert lists: \`^- \` → \`1. \` (unordered to ordered)
+- Clean task lists: \`- \\\\[x\\\\] \` → \`- [ ] \` (uncheck all tasks)
 
 ### Multi-Selection Tests
 - Search for "function" and test multi-selection across files
@@ -1671,14 +1727,23 @@ To use this test vault with the Find-n-Replace plugin:
 
 ## File Content Patterns
 
-Each generated file contains:
-- **Metadata**: Creation date, category, tags
-- **Main content**: 2-4 paragraphs of category-relevant text
-- **Technical notes**: Programming terms and concepts (40% of files)
-- **Code examples**: JavaScript, TypeScript, Python, SQL, etc. (20% of files)
+Each generated file may contain:
+- **Frontmatter**: YAML metadata with title, dates, category, tags, author, status (30% of files)
+- **Callouts**: Obsidian-style with all types - NOTE, INFO, TIP, SUCCESS, WARNING, etc. (25% of files)
+- **Main content**: 2-4 paragraphs with realistic markdown formatting (25% formatted)
+- **Lists**: Unordered, ordered, or nested with optional formatting (50% of files)
+- **Task lists**: Checked and unchecked items with realistic task descriptions (35% of files)
+- **Tables**: Category-specific data (technology versions, scientific elements, etc.) (20% of files)
+- **Technical notes**: Programming terms and concepts with definitions (40% of files)
+- **Definition lists**: Formatted term definitions (10% of files)
+- **Code blocks**: JavaScript, TypeScript, Python, SQL, Rust, Go, Angular (20% of files)
+- **Images**: Placeholder images with random dimensions (15% of files)
+- **Quotes**: Inspirational blockquotes (20% of files)
+- **Footnotes**: Academic-style references with definitions (10% of files)
 - **References**: Wikilinks to other files and external URLs (50% of files)
-- **Special patterns**: Email addresses, phone numbers, UUIDs (10% of files)
-- **Timeline data**: Dates and version numbers (40% of files)
+- **Special patterns**: Emails, phone numbers, UUIDs, version numbers (10% of files)
+- **Timeline data**: Dates in various sections (40% of files)
+- **Horizontal rules**: Section dividers (15% of paragraphs)
 
 ## Cross-References
 
