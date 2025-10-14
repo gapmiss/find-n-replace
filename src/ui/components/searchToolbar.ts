@@ -929,6 +929,9 @@ export class SearchToolbar {
             e.stopPropagation();
             const menu = new Menu();
 
+            // Prevent macOS system menu items (Services, AutoFill) from appearing
+            menu.setUseNativeMenu(false);
+
             // Add "Replace Selected" menu item
             menu.addItem((item) => {
                 item.setTitle('Replace Selected')
