@@ -7,7 +7,7 @@ import {
 } from "./settings";
 import { LogLevel } from "./types";
 import { HistoryManager } from './core/historyManager';
-import { Logger } from './utils';
+import { Logger, FOCUS_DELAY } from './utils';
 
 export default class VaultFindReplacePlugin extends Plugin {
 	settings: VaultFindReplaceSettings;
@@ -43,7 +43,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'perform-search',
-			name: 'Perform Search',
+			name: 'Perform search',
 			callback: async () => {
 				const view = await this.getOrCreateView();
 				if (view) {
@@ -54,7 +54,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'clear-all',
-			name: 'Clear Search and Replace',
+			name: 'Clear search and replace',
 			callback: async () => {
 				const view = await this.getOrCreateView();
 				if (view) {
@@ -65,7 +65,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'focus-search-input',
-			name: 'Focus Search Input',
+			name: 'Focus search input',
 			callback: async () => {
 				const view = await this.getOrCreateView();
 				if (view) {
@@ -76,7 +76,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'focus-replace-input',
-			name: 'Focus Replace Input',
+			name: 'Focus replace input',
 			callback: async () => {
 				const view = await this.getOrCreateView();
 				if (view) {
@@ -87,7 +87,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'toggle-match-case',
-			name: 'Toggle Match Case',
+			name: 'Toggle match case',
 			callback: async () => {
 				const view = await this.getOrCreateView();
 				if (view) {
@@ -98,7 +98,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'toggle-whole-word',
-			name: 'Toggle Whole Word',
+			name: 'Toggle whole word',
 			callback: async () => {
 				const view = await this.getOrCreateView();
 				if (view) {
@@ -109,7 +109,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'toggle-regex',
-			name: 'Toggle Regex',
+			name: 'Toggle regex',
 			callback: async () => {
 				const view = await this.getOrCreateView();
 				if (view) {
@@ -120,7 +120,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'replace-selected',
-			name: 'Replace Selected Matches',
+			name: 'Replace selected matches',
 			callback: async () => {
 				const view = this.getActiveView();
 				if (view) {
@@ -131,7 +131,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'replace-all-vault',
-			name: 'Replace All in Vault',
+			name: 'Replace all in vault',
 			callback: async () => {
 				const view = this.getActiveView();
 				if (view) {
@@ -142,7 +142,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'expand-collapse-all',
-			name: 'Expand/Collapse All Results',
+			name: 'Expand/Collapse all results',
 			callback: async () => {
 				const view = this.getActiveView();
 				if (view) {
@@ -153,7 +153,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'select-all-results',
-			name: 'Select All Results',
+			name: 'Select all results',
 			callback: async () => {
 				const view = this.getActiveView();
 				if (view) {
@@ -193,8 +193,8 @@ export default class VaultFindReplacePlugin extends Plugin {
 			// Focus the search input after activating the view
 			// For newly opened views, use a delay to ensure rendering is complete
 			// For already open views, focus immediately since they're already rendered
-			const focusDelay = wasAlreadyOpen ? 0 : 100;
-			setTimeout(() => {
+			const focusDelay = wasAlreadyOpen ? 0 : FOCUS_DELAY;
+			window.setTimeout(() => {
 				const view = this.getActiveView();
 				if (view) {
 					view.commandFocusSearch();

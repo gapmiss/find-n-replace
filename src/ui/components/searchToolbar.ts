@@ -1,5 +1,5 @@
 import { setIcon, Menu } from 'obsidian';
-import { Logger } from '../../utils';
+import { Logger, FILTER_UPDATE_DEBOUNCE_DELAY } from '../../utils';
 import { SessionFilters } from '../../types';
 import VaultFindReplacePlugin from '../../main';
 import { SelectionManager } from './selectionManager';
@@ -587,10 +587,10 @@ export class SearchToolbar {
         };
 
         // Debounced update for input changes
-        let updateTimeout: NodeJS.Timeout;
+        let updateTimeout: number;
         const debouncedUpdate = () => {
-            clearTimeout(updateTimeout);
-            updateTimeout = setTimeout(updateFiltersAndSearch, 500);
+            window.clearTimeout(updateTimeout);
+            updateTimeout = window.setTimeout(updateFiltersAndSearch, FILTER_UPDATE_DEBOUNCE_DELAY);
         };
 
         // Input change handlers
@@ -600,13 +600,13 @@ export class SearchToolbar {
         // Enter key handlers for immediate search
         includeInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                clearTimeout(updateTimeout); // Cancel debounced update
+                window.clearTimeout(updateTimeout); // Cancel debounced update
                 updateFiltersAndSearch(); // Immediate update
             }
         });
         excludeInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                clearTimeout(updateTimeout); // Cancel debounced update
+                window.clearTimeout(updateTimeout); // Cancel debounced update
                 updateFiltersAndSearch(); // Immediate update
             }
         });

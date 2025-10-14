@@ -2,6 +2,7 @@ import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import VaultFindReplacePlugin from "../main";
 import { VaultFindReplaceSettings, LogLevel } from "../types";
 import { ConfirmModal } from "../modals/confirmModal";
+import { MODAL_POLL_INTERVAL } from "../utils";
 
 export class VaultFindReplaceSettingTab extends PluginSettingTab {
     plugin: VaultFindReplacePlugin;
@@ -154,15 +155,10 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                         );
                         modal.open();
 
-                        // Wait for modal to close
-                        await new Promise<void>((resolve) => {
-                            const checkClosed = setInterval(() => {
-                                if (!modal.isOpen) {
-                                    clearInterval(checkClosed);
-                                    resolve();
-                                }
-                            }, 50);
-                        });
+                        // Wait for modal to close using async/await polling
+                        while (modal.isOpen) {
+                            await sleep(MODAL_POLL_INTERVAL);
+                        }
 
                         // Only clear if user confirmed
                         if (modal.result) {
@@ -282,7 +278,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         // Confirm destructive actions toggle
         new Setting(containerEl)
             .setName("Confirm destructive actions")
-            .setDesc("Show confirmation dialog before Replace All in Vault operations. Disable for faster workflow if you're confident.")
+            .setDesc("Show confirmation dialog before Replace all in vault operations. Disable for faster workflow if you're confident.")
             .addToggle((toggle) =>
                 toggle
                     .setValue(this.plugin.settings.confirmDestructiveActions)
@@ -295,7 +291,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         // Remember search options toggle
         new Setting(containerEl)
             .setName("Remember search options")
-            .setDesc("Persist Match Case, Whole Word, Regex, and Multiline toggle states across sessions. When disabled, toggles reset to off each time you open the view.")
+            .setDesc("Persist match case, whole word, regex, and multiline toggle states across sessions. When disabled, toggles reset to off each time you open the view.")
             .addToggle((toggle) =>
                 toggle
                     .setValue(this.plugin.settings.rememberSearchOptions)
@@ -330,7 +326,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
             .addDropdown((dropdown) => {
                 dropdown
                     .addOption(LogLevel.SILENT.toString(), "Silent - No console output")
-                    .addOption(LogLevel.ERROR.toString(), "Errors Only - Critical failures only (recommended)")
+                    .addOption(LogLevel.ERROR.toString(), "Errors only - Critical failures only (recommended)")
                     .addOption(LogLevel.WARN.toString(), "Standard - Errors and warnings")
                     .addOption(LogLevel.INFO.toString(), "Verbose - All info, warnings, and errors")
                     .addOption(LogLevel.DEBUG.toString(), "Debug - Full debugging output")

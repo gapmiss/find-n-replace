@@ -180,7 +180,7 @@ export class SearchController {
             this.logger.error(`[${callId}] CONCURRENT SEARCH DETECTED! Waiting for completion...`);
             let waitCount = 0;
             while (this.isSearching && waitCount < 100) { // Max 1000ms wait
-                await new Promise(resolve => setTimeout(resolve, 10));
+                await sleep(10);
                 waitCount++;
             }
             if (this.isSearching) {

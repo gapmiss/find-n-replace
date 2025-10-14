@@ -6,7 +6,7 @@ import { SearchEngine, ReplacementEngine, FileOperations } from '../../core';
 import { UIRenderer, SelectionManager, SearchController } from '../components';
 import { SearchToolbar } from '../components/searchToolbar';
 import { ActionHandler } from '../components/actionHandler';
-import { Logger, safeQuerySelector, isNotNull } from '../../utils';
+import { Logger, safeQuerySelector, isNotNull, MODAL_POLL_INTERVAL, FOCUS_DELAY } from '../../utils';
 
 // Define the unique identifier for this view type - used by Obsidian to track and manage this view
 export const VIEW_TYPE_FIND_REPLACE = 'find-replace-view';
@@ -225,9 +225,9 @@ export class FindReplaceView extends ItemView {
         // Navigation and auto-search are now handled by SearchController
 
         // Focus the search input after a short delay
-        setTimeout(() => {
+        window.setTimeout(() => {
             this.elements.searchInput.focus();
-        }, 100);
+        }, FOCUS_DELAY);
     }
 
     /**
@@ -552,15 +552,10 @@ export class FindReplaceView extends ItemView {
         const modal = new ConfirmModal(this.app, message);
         modal.open();
 
-        // Wait for the modal to close using polling
-        await new Promise<void>((resolve) => {
-            const interval = setInterval(() => {
-                if (!modal.isOpen) {
-                    clearInterval(interval);
-                    resolve();
-                }
-            }, 50);
-        });
+        // Wait for the modal to close using async/await polling
+        while (modal.isOpen) {
+            await sleep(MODAL_POLL_INTERVAL);
+        }
 
         return modal.result;
     }
@@ -916,7 +911,7 @@ export class FindReplaceView extends ItemView {
      */
     private restoreFocusAfterReplacement(targetElement: HTMLElement | null): void {
         // Wait longer for DOM updates since we're doing incremental updates
-        setTimeout(() => {
+        window.setTimeout(() => {
             if (targetElement && document.contains(targetElement)) {
                 try {
                     targetElement.focus();
@@ -937,7 +932,7 @@ export class FindReplaceView extends ItemView {
                     this.logger.debug('No results available, focus restored to search input');
                 }
             }
-        }, 100); // Increased delay for DOM updates
+        }, FOCUS_DELAY);
     }
 
     // ========================================

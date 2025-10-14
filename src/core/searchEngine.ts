@@ -324,7 +324,7 @@ export class SearchEngine {
             }));
 
             // Yield control back to UI between batches
-            await new Promise(r => setTimeout(r, YIELD_DELAY));
+            await sleep(YIELD_DELAY);
         }
 
         // Sort results by file path, then line number, then column

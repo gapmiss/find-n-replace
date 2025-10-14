@@ -178,7 +178,7 @@ describe('Performance and Edge Cases', () => {
       expect(duration).toBeLessThan(1000);
     });
 
-    it('should handle concurrent-like operations', () => {
+    it('should handle concurrent-like operations', async () => {
       const operations = [];
       const content = 'concurrent testing content';
 
@@ -194,10 +194,9 @@ describe('Performance and Edge Cases', () => {
         );
       }
 
-      return Promise.all(operations).then(results => {
-        // All operations should complete and return same result
-        expect(results.every(count => count === 1)).toBe(true);
-      });
+      const results = await Promise.all(operations);
+      // All operations should complete and return same result
+      expect(results.every(count => count === 1)).toBe(true);
     });
   });
 });

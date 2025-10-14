@@ -42,7 +42,7 @@ export class ConfirmModal extends Modal {
         });
 
         // Focus cancel button after modal renders (safer for destructive actions)
-        setTimeout(() => {
+        window.setTimeout(() => {
             noBtn.focus();
         }, 0);
     }

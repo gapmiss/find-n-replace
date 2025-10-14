@@ -44,15 +44,6 @@ export function pluralize(count: number, singular: string, plural?: string): str
 }
 
 /**
- * Creates a delay promise
- * @param ms - Milliseconds to delay
- * @returns Promise that resolves after delay
- */
-export function delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
  * Checks if a keyboard event represents an activation key (Enter or Space)
  * @param event - Keyboard event
  * @returns true if activation key
@@ -104,26 +95,6 @@ export function truncateText(text: string, maxLength: number): string {
         return text;
     }
     return text.slice(0, maxLength - 3) + '...';
-}
-
-/**
- * Creates a promise that can be resolved externally
- * @returns Object with promise and resolve/reject functions
- */
-export function createDeferredPromise<T>(): {
-    promise: Promise<T>;
-    resolve: (value: T) => void;
-    reject: (reason?: unknown) => void;
-} {
-    let resolve: (value: T) => void;
-    let reject: (reason?: unknown) => void;
-
-    const promise = new Promise<T>((res, rej) => {
-        resolve = res;
-        reject = rej;
-    });
-
-    return { promise, resolve: resolve!, reject: reject! };
 }
 
 /**

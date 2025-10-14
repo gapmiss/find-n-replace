@@ -1,7 +1,7 @@
 import { setIcon, TFile } from 'obsidian';
 import { SearchResult, FindReplaceElements } from '../../types';
 import { SearchEngine } from '../../core';
-import { Logger } from '../../utils';
+import { Logger, CONTEXT_AFTER_MATCH, CONTEXT_BEFORE_MATCH } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
 
 /**
@@ -308,23 +308,22 @@ export class UIRenderer {
             const hasMoreLines = lines.length > 1;
 
             // Show context before the match on the first line
-            const beforeContext = 10;
             const matchIndex = col ?? 0;
-            const start = Math.max(0, matchIndex - beforeContext);
+            const start = Math.max(0, matchIndex - CONTEXT_BEFORE_MATCH);
 
             let before = lineText.slice(start, matchIndex);
             if (start > 0) before = "… " + before;
 
             // Build the highlighted content
-            if (before) container.appendChild(document.createTextNode(before));
+            if (before) container.appendText(before);
 
             // Create highlighted match element
-            const mark = document.createElement("mark");
-            mark.textContent = firstLine + (hasMoreLines ? '…' : '');
+            const mark = container.createEl("mark", {
+                text: firstLine + (hasMoreLines ? '…' : '')
+            });
             if (hasMoreLines) {
                 mark.title = `Multiline match (${lines.length} lines):\n${matchText}`;
             }
-            container.appendChild(mark);
 
             // Generate replacement preview for multiline matches
             if (replaceText) {
@@ -353,13 +352,13 @@ export class UIRenderer {
                         const previewFirstLine = previewLines[0];
                         const previewHasMoreLines = previewLines.length > 1;
 
-                        const previewSpan = document.createElement("span");
-                        previewSpan.className = "replace-preview";
-                        previewSpan.textContent = previewFirstLine + (previewHasMoreLines ? '…' : '');
+                        const previewSpan = container.createSpan({
+                            cls: "replace-preview",
+                            text: previewFirstLine + (previewHasMoreLines ? '…' : '')
+                        });
                         if (previewHasMoreLines) {
                             previewSpan.title = `Replacement preview (${previewLines.length} lines):\n${preview}`;
                         }
-                        container.appendChild(previewSpan);
                     }
                 } catch (error) {
                     this.logger.debug('Error generating multiline replacement preview:', error);
@@ -367,11 +366,10 @@ export class UIRenderer {
             }
 
             // Show context after match (for single-line portion)
-            const afterContext = 50;
-            const end = Math.min(lineText.length, matchIndex + firstLine.length + afterContext);
+            const end = Math.min(lineText.length, matchIndex + firstLine.length + CONTEXT_AFTER_MATCH);
             let after = lineText.slice(matchIndex + firstLine.length, end);
             if (end < lineText.length) after = after + " …";
-            if (after) container.appendChild(document.createTextNode(after));
+            if (after) container.appendText(after);
             return;
         }
 
@@ -384,19 +382,16 @@ export class UIRenderer {
 
         if (matchIndex === -1) {
             // Match not found - just display the line as-is
-            container.appendChild(document.createTextNode(lineText));
+            container.appendText(lineText);
             return;
         }
 
         const matchLen = matchText.length;
 
         // Define context window around the match for better readability
-        const beforeContext = 10; // Characters to show before match
-        const afterContext = 50;  // Characters to show after match
-
         // Calculate start and end positions for context window
-        const start = Math.max(0, matchIndex - beforeContext);
-        const end = Math.min(lineText.length, matchIndex + matchLen + afterContext);
+        const start = Math.max(0, matchIndex - CONTEXT_BEFORE_MATCH);
+        const end = Math.min(lineText.length, matchIndex + matchLen + CONTEXT_AFTER_MATCH);
 
         // Extract text segments
         let before = lineText.slice(start, matchIndex);
@@ -408,12 +403,10 @@ export class UIRenderer {
         if (end < lineText.length) after = after + " …";
 
         // Build the highlighted content
-        if (before) container.appendChild(document.createTextNode(before));
+        if (before) container.appendText(before);
 
         // Create highlighted match element
-        const mark = document.createElement("mark");
-        mark.textContent = mid;
-        container.appendChild(mark);
+        container.createEl("mark", { text: mid });
 
         // === REPLACEMENT PREVIEW FEATURE ===
         // Show what the replacement will look like if replacement text is provided
@@ -442,10 +435,10 @@ export class UIRenderer {
 
                 // Only show preview if it's different from the original
                 if (preview !== mid) {
-                    const previewSpan = document.createElement("span");
-                    previewSpan.className = "replace-preview";
-                    previewSpan.textContent = `${preview}`;
-                    container.appendChild(previewSpan);
+                    container.createSpan({
+                        cls: "replace-preview",
+                        text: preview
+                    });
                 }
             } catch (error) {
                 // Ignore regex errors in preview
@@ -454,7 +447,7 @@ export class UIRenderer {
         }
 
         // Add the text after the match
-        if (after) container.appendChild(document.createTextNode(after));
+        if (after) container.appendText(after);
     }
 
     /**

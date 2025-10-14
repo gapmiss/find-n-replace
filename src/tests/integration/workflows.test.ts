@@ -391,13 +391,14 @@ describe('Integration Tests - Full Workflows', () => {
 
             for (let i = 0; i < 5; i++) {
                 operations.push(
-                    searchEngine.performSearch(`test`, {
-                        matchCase: false,
-                        wholeWord: false,
-                        useRegex: false
-                    }).then(results => {
+                    (async () => {
+                        const results = await searchEngine.performSearch(`test`, {
+                            matchCase: false,
+                            wholeWord: false,
+                            useRegex: false
+                        });
                         if (results.length > 0) {
-                            return replacementEngine.dispatchReplace(
+                            return await replacementEngine.dispatchReplace(
                                 'one',
                                 results,
                                 new Set(),
@@ -406,7 +407,7 @@ describe('Integration Tests - Full Workflows', () => {
                                 results[0]
                             );
                         }
-                    })
+                    })()
                 );
             }
 

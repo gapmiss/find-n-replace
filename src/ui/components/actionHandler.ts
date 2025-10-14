@@ -1,5 +1,5 @@
 import { debounce } from 'obsidian';
-import { Logger } from '../../utils';
+import { Logger, MODAL_POLL_INTERVAL } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
 import { FindReplaceElements, SearchOptions, ReplacementResult, SearchResult } from '../../types';
 import { SearchEngine, ReplacementEngine } from '../../core';
@@ -375,18 +375,15 @@ export class ActionHandler {
      * Shows a general confirmation modal for replace operations
      */
     private async showReplaceConfirmation(message: string): Promise<boolean> {
-        return new Promise((resolve) => {
-            const modal = new ConfirmModal(this.plugin.app, message);
-            modal.open();
+        const modal = new ConfirmModal(this.plugin.app, message);
+        modal.open();
 
-            // Wait for the modal to close using polling
-            const checkInterval = setInterval(() => {
-                if (!modal.isOpen) {
-                    clearInterval(checkInterval);
-                    resolve(modal.result);
-                }
-            }, 50);
-        });
+        // Wait for the modal to close using async/await polling
+        while (modal.isOpen) {
+            await sleep(MODAL_POLL_INTERVAL);
+        }
+
+        return modal.result;
     }
 
     /**

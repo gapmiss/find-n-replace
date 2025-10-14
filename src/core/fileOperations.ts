@@ -1,5 +1,5 @@
 import { App, MarkdownView, TFile, WorkspaceLeaf, Editor } from 'obsidian';
-import { Logger } from '../utils';
+import { Logger, FOCUS_DELAY } from '../utils';
 import VaultFindReplacePlugin from '../main';
 
 /**
@@ -78,9 +78,9 @@ export class FileOperations {
 
             // Return focus to source element after a brief delay
             if (sourceElement) {
-                setTimeout(() => {
+                window.setTimeout(() => {
                     sourceElement.focus();
-                }, 100);
+                }, FOCUS_DELAY);
             }
 
         } catch (error) {
