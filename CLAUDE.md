@@ -160,6 +160,47 @@ src/
 31. **Fresh Mock Instances** - MockPlugin deep copies arrays/objects to prevent shared state across tests
 32. **HistoryManager Integration** - MockPlugin automatically initializes HistoryManager for component tests
 
+## Obsidian Plugin Review Compliance (Latest)
+
+### Platform Compatibility & Security ✅
+**MILESTONE:** Successfully addressed all required issues from Obsidian's automated plugin review, ensuring cross-platform compatibility and security best practices.
+
+### Critical Fixes for Obsidian Review
+33. **iOS Compatibility** - Removed lookbehind regex patterns (`(?<=`) not supported in iOS <16.4
+   - Updated `WORD_BOUNDARY_PATTERN` in constants.ts and searchEngine.ts
+   - Added explanatory comments for future maintainability
+34. **Dynamic Config Directory** - Replaced hardcoded `.obsidian` references with `app.vault.configDir`
+   - Ensures compatibility with custom Obsidian configuration directories
+   - Updated helpModal.ts to use dynamic config path
+35. **Type Safety with instanceof** - Replaced all `as TFile` type casts with proper `instanceof TFile` checks
+   - searchEngine.ts: Type predicate `(file): file is TFile` for filter operations
+   - replacementEngine.ts: Runtime validation before file operations
+   - MockVault.ts: Proper type narrowing in test infrastructure
+36. **XSS Prevention** - Replaced `innerHTML` usage with safe DOM API methods
+   - settingsTab.ts: Migrated to `createEl()`, `appendText()`, and `createElement()`
+   - Prevents potential cross-site scripting vulnerabilities
+37. **CSS Scoping** - Moved inline styles to scoped CSS classes
+   - Added `.find-n-replace-settings` container class
+   - All settings tab styles properly scoped to prevent theme conflicts
+38. **Command Naming Convention** - Removed plugin name from command names
+   - Changed "Open Find-n-Replace" to "Open" (Obsidian auto-prefixes plugin name)
+   - Follows Obsidian's command palette UX guidelines
+
+### Optional Type Safety Improvements
+39. **Test Type Safety** - Reduced `any` type casts in test files where feasible
+   - setup.ts: Created `GlobalWithNotice` interface for global mocking
+   - historyManager.test.ts: Removed unnecessary casts with proper return types
+   - components.test.ts: Used `Partial<FindReplaceElements>` for mock objects
+   - helpModal.test.ts: Type-safe casts with `as unknown as typeof mockApp`
+   - Left appropriate `any` casts for browser API mocking and test utilities
+
+### Review Compliance Summary
+- ✅ All **required** issues addressed and verified
+- ✅ **Optional** improvements implemented where practical
+- ✅ Maintains 100% test pass rate (296/296 tests)
+- ✅ Backwards compatible - no breaking changes
+- ✅ Ready for Obsidian Community Plugin Store submission
+
 ## Development Guidelines
 
 ### Code Quality Standards
