@@ -88,9 +88,13 @@ export class ReplacementEngine {
 
             case "file": {
                 // Replace all matches in a specific file
-                const file = target as TFile;
-                if (!file?.path) {
-                    this.logger.error("Invalid file target for replacement", file);
+                if (!(target instanceof TFile)) {
+                    this.logger.error("Invalid file target for replacement - not a TFile instance", target);
+                    break;
+                }
+                const file = target;
+                if (!file.path) {
+                    this.logger.error("Invalid file target for replacement - missing path", file);
                     break;
                 }
                 const fileResults = results.filter(r => r.file?.path === file.path);

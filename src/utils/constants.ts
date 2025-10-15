@@ -22,7 +22,8 @@ export const DEFAULT_PERSISTENT_HIGHLIGHT = false;
 // Regex patterns for replacement text validation
 export const CAPTURE_GROUP_PATTERN = /\$(\d+)/g;
 export const LITERAL_DOLLAR_PATTERN = /\$(?![&'`$]|\d)/g;
-export const WORD_BOUNDARY_PATTERN = /(^\\b|\\b$|\^|\$|\(\?<!|\(\?=|\(\?!|\(\?<=)/;
+// iOS <16.4 doesn't support lookbehinds, so we only check for lookaheads and common anchors
+export const WORD_BOUNDARY_PATTERN = /(^\\b|\\b$|\^|\$|\(\?=|\(\?!)/;
 
 // File extensions
 export const MARKDOWN_EXTENSION = 'md';

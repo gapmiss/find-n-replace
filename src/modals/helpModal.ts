@@ -441,11 +441,12 @@ export class HelpModal extends Modal {
         excludeDiv.createEl('h4', { text: 'files to exclude (skip these files)' });
 
         const excludeExamples = excludeDiv.createEl('ul');
+        const configDirName = this.app.vault.configDir;
         const excludeItems = [
             '`Archive/,Templates/` - Skip archive and templates folders',
             '`*.tmp,*.bak` - Skip temporary and backup files',
             '`*backup*,*draft*` - Skip files with "backup" or "draft" in the name',
-            '`.obsidian/` - Skip Obsidian configuration folder',
+            `\`${configDirName}/\` - Skip Obsidian configuration folder`,
             '`temp/*,*.log` - Skip temp folder and log files'
         ];
 

@@ -62,19 +62,20 @@ export class SearchEngine {
         });
 
         // Filter out folders - we only want files
-        filteredFiles = filteredFiles.filter(file => 'extension' in file) as TFile[];
+        filteredFiles = filteredFiles.filter(file => file instanceof TFile);
 
         // Filter by file extensions if specified
         if (settings.fileExtensions.length > 0) {
             filteredFiles = filteredFiles.filter(file => {
-                const extension = (file as TFile).extension;
+                if (!(file instanceof TFile)) return false;
+                const extension = file.extension;
                 // Support both '.md' and 'md' formats in settings
                 const included = settings.fileExtensions.some(ext =>
                     ext === extension || ext === '.' + extension
                 );
                 this.logger.trace(`File ${file.path}: extension ${extension}, included: ${included}`);
                 return included;
-            }) as TFile[];
+            });
         }
 
         // Filter by folder inclusion if specified
@@ -130,7 +131,7 @@ export class SearchEngine {
         }
 
         this.logger.debug(`Filtered ${files.length} files down to ${filteredFiles.length} files`);
-        return filteredFiles as TFile[];
+        return filteredFiles;
     }
 
     /**
@@ -395,7 +396,8 @@ export class SearchEngine {
         }
 
         // Check if pattern already has word boundaries or anchors to avoid double-wrapping
-        const looksAnchoredOrHasBoundaries = /(^\\b|\\b$|\^|\$|\(\?<!|\(\?=|\(\?!|\(\?<=)/.test(pattern);
+        // iOS <16.4 doesn't support lookbehinds, so we only check for lookaheads and common anchors
+        const looksAnchoredOrHasBoundaries = /(^\\b|\\b$|\^|\$|\(\?=|\(\?!)/.test(pattern);
 
         // Add word boundaries if whole word mode is enabled and pattern doesn't already have them
         if (options.wholeWord && !looksAnchoredOrHasBoundaries) {

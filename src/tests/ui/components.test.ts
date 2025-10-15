@@ -3,6 +3,7 @@ import { SelectionManager } from '@/ui/components/selectionManager';
 import { SearchToolbar } from '@/ui/components/searchToolbar';
 import { createMockApp, createMockPlugin } from '@tests/mocks';
 import { SearchResult } from '@/types/search';
+import { FindReplaceElements } from '@/types/ui';
 
 describe('Component Architecture', () => {
   let mockApp: any;
@@ -52,7 +53,7 @@ describe('Component Architecture', () => {
         searchInput: document.createElement('input'),
         replaceInput: document.createElement('input'),
         resultsContainer: document.createElement('div')
-      } as any;
+      } as Partial<FindReplaceElements> as FindReplaceElements;
 
       selectionManager = new SelectionManager(mockElements, mockPlugin);
     });
@@ -90,7 +91,7 @@ describe('Component Architecture', () => {
         searchInput: document.createElement('input'),
         replaceInput: document.createElement('input'),
         resultsContainer: document.createElement('div')
-      } as any;
+      } as Partial<FindReplaceElements> as FindReplaceElements;
 
       expect(() => {
         new SelectionManager(mockElements, null!);
@@ -163,7 +164,7 @@ describe('Component Architecture', () => {
         searchInput: document.createElement('input'),
         replaceInput: document.createElement('input'),
         resultsContainer: document.createElement('div')
-      } as any;
+      } as Partial<FindReplaceElements> as FindReplaceElements;
 
       const selectionManager = new SelectionManager(mockElements, mockPlugin);
 
@@ -178,7 +179,7 @@ describe('Component Architecture', () => {
         searchInput: document.createElement('input'),
         replaceInput: document.createElement('input'),
         resultsContainer: document.createElement('div')
-      } as any;
+      } as Partial<FindReplaceElements> as FindReplaceElements;
 
       const selectionManager = new SelectionManager(mockElements, mockPlugin);
 

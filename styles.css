@@ -1033,3 +1033,12 @@
 [data-type="find-replace-view"] .inline-toggle-btn {
     position: relative;
 }
+
+/* --- Settings Tab Styles --- */
+.find-n-replace-settings .filter-info-box {
+    margin-top: 10px;
+    padding: 12px;
+    background-color: var(--background-secondary);
+    border-radius: 6px;
+    border-left: 3px solid var(--interactive-accent);
+}

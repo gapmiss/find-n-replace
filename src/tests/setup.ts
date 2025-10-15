@@ -90,7 +90,10 @@ vi.mock('obsidian', () => ({
 }));
 
 // Mock Obsidian's global Notice constructor
-(global as any).Notice = vi.fn().mockImplementation((message: string) => ({
+interface GlobalWithNotice extends typeof globalThis {
+  Notice: any;
+}
+(global as GlobalWithNotice).Notice = vi.fn().mockImplementation((message: string) => ({
   noticeEl: { innerHTML: message },
   hide: vi.fn()
 }));

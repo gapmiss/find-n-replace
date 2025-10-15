@@ -8,7 +8,7 @@ describe('HistoryManager', () => {
 
     beforeEach(() => {
         mockPlugin = createMockPlugin();
-        historyManager = new HistoryManager(mockPlugin as any);
+        historyManager = new HistoryManager(mockPlugin);
     });
 
     describe('Search History', () => {

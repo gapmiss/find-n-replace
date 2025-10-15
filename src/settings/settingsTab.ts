@@ -15,6 +15,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
     display(): void {
         const { containerEl } = this;
         containerEl.empty();
+        containerEl.addClass('find-n-replace-settings');
 
         // TODO: Implement search result highlighting feature
         // See ROADMAP.md - High Priority feature
@@ -256,19 +257,34 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         });
 
         const filterInfoContent = filterInfoDiv.createDiv('setting-item-description');
-        filterInfoContent.innerHTML = `
-            <strong>💡 How default file filters work:</strong><br>
-            • These default settings populate the <strong>"files to include"</strong> and <strong>"files to exclude"</strong> inputs when you open the Find-n-Replace view<br>
-            • Filter inputs in the view are <strong>session-only</strong> - they don't modify these default settings<br>
-            • To apply new defaults: change settings above, then <strong>close and reopen</strong> the Find-n-Replace view<br>
-            • Leave settings empty to start with no filters by default<br>
-            • Uses VSCode-style pattern syntax for familiar file filtering
-        `;
-        filterInfoContent.style.marginTop = '10px';
-        filterInfoContent.style.padding = '12px';
-        filterInfoContent.style.backgroundColor = 'var(--background-secondary)';
-        filterInfoContent.style.borderRadius = '6px';
-        filterInfoContent.style.borderLeft = '3px solid var(--interactive-accent)';
+        filterInfoContent.addClass('filter-info-box');
+
+        // Create the content using DOM API instead of innerHTML
+        const titleLine = filterInfoContent.createEl('div');
+        titleLine.createEl('strong', { text: '💡 How default file filters work:' });
+
+        const list = filterInfoContent.createEl('div');
+        list.appendText('• These default settings populate the ');
+        list.createEl('strong', { text: '"files to include"' });
+        list.appendText(' and ');
+        list.createEl('strong', { text: '"files to exclude"' });
+        list.appendText(' inputs when you open the Find-n-Replace view');
+        list.createEl('br');
+
+        list.appendText('• Filter inputs in the view are ');
+        list.createEl('strong', { text: 'session-only' });
+        list.appendText(' - they don\'t modify these default settings');
+        list.createEl('br');
+
+        list.appendText('• To apply new defaults: change settings above, then ');
+        list.createEl('strong', { text: 'close and reopen' });
+        list.appendText(' the Find-n-Replace view');
+        list.createEl('br');
+
+        list.appendText('• Leave settings empty to start with no filters by default');
+        list.createEl('br');
+
+        list.appendText('• Uses VSCode-style pattern syntax for familiar file filtering');
 
         // User experience settings section
         new Setting(containerEl)

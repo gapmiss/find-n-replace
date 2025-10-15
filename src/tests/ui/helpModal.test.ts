@@ -278,7 +278,7 @@ describe('HelpModal', () => {
         // Missing hotkeyManager, scope, commands
       };
 
-      const modal = new HelpModal(incompleteApp as any, mockPlugin);
+      const modal = new HelpModal(incompleteApp as unknown as typeof mockApp, mockPlugin);
 
       expect(() => {
         modal.onOpen();
@@ -350,7 +350,7 @@ describe('HelpModal', () => {
         // Bare minimum required properties
       };
 
-      const modal = new HelpModal(minimalApp as any, mockPlugin);
+      const modal = new HelpModal(minimalApp as unknown as typeof mockApp, mockPlugin);
 
       expect(() => {
         modal.onOpen();

@@ -10,7 +10,7 @@ describe('HistoryNavigator', () => {
 
     beforeEach(() => {
         mockPlugin = createMockPlugin();
-        navigator = new HistoryNavigator(mockPlugin as any);
+        navigator = new HistoryNavigator(mockPlugin);
 
         // Create a real input element for testing
         input = document.createElement('input');

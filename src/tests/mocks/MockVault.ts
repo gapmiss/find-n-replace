@@ -86,8 +86,10 @@ export class MockVault {
         this.files.set(path, content);
 
         // Create mock TFile
-        const mockFile = createMockFile(path, content) as TFile;
-        this.mockFiles.set(path, mockFile);
+        const mockFile = createMockFile(path, content);
+        if (mockFile instanceof TFile) {
+            this.mockFiles.set(path, mockFile);
+        }
     }
 
     // Vault API simulation
