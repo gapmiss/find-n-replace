@@ -51,7 +51,6 @@ export class SearchEngine {
             excludeFolders: this.plugin.settings.excludeFolders || [],
             excludePatterns: this.plugin.settings.excludePatterns || []
         };
-        let filteredFiles = [...files];
 
         this.logger.debug('Filtering files with settings:', {
             fileExtensions: settings.fileExtensions,
@@ -62,7 +61,7 @@ export class SearchEngine {
         });
 
         // Filter out folders - we only want files
-        filteredFiles = filteredFiles.filter(file => file instanceof TFile);
+        let filteredFiles: TFile[] = files.filter((file): file is TFile => file instanceof TFile);
 
         // Filter by file extensions if specified
         if (settings.fileExtensions.length > 0) {
