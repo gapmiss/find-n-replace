@@ -228,6 +228,9 @@ export class FindReplaceView extends ItemView {
         window.setTimeout(() => {
             this.elements.searchInput.focus();
         }, FOCUS_DELAY);
+
+        // Satisfy async requirement (ItemView.onOpen must return Promise<void>)
+        return Promise.resolve();
     }
 
     /**
