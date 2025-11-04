@@ -1,4 +1,4 @@
-import { setIcon, TFile } from 'obsidian';
+import { setIcon } from 'obsidian';
 import { SearchResult, FindReplaceElements } from '../../types';
 import { SearchEngine } from '../../core';
 import { Logger, CONTEXT_AFTER_MATCH, CONTEXT_BEFORE_MATCH } from '../../utils';

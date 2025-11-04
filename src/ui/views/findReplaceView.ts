@@ -1,12 +1,12 @@
-import { ItemView, WorkspaceLeaf, TFile, type App, Notice, setIcon, debounce, Menu } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, type App} from 'obsidian';
 import { ConfirmModal } from "../../modals";
 import VaultFindReplacePlugin from "../../main";
-import { SearchResult, FindReplaceElements, SearchOptions, ViewState, ReplacementMode, ReplacementTarget, AffectedResults } from '../../types';
+import { SearchResult, FindReplaceElements, SearchOptions, ViewState, AffectedResults } from '../../types';
 import { SearchEngine, ReplacementEngine, FileOperations } from '../../core';
 import { UIRenderer, SelectionManager, SearchController } from '../components';
 import { SearchToolbar } from '../components/searchToolbar';
 import { ActionHandler } from '../components/actionHandler';
-import { Logger, safeQuerySelector, isNotNull, MODAL_POLL_INTERVAL, FOCUS_DELAY } from '../../utils';
+import { Logger, MODAL_POLL_INTERVAL, FOCUS_DELAY } from '../../utils';
 
 // Define the unique identifier for this view type - used by Obsidian to track and manage this view
 export const VIEW_TYPE_FIND_REPLACE = 'find-replace-view';

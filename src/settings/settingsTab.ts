@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import VaultFindReplacePlugin from "../main";
-import { VaultFindReplaceSettings, LogLevel } from "../types";
+import { LogLevel } from "../types";
 import { ConfirmModal } from "../modals/confirmModal";
 import { MODAL_POLL_INTERVAL } from "../utils";
 

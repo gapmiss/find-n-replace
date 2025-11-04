@@ -1,7 +1,7 @@
 import { debounce } from 'obsidian';
 import { Logger, MODAL_POLL_INTERVAL } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
-import { FindReplaceElements, SearchOptions, ReplacementResult, SearchResult } from '../../types';
+import { FindReplaceElements, SearchOptions, SearchResult } from '../../types';
 import { SearchEngine, ReplacementEngine } from '../../core';
 import { ConfirmModal } from '../../modals';
 

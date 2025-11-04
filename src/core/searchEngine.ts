@@ -1,4 +1,4 @@
-import { App, Notice, TAbstractFile, TFile } from 'obsidian';
+import { App, TAbstractFile, TFile } from 'obsidian';
 import { SearchResult, SearchOptions, SessionFilters } from '../types';
 import { Logger } from '../utils';
 import VaultFindReplacePlugin from '../main';

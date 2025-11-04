@@ -5,7 +5,6 @@ import {
 	DEFAULT_SETTINGS,
 	VaultFindReplaceSettingTab,
 } from "./settings";
-import { LogLevel } from "./types";
 import { HistoryManager } from './core/historyManager';
 import { Logger, FOCUS_DELAY } from './utils';
 
