@@ -142,7 +142,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		this.addCommand({
 			id: 'expand-collapse-all',
-			name: 'Expand/Collapse all results',
+			name: 'Expand/collapse all results',
 			callback: async () => {
 				const view = this.getActiveView();
 				if (view) {

@@ -294,7 +294,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         // Confirm destructive actions toggle
         new Setting(containerEl)
             .setName("Confirm destructive actions")
-            .setDesc("Show confirmation dialog before Replace all in vault operations. Disable for faster workflow if you're confident.")
+            .setDesc("Show confirmation dialog before replace all in vault operations. Disable for faster workflow if you're confident.")
             .addToggle((toggle) =>
                 toggle
                     .setValue(this.plugin.settings.confirmDestructiveActions)
@@ -341,12 +341,12 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
             .setDesc("Control how much information is shown in the browser console. Higher levels include all lower levels.")
             .addDropdown((dropdown) => {
                 dropdown
-                    .addOption(LogLevel.SILENT.toString(), "Silent - No console output")
-                    .addOption(LogLevel.ERROR.toString(), "Errors only - Critical failures only (recommended)")
-                    .addOption(LogLevel.WARN.toString(), "Standard - Errors and warnings")
-                    .addOption(LogLevel.INFO.toString(), "Verbose - All info, warnings, and errors")
-                    .addOption(LogLevel.DEBUG.toString(), "Debug - Full debugging output")
-                    .addOption(LogLevel.TRACE.toString(), "Trace - Maximum verbosity (development)")
+                    .addOption(LogLevel.SILENT.toString(), "Silent - no console output")
+                    .addOption(LogLevel.ERROR.toString(), "Errors only - critical failures only (recommended)")
+                    .addOption(LogLevel.WARN.toString(), "Standard - errors and warnings")
+                    .addOption(LogLevel.INFO.toString(), "Verbose - all info, warnings, and errors")
+                    .addOption(LogLevel.DEBUG.toString(), "Debug - full debugging output")
+                    .addOption(LogLevel.TRACE.toString(), "Trace - maximum verbosity (development)")
                     .setValue(this.plugin.settings.logLevel.toString())
                     .onChange(async (value) => {
                         this.plugin.settings.logLevel = parseInt(value) as LogLevel;

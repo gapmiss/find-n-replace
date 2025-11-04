@@ -290,7 +290,7 @@ export class SearchToolbar {
         const clearAllBtn = replaceRowActions.createEl('button', {
             cls: 'inline-toggle-btn toolbar-action clickable-icon',
             attr: {
-                'aria-label': 'Clear Search',
+                'aria-label': 'Clear search',
                 'tabindex': '6'
             }
         });
@@ -300,7 +300,7 @@ export class SearchToolbar {
         const filterBtn = replaceRowActions.createEl('button', {
             cls: 'inline-toggle-btn toolbar-action clickable-icon',
             attr: {
-                'aria-label': 'Toggle File Filters',
+                'aria-label': 'Toggle file filters',
                 'tabindex': '7'
             }
         });
@@ -934,7 +934,7 @@ export class SearchToolbar {
 
             // Add "Replace Selected" menu item
             menu.addItem((item) => {
-                item.setTitle('Replace Selected')
+                item.setTitle('Replace selected')
                     .setIcon('replace')
                     .setDisabled(!this.selectionManager || this.selectionManager.getSelectedIndices().size === 0)
                     .onClick(async () => {
@@ -949,7 +949,7 @@ export class SearchToolbar {
 
             // Add "Replace All in Vault" menu item
             menu.addItem((item) => {
-                item.setTitle('Replace All in Vault')
+                item.setTitle('Replace all in vault')
                     .setIcon('replace-all')
                     .onClick(async () => {
                         try {
