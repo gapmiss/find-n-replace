@@ -38,9 +38,9 @@ export class NavigationHandler {
         ].filter((el): el is HTMLInputElement => el instanceof HTMLInputElement);
 
         elements.forEach(el => {
-            el.addEventListener('keydown', async (evt) => {
+            el.addEventListener('keydown', (evt) => {
                 if (evt.key === 'Enter') {
-                    await this.performSearchCallback();
+                    void this.performSearchCallback();
                 }
             });
         });

@@ -32,11 +32,11 @@ export class ConfirmModal extends Modal {
         });
         const noBtn = btnContainer.createEl('button', { text: this.options.cancelText });
 
-        yesBtn.addEventListener('click', async (evt) => {
+        yesBtn.addEventListener('click', (evt) => {
             this.result = true;
             this.close();
         });
-        noBtn.addEventListener('click', async (evt) => {
+        noBtn.addEventListener('click', (evt) => {
             this.result = false;
             this.close();
         });

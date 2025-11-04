@@ -882,39 +882,41 @@ export class SearchToolbar {
         setIcon(toggle, icon);
 
         // Handle toggle state changes
-        toggle.addEventListener('click', async () => {
+        toggle.addEventListener('click', () => {
             const isPressed = toggle.getAttribute('aria-pressed') === 'true';
             const newPressed = !isPressed;
             toggle.setAttribute('aria-pressed', newPressed.toString());
             toggle.classList.toggle('is-active', newPressed);
 
-            // Save to settings if "Remember Search Options" is enabled
-            if (this.plugin.settings.rememberSearchOptions) {
-                switch (id) {
-                    case 'match-case':
-                        this.plugin.settings.lastSearchOptions.matchCase = newPressed;
-                        break;
-                    case 'whole-word':
-                        this.plugin.settings.lastSearchOptions.wholeWord = newPressed;
-                        break;
-                    case 'regex':
-                        this.plugin.settings.lastSearchOptions.useRegex = newPressed;
-                        break;
-                    case 'multiline':
-                        this.plugin.settings.lastSearchOptions.multiline = newPressed;
-                        break;
+            void (async () => {
+                // Save to settings if "Remember Search Options" is enabled
+                if (this.plugin.settings.rememberSearchOptions) {
+                    switch (id) {
+                        case 'match-case':
+                            this.plugin.settings.lastSearchOptions.matchCase = newPressed;
+                            break;
+                        case 'whole-word':
+                            this.plugin.settings.lastSearchOptions.wholeWord = newPressed;
+                            break;
+                        case 'regex':
+                            this.plugin.settings.lastSearchOptions.useRegex = newPressed;
+                            break;
+                        case 'multiline':
+                            this.plugin.settings.lastSearchOptions.multiline = newPressed;
+                            break;
+                    }
+                    await this.plugin.saveSettings();
+                    this.logger.debug(`Saved search option: ${id} = ${newPressed}`);
                 }
-                await this.plugin.saveSettings();
-                this.logger.debug(`Saved search option: ${id} = ${newPressed}`);
-            }
 
-            // Trigger auto-search when toggle state changes (if search query exists)
-            if (searchInput) {
-                const searchQuery = searchInput.value.trim();
-                if (searchQuery.length > 0) {
-                    await this.performSearchCallback();
+                // Trigger auto-search when toggle state changes (if search query exists)
+                if (searchInput) {
+                    const searchQuery = searchInput.value.trim();
+                    if (searchQuery.length > 0) {
+                        await this.performSearchCallback();
+                    }
                 }
-            }
+            })();
         });
 
         return toggle;
@@ -999,20 +1001,24 @@ export class SearchToolbar {
         });
 
         // Add custom event listeners for keyboard shortcuts
-        ellipsisMenuBtn.addEventListener('replace-all-vault', async () => {
-            try {
-                await this.replaceAllVaultCallback();
-            } catch (error) {
-                this.logger.error('Replace all vault keyboard shortcut error', error, true);
-            }
+        ellipsisMenuBtn.addEventListener('replace-all-vault', () => {
+            void (async () => {
+                try {
+                    await this.replaceAllVaultCallback();
+                } catch (error) {
+                    this.logger.error('Replace all vault keyboard shortcut error', error, true);
+                }
+            })();
         });
 
-        ellipsisMenuBtn.addEventListener('replace-selected', async () => {
-            try {
-                await this.replaceSelectedCallback();
-            } catch (error) {
-                this.logger.error('Replace selected keyboard shortcut error', error, true);
-            }
+        ellipsisMenuBtn.addEventListener('replace-selected', () => {
+            void (async () => {
+                try {
+                    await this.replaceSelectedCallback();
+                } catch (error) {
+                    this.logger.error('Replace selected keyboard shortcut error', error, true);
+                }
+            })();
         });
     }
 
