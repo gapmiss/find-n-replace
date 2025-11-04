@@ -252,6 +252,9 @@ export class FindReplaceView extends ItemView {
 
         // Clear element references (DOM cleanup handled by Obsidian)
         this.elements = null!;
+
+        // Satisfy async requirement (ItemView.onClose must return Promise<void>)
+        return Promise.resolve();
     }
 
     /**
