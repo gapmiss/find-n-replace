@@ -9,8 +9,7 @@
     "extends": [
       "eslint:recommended",
       "plugin:@typescript-eslint/eslint-recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:obsidianmd/recommended"
+      "plugin:@typescript-eslint/recommended"
     ],
     "parserOptions": {
         "sourceType": "module"
@@ -20,6 +19,12 @@
       "@typescript-eslint/no-unused-vars": ["error", { "args": "none" }],
       "@typescript-eslint/ban-ts-comment": "off",
       "no-prototype-builtins": "off",
-      "@typescript-eslint/no-empty-function": "off"
+      "@typescript-eslint/no-empty-function": "off",
+      "obsidianmd/no-sample-code": "error",
+      "obsidianmd/no-tfile-tfolder-cast": "error",
+      "obsidianmd/commands/no-plugin-id-in-command-id": "error",
+      "obsidianmd/commands/no-command-in-command-id": "error",
+      "obsidianmd/commands/no-command-in-command-name": "error",
+      "obsidianmd/ui/sentence-case": "error"
     }
   }

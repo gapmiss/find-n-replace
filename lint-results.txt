@@ -1,0 +1,682 @@
+
+> find-n-replace@1.0.1 lint
+> eslint src --ext .ts
+
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/core/fileOperations.ts
+  15:13  error  Unsafe assignment of an `any` value                                                       @typescript-eslint/no-unsafe-assignment
+  16:13  error  Unsafe assignment of an `any` value                                                       @typescript-eslint/no-unsafe-assignment
+  16:19  error  Unexpected console statement. Only these console methods are allowed: warn, error, debug  no-console
+  17:13  error  Unsafe assignment of an `any` value                                                       @typescript-eslint/no-unsafe-assignment
+  18:13  error  Unsafe assignment of an `any` value                                                       @typescript-eslint/no-unsafe-assignment
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/core/searchEngine.ts
+  422:74  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/main.js
+  0:0  error  Parsing error: /Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/main.js was not found by the project service. Consider either including it in the tsconfig.json or including it in allowDefaultProject
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/main.ts
+   30:37  error  Use sentence case for UI text        obsidianmd/ui/sentence-case
+  241:10  error  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+  242:4   error  Unsafe assignment of an `any` value  @typescript-eslint/no-unsafe-assignment
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/modals/helpModal.ts
+   66:40  error  Use sentence case for UI text  obsidianmd/ui/sentence-case
+   78:19  error  Use sentence case for UI text  obsidianmd/ui/sentence-case
+  423:43  error  Use sentence case for UI text  obsidianmd/ui/sentence-case
+  441:43  error  Use sentence case for UI text  obsidianmd/ui/sentence-case
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/settings/settingsTab.ts
+  264:46  error  Use sentence case for UI text  obsidianmd/ui/sentence-case
+  275:41  error  Use sentence case for UI text  obsidianmd/ui/sentence-case
+  280:41  error  Use sentence case for UI text  obsidianmd/ui/sentence-case
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/__mocks__/obsidian.ts
+   6:8   error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+   7:13  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  20:29  error  Use sentence case for UI text                                                                                            obsidianmd/ui/sentence-case
+  40:5   error  Unexpected console statement. Only these console methods are allowed: warn, error, debug                                 no-console
+  92:30  error  The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type  @typescript-eslint/no-unsafe-function-type
+  94:20  error  Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+  96:34  error  Use the spread operator instead of '.apply()'                                                                            prefer-spread
+  96:34  error  Unsafe return of a value of type `any`                                                                                   @typescript-eslint/no-unsafe-return
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/core/fileFiltering.test.ts
+    8:16  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+    9:19  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   17:5   error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   17:16  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+   22:21  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+   25:37  error  Unsafe argument of type `any` assigned to a parameter of type `App`                     @typescript-eslint/no-unsafe-argument
+   25:46  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  251:68  error  Async arrow function has no 'await' expression                                          @typescript-eslint/require-await
+  264:7   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  264:15  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  265:7   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  265:15  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  266:7   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  266:15  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  278:7   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  278:15  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  281:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  283:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  296:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  296:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  310:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  310:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  311:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  311:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  312:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  312:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  316:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/core/multilineReplacement.test.ts
+    1:44  error  'vi' is defined but never used                                                          @typescript-eslint/no-unused-vars
+    4:25  error  'SearchResult' is defined but never used                                                @typescript-eslint/no-unused-vars
+   10:18  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   11:21  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   30:39  error  Unsafe argument of type `any` assigned to a parameter of type `App | undefined`         @typescript-eslint/no-unsafe-argument
+   31:41  error  Unsafe argument of type `any` assigned to a parameter of type `App`                     @typescript-eslint/no-unsafe-argument
+   31:50  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   32:51  error  Unsafe argument of type `any` assigned to a parameter of type `App`                     @typescript-eslint/no-unsafe-argument
+   32:60  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   35:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   35:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+   36:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   36:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+   37:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   37:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+   66:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   66:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   66:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+   96:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   96:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   96:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  127:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  127:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  127:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  163:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  163:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  163:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  192:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  192:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  192:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  239:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  239:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  239:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  270:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  270:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  270:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  299:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  299:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  299:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  301:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  301:34  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  301:50  error  Unsafe member access .split on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  301:62  error  Unsafe member access .length on an `any` value                                          @typescript-eslint/no-unsafe-member-access
+  308:13  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  308:21  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  354:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  354:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  354:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  359:13  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  359:21  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  409:13  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  409:21  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  441:13  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  441:21  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  469:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  469:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  469:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  476:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  476:30  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  476:38  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  496:17  error  Unsafe argument of type `any` assigned to a parameter of type `ReplacementTarget`       @typescript-eslint/no-unsafe-argument
+  502:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  502:43  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  502:51  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  503:21  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  503:37  error  Unsafe member access .match on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  503:63  error  Unsafe member access .length on an `any` value                                          @typescript-eslint/no-unsafe-member-access
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/core/multilineSearch.test.ts
+    1:44  error  'vi' is defined but never used                                                          @typescript-eslint/no-unused-vars
+    9:9   error  'replacementEngine' is assigned a value but never used                                  @typescript-eslint/no-unused-vars
+   10:18  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   11:21  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   27:39  error  Unsafe argument of type `any` assigned to a parameter of type `App | undefined`         @typescript-eslint/no-unsafe-argument
+   28:41  error  Unsafe argument of type `any` assigned to a parameter of type `App`                     @typescript-eslint/no-unsafe-argument
+   28:50  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   29:51  error  Unsafe argument of type `any` assigned to a parameter of type `App`                     @typescript-eslint/no-unsafe-argument
+   29:60  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   32:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   32:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+   35:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   35:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+   36:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   36:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  197:13  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  197:21  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  210:13  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  210:21  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/core/replacementEngine.test.ts
+    4:10  error  'SearchOptions' is defined but never used                                                               @typescript-eslint/no-unused-vars
+   10:18  error  Unexpected any. Specify a different type                                                                @typescript-eslint/no-explicit-any
+   11:21  error  Unexpected any. Specify a different type                                                                @typescript-eslint/no-explicit-any
+   15:39  error  Unsafe argument of type `any` assigned to a parameter of type `App | undefined`                         @typescript-eslint/no-unsafe-argument
+   16:41  error  Unsafe argument of type `any` assigned to a parameter of type `App`                                     @typescript-eslint/no-unsafe-argument
+   16:50  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`                  @typescript-eslint/no-unsafe-argument
+   17:51  error  Unsafe argument of type `any` assigned to a parameter of type `App`                                     @typescript-eslint/no-unsafe-argument
+   17:60  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`                  @typescript-eslint/no-unsafe-argument
+   48:17  error  This assertion is unnecessary since the receiver accepts the original type of the expression            @typescript-eslint/no-unnecessary-type-assertion
+   55:19  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+   55:36  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+   55:44  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+   68:19  error  'bugTestResults' is assigned a value but never used                                                     @typescript-eslint/no-unused-vars
+   93:19  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+   93:36  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+   93:44  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  134:19  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  134:36  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  134:44  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  135:19  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  135:33  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  135:48  error  Unsafe member access .split on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  135:60  error  Unsafe member access [2] on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+  162:19  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  162:36  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  162:44  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  204:49  error  Unsafe argument of type `any` assigned to a parameter of type `Iterable<unknown> | ArrayLike<unknown>`  @typescript-eslint/no-unsafe-argument
+  204:49  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  204:49  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  204:57  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  204:77  error  Unsafe member access .values on an `any` value                                                          @typescript-eslint/no-unsafe-member-access
+  213:13  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  213:21  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  234:19  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  234:30  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  234:38  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  237:13  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  237:21  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  251:45  error  Unsafe argument of type `any` assigned to a parameter of type `Iterable<unknown> | ArrayLike<unknown>`  @typescript-eslint/no-unsafe-argument
+  251:45  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  251:54  error  Unsafe member access .values on an `any` value                                                          @typescript-eslint/no-unsafe-member-access
+  252:19  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  252:34  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  252:42  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  256:19  error  'count2' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+  324:17  error  This assertion is unnecessary since the receiver accepts the original type of the expression            @typescript-eslint/no-unnecessary-type-assertion
+  328:19  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  328:36  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  328:44  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  329:19  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  329:33  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  329:48  error  Unsafe member access .split on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  329:60  error  Unsafe member access [0] on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+  399:17  error  Unsafe assignment of an `any` value                                                                     @typescript-eslint/no-unsafe-assignment
+  399:23  error  Unsafe call of a(n) `any` typed value                                                                   @typescript-eslint/no-unsafe-call
+  399:31  error  Unsafe member access .vault on an `any` value                                                           @typescript-eslint/no-unsafe-member-access
+  399:56  error  Unsafe member access [0] on an `any` value                                                              @typescript-eslint/no-unsafe-member-access
+  450:19  error  'maliciousPattern' is assigned a value but never used                                                   @typescript-eslint/no-unused-vars
+  452:13  error  Unexpected `await` of a non-Promise (non-"Thenable") value                                              @typescript-eslint/await-thenable
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/core/searchEngine.test.ts
+    3:10  error  'SearchOptions' is defined but never used                                               @typescript-eslint/no-unused-vars
+    8:18  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+    9:21  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   13:39  error  Unsafe argument of type `any` assigned to a parameter of type `App | undefined`         @typescript-eslint/no-unsafe-argument
+   14:41  error  Unsafe argument of type `any` assigned to a parameter of type `App`                     @typescript-eslint/no-unsafe-argument
+   14:50  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   16:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   16:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  289:19  error  'newlineResults' is assigned a value but never used                                     @typescript-eslint/no-unused-vars
+  330:13  error  Unexpected `await` of a non-Promise (non-"Thenable") value                              @typescript-eslint/await-thenable
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/fuzzing/propertyBased.test.ts
+   10:18  error  Unexpected any. Specify a different type                                                                                                           @typescript-eslint/no-explicit-any
+   11:21  error  Unexpected any. Specify a different type                                                                                                           @typescript-eslint/no-explicit-any
+   15:39  error  Unsafe argument of type `any` assigned to a parameter of type `App | undefined`                                                                    @typescript-eslint/no-unsafe-argument
+   16:41  error  Unsafe argument of type `any` assigned to a parameter of type `App`                                                                                @typescript-eslint/no-unsafe-argument
+   16:50  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`                                                             @typescript-eslint/no-unsafe-argument
+   17:51  error  Unsafe argument of type `any` assigned to a parameter of type `App`                                                                                @typescript-eslint/no-unsafe-argument
+   17:60  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`                                                             @typescript-eslint/no-unsafe-argument
+   24:24  error  `unicodeString` is deprecated. Please use ${@link string } with `fc.string({ unit, ...constraints })`, utilizing one of its unit variants instead  @typescript-eslint/no-deprecated
+  114:33  error  `unicodeString` is deprecated. Please use ${@link string } with `fc.string({ unit, ...constraints })`, utilizing one of its unit variants instead  @typescript-eslint/no-deprecated
+  115:24  error  `unicodeString` is deprecated. Please use ${@link string } with `fc.string({ unit, ...constraints })`, utilizing one of its unit variants instead  @typescript-eslint/no-deprecated
+  119:25  error  Unsafe call of a(n) `any` typed value                                                                                                              @typescript-eslint/no-unsafe-call
+  119:33  error  Unsafe member access .vault on an `any` value                                                                                                      @typescript-eslint/no-unsafe-member-access
+  155:24  error  `unicodeString` is deprecated. Please use ${@link string } with `fc.string({ unit, ...constraints })`, utilizing one of its unit variants instead  @typescript-eslint/no-deprecated
+  179:31  error  Unsafe assignment of an `any` value                                                                                                                @typescript-eslint/no-unsafe-assignment
+  179:48  error  Unsafe call of a(n) `any` typed value                                                                                                              @typescript-eslint/no-unsafe-call
+  179:56  error  Unsafe member access .vault on an `any` value                                                                                                      @typescript-eslint/no-unsafe-member-access
+  202:25  error  Unsafe call of a(n) `any` typed value                                                                                                              @typescript-eslint/no-unsafe-call
+  202:33  error  Unsafe member access .vault on an `any` value                                                                                                      @typescript-eslint/no-unsafe-member-access
+  247:31  error  Unsafe assignment of an `any` value                                                                                                                @typescript-eslint/no-unsafe-assignment
+  247:39  error  Unsafe call of a(n) `any` typed value                                                                                                              @typescript-eslint/no-unsafe-call
+  247:47  error  Unsafe member access .vault on an `any` value                                                                                                      @typescript-eslint/no-unsafe-member-access
+  249:35  error  Unsafe assignment of an `any` value                                                                                                                @typescript-eslint/no-unsafe-assignment
+  249:51  error  Unsafe call of a(n) `any` typed value                                                                                                              @typescript-eslint/no-unsafe-call
+  249:59  error  Unsafe member access .vault on an `any` value                                                                                                      @typescript-eslint/no-unsafe-member-access
+  268:25  error  Unsafe call of a(n) `any` typed value                                                                                                              @typescript-eslint/no-unsafe-call
+  268:33  error  Unsafe member access .vault on an `any` value                                                                                                      @typescript-eslint/no-unsafe-member-access
+  282:45  error  Promise returned in function argument where a void return was expected                                                                             @typescript-eslint/no-misused-promises
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/integration/workflows.test.ts
+    9:18  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   10:21  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   14:39  error  Unsafe argument of type `any` assigned to a parameter of type `App | undefined`         @typescript-eslint/no-unsafe-argument
+   15:41  error  Unsafe argument of type `any` assigned to a parameter of type `App`                     @typescript-eslint/no-unsafe-argument
+   15:50  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   16:51  error  Unsafe argument of type `any` assigned to a parameter of type `App`                     @typescript-eslint/no-unsafe-argument
+   16:60  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   18:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   18:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+   94:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   94:29  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   94:37  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  175:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  175:37  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  175:45  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  180:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  180:38  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  180:46  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  229:19  error  'expectedReplacedCount' is assigned a value but never used                              @typescript-eslint/no-unused-vars
+  318:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  318:29  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  318:37  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  338:23  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  338:40  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  338:48  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/mocks/MockApp.ts
+   1:15  error  'Workspace' is defined but never used      @typescript-eslint/no-unused-vars
+   1:26  error  'WorkspaceLeaf' is defined but never used  @typescript-eslint/no-unused-vars
+  19:25  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  23:20  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  34:49  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/mocks/MockPlugin.ts
+  28:5   error  Async method 'loadData' has no 'await' expression  @typescript-eslint/require-await
+  28:31  error  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  32:26  error  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/mocks/MockVault.ts
+    1:17  error  'TFolder' is defined but never used              @typescript-eslint/no-unused-vars
+    1:26  error  'Vault' is defined but never used                @typescript-eslint/no-unused-vars
+   89:15  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+   96:5   error  Async method 'read' has no 'await' expression    @typescript-eslint/require-await
+  104:5   error  Async method 'modify' has no 'await' expression  @typescript-eslint/require-await
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/mocks/MockWorkspace.ts
+   1:25  error  'Workspace' is defined but never used     @typescript-eslint/no-unused-vars
+  30:41  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  35:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/mocks/index.ts
+  13:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/setup.ts
+   11:10  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   12:15  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   22:31  error  Use sentence case for UI text                                                                                                                                                                                                                                                                                                               obsidianmd/ui/sentence-case
+   39:7   error  Unexpected console statement. Only these console methods are allowed: warn, error, debug                                                                                                                                                                                                                                                    no-console
+   80:18  error  The `Function` type accepts any function-like value.
+Prefer explicitly defining any function parameters and return type                                                                                                                                                                                                                     @typescript-eslint/no-unsafe-function-type
+   82:22  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   84:36  error  Use the spread operator instead of '.apply()'                                                                                                                                                                                                                                                                                               prefer-spread
+   84:36  error  Unsafe return of a value of type `any`                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-return
+   94:11  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  133:9   error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  134:10  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  135:8   error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/ui/components.test.ts
+    3:10  error  'SearchToolbar' is defined but never used                                               @typescript-eslint/no-unused-vars
+    9:16  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   10:19  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   15:5   error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   15:16  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+   17:21  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+   23:9   error  'mockCallbacks' is assigned a value but never used                                      @typescript-eslint/no-unused-vars
+   23:24  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   24:9   error  'mockResults' is assigned a value but never used                                        @typescript-eslint/no-unused-vars
+   34:11  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   34:17  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   34:25  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+   42:11  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   42:17  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   42:25  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+   58:61  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   85:37  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  105:9   error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  105:15  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  105:23  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  124:11  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  124:17  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  124:25  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  132:11  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  132:17  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  132:25  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  169:67  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  184:67  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  201:22  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  202:29  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  207:25  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  208:32  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  212:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  212:24  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  212:32  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  215:9   error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/ui/helpModal.test.ts
+    6:31  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   10:46  error  Unsafe return of a value of type `any`                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-return
+   11:47  error  Unsafe return of a value of type `any`                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-return
+   12:48  error  Unsafe return of a value of type `any`                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-return
+   33:9   error  Unsafe assignment of an `any` value                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unsafe-assignment
+   33:44  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   34:3   error  Unsafe return of a value of type `any`                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-return
+   37:12  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   38:18  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   39:16  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   41:24  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   42:9   error  Unsafe assignment of an `any` value                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unsafe-assignment
+   47:54  error  Unsafe return of a value of type `any`                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-return
+   48:55  error  Unsafe return of a value of type `any`                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-return
+   49:56  error  Unsafe return of a value of type `any`                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-return
+   68:16  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   69:19  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+   76:13  error  Unsafe member access .hotkeyManager on an `any` value                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unsafe-member-access
+   83:13  error  Unsafe member access .scope on an `any` value                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unsafe-member-access
+   90:13  error  Unsafe member access .commands on an `any` value                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unsafe-member-access
+  105:31  error  Unsafe argument of type `any` assigned to a parameter of type `App`                                                                                                                                                                                                                                                                         @typescript-eslint/no-unsafe-argument
+  105:40  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-argument
+  125:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  126:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  127:35  error  Unsafe assignment of an `any` value                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unsafe-assignment
+  134:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  141:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  142:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  155:22  error  Unsafe member access .hotkeyManager on an `any` value                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unsafe-member-access
+  156:22  error  Unsafe member access .scope on an `any` value                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unsafe-member-access
+  157:22  error  Unsafe member access .commands on an `any` value                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unsafe-member-access
+  177:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  181:15  error  Unsafe member access .commands on an `any` value                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unsafe-member-access
+  193:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  206:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  215:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  228:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  247:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  266:15  error  Unsafe member access .hotkeyManager on an `any` value                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unsafe-member-access
+  281:35  error  Unsafe argument of type `any` assigned to a parameter of type `App`                                                                                                                                                                                                                                                                         @typescript-eslint/no-unsafe-argument
+  281:79  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-argument
+  308:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  315:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  322:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  323:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  335:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  336:14  error  A method that is not declared with `this: void` may cause unintentional scoping of `this` when separated from its object.
+Consider using an arrow function or explicitly `.bind()`ing the method to avoid calling the method with an unintended `this` value. 
+If a function does not access `this`, it can be annotated with `this: void`  @typescript-eslint/unbound-method
+  340:18  error  Unsafe member access .settings on an `any` value                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unsafe-member-access
+  353:35  error  Unsafe argument of type `any` assigned to a parameter of type `App`                                                                                                                                                                                                                                                                         @typescript-eslint/no-unsafe-argument
+  353:76  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`                                                                                                                                                                                                                                                      @typescript-eslint/no-unsafe-argument
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/ui/multilineUI.test.ts
+    2:25  error  'SearchInputElements' is defined but never used                                         @typescript-eslint/no-unused-vars
+    4:10  error  'UIRenderer' is defined but never used                                                  @typescript-eslint/no-unused-vars
+   10:51  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   10:57  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   11:20  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   22:46  error  Unsafe return of a value of type `any`                                                  @typescript-eslint/no-unsafe-return
+   22:46  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   22:54  error  Unsafe member access .attributes on an `any` value                                      @typescript-eslint/no-unsafe-member-access
+   23:39  error  Unsafe return of a value of type `any`                                                  @typescript-eslint/no-unsafe-return
+   23:39  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   23:47  error  Unsafe member access .attributes on an `any` value                                      @typescript-eslint/no-unsafe-member-access
+   25:43  error  Unsafe member access .className on an `any` value                                       @typescript-eslint/no-unsafe-member-access
+   32:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   33:26  error  Unsafe member access .className on an `any` value                                       @typescript-eslint/no-unsafe-member-access
+   34:13  error  Unsafe return of a value of type `any`                                                  @typescript-eslint/no-unsafe-return
+   37:19  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   38:27  error  Unsafe member access .className on an `any` value                                       @typescript-eslint/no-unsafe-member-access
+   39:13  error  Unsafe return of a value of type `any`                                                  @typescript-eslint/no-unsafe-return
+   41:39  error  Unsafe return of a value of type `any`                                                  @typescript-eslint/no-unsafe-return
+   41:39  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   41:47  error  Unsafe member access .children on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+   42:38  error  Unsafe member access .children on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+   47:12  error  This assertion is unnecessary since it does not change the type of the expression       @typescript-eslint/no-unnecessary-type-assertion
+   47:23  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   51:18  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   52:21  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   55:24  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   59:39  error  Unsafe argument of type `any` assigned to a parameter of type `App | undefined`         @typescript-eslint/no-unsafe-argument
+   60:41  error  Unsafe argument of type `any` assigned to a parameter of type `App`                     @typescript-eslint/no-unsafe-argument
+   60:50  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   63:9   error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   66:15  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   67:15  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   68:15  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   69:15  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   70:15  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   71:15  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   72:15  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   75:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   75:22  error  Unsafe member access .setAttribute on an `any` value                                    @typescript-eslint/no-unsafe-member-access
+   76:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   76:22  error  Unsafe member access .setAttribute on an `any` value                                    @typescript-eslint/no-unsafe-member-access
+   77:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   77:18  error  Unsafe member access .setAttribute on an `any` value                                    @typescript-eslint/no-unsafe-member-access
+   78:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+   78:22  error  Unsafe member access .setAttribute on an `any` value                                    @typescript-eslint/no-unsafe-member-access
+   81:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   82:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   83:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   84:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   85:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   86:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   87:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   88:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   89:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   90:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   91:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   92:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   93:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   94:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   95:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   96:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   97:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+   98:13  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  102:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  102:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  103:9   error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  103:17  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  109:17  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  115:71  error  Unsafe argument of type `any` assigned to a parameter of type `HTMLElement`             @typescript-eslint/no-unsafe-argument
+  134:96  error  Async arrow function has no 'await' expression                                          @typescript-eslint/require-await
+  140:17  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  147:71  error  Unsafe argument of type `any` assigned to a parameter of type `HTMLElement`             @typescript-eslint/no-unsafe-argument
+  160:97  error  Async arrow function has no 'await' expression                                          @typescript-eslint/require-await
+  164:17  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  170:71  error  Unsafe argument of type `any` assigned to a parameter of type `HTMLElement`             @typescript-eslint/no-unsafe-argument
+  193:17  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  224:17  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  251:17  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  251:23  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  251:31  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  267:17  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  267:23  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  267:31  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  276:17  error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  276:23  error  Unsafe call of a(n) `any` typed value                                                   @typescript-eslint/no-unsafe-call
+  276:31  error  Unsafe member access .vault on an `any` value                                           @typescript-eslint/no-unsafe-member-access
+  295:17  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  301:71  error  Unsafe argument of type `any` assigned to a parameter of type `HTMLElement`             @typescript-eslint/no-unsafe-argument
+  337:17  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  373:17  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  399:17  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/unit/bugRegression.test.ts
+  269:10  error  'escapeRegex' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/unit/performance.test.ts
+  120:15  error  'matches' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  135:13  error  'matches' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  260:7   error  'offset' is never reassigned. Use 'const' instead  prefer-const
+  260:7   error  'offset' is assigned a value but never used        @typescript-eslint/no-unused-vars
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/unit/positionTracking.test.ts
+  177:10  error  'findMatchAtPosition' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/unit/regexUtils.test.ts
+  50:13  error  'pattern' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/unit/testDataGenerators.test.ts
+    5:22  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+    5:37  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+    8:5   error  Unexpected console statement. Only these console methods are allowed: warn, error, debug  no-console
+   10:23  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   11:22  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   12:16  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   12:31  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   14:23  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   15:29  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+   16:29  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  392:30  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  392:35  error  Unsafe member access .memory on an `any` value                                            @typescript-eslint/no-unsafe-member-access
+  393:5   error  Unsafe return of a value of type `any`                                                    @typescript-eslint/no-unsafe-return
+  393:28  error  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any
+  393:33  error  Unsafe member access .memory on an `any` value                                            @typescript-eslint/no-unsafe-member-access
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/utils/logger.test.ts
+   19:19  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+   23:16  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+   30:28  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   41:42  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   49:20  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+   50:32  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   69:20  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+   70:32  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+   89:20  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+   90:32  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  109:20  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  110:32  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  129:20  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  130:32  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  149:20  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  150:32  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  170:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  171:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  225:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  226:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  234:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  235:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  247:7   error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  247:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  249:12  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+  252:32  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  258:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  261:32  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  267:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  270:32  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  278:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  279:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  289:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  290:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  302:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  303:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  314:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  315:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  326:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  327:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  338:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  339:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  341:26  error  Unexpected any. Specify a different type                                                @typescript-eslint/no-explicit-any
+  342:7   error  Unsafe assignment of an `any` value                                                     @typescript-eslint/no-unsafe-assignment
+  342:19  error  Unsafe member access .self on an `any` value                                            @typescript-eslint/no-unsafe-member-access
+  352:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  353:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  368:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  369:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  394:18  error  Unsafe member access .isLoaded on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  395:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  403:18  error  Unsafe member access .isLoaded on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  404:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  412:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+  413:30  error  Unsafe argument of type `any` assigned to a parameter of type `VaultFindReplacePlugin`  @typescript-eslint/no-unsafe-argument
+  419:18  error  Unsafe member access .settings on an `any` value                                        @typescript-eslint/no-unsafe-member-access
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/tests/utils/testHelpers.ts
+  10:61  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:9   error  Unsafe assignment of an `any` value       @typescript-eslint/no-unsafe-assignment
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/ui/components/renderer.ts
+  154:15  error  'fileGroupHeading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/ui/components/searchController.ts
+  294:22  error  'timerError' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/ui/components/searchToolbar.ts
+  355:15  error  'includeLabel' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+  379:15  error  'excludeLabel' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+  487:15  error  'actionGap' is assigned a value but never used                          @typescript-eslint/no-unused-vars
+  593:47  error  Promise returned in function argument where a void return was expected  @typescript-eslint/no-misused-promises
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/ui/views/findReplaceView.ts
+   71:39  error  Use sentence case for UI text                    obsidianmd/ui/sentence-case
+  730:17  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  730:30  error  Unsafe member access .message on an `any` value  @typescript-eslint/no-unsafe-member-access
+  731:17  error  Unsafe assignment of an `any` value              @typescript-eslint/no-unsafe-assignment
+  731:30  error  Unsafe member access .stack on an `any` value    @typescript-eslint/no-unsafe-member-access
+
+/Users/gm/Vaults/Master/.obsidian/plugins/find-n-replace/src/utils/logger.ts
+   29:13  error  Unexpected console statement. Only these console methods are allowed: warn, error, debug  no-console
+   38:13  error  Unexpected console statement. Only these console methods are allowed: warn, error, debug  no-console
+   47:13  error  Unexpected console statement. Only these console methods are allowed: warn, error, debug  no-console
+  105:13  error  Unexpected console statement. Only these console methods are allowed: warn, error, debug  no-console
+  114:13  error  Unexpected console statement. Only these console methods are allowed: warn, error, debug  no-console
+
+✖ 562 problems (562 errors, 0 warnings)
+  66 errors and 0 warnings potentially fixable with the `--fix` option.
+
