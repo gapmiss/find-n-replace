@@ -74,7 +74,7 @@ export class FileOperations {
             editor.focus();
 
             // Center the match in the viewport
-            await this.centerMatchInViewport(editor, line, chStart);
+            this.centerMatchInViewport(editor, line, chStart);
 
             // Return focus to source element after a brief delay
             if (sourceElement) {
@@ -115,7 +115,7 @@ export class FileOperations {
      * @param line - Line number to center
      * @param ch - Character position
      */
-    private async centerMatchInViewport(editor: Editor, line: number, ch: number): Promise<void> {
+    private centerMatchInViewport(editor: Editor, line: number, ch: number): void {
         try {
             this.logger.debug('Centering match in viewport', { line, ch });
 
