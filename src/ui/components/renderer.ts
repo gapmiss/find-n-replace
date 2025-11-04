@@ -95,7 +95,7 @@ export class UIRenderer {
             // 2. Persisted state (saved to disk if rememberFileGroupStates enabled)
             // 3. Default to collapsed
             let isFileCollapsed = true;
-            if (this.sessionFileGroupStates.hasOwnProperty(filePath)) {
+            if (Object.prototype.hasOwnProperty.call(this.sessionFileGroupStates, filePath)) {
                 // Use session state if available (highest priority)
                 isFileCollapsed = this.sessionFileGroupStates[filePath];
             } else if (this.plugin.settings.rememberFileGroupStates && this.plugin.settings.fileGroupStates[filePath] !== undefined) {
