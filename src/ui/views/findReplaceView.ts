@@ -594,7 +594,7 @@ export class FindReplaceView extends ItemView {
                     id: `toggle-${id}-checkbox`
                 }
             }
-        ) as HTMLInputElement;
+        );
 
         // Handle clicking on the container
         checkboxContainer.addEventListener('click', () => {

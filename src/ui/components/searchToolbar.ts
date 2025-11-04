@@ -202,7 +202,7 @@ export class SearchToolbar {
             cls: 'find-replace-input',
             placeholder: 'Find (↑↓ for history)',
             attr: { 'tabindex': '1' }
-        }) as HTMLInputElement;
+        });
 
         // Attach history navigator to search input
         this.searchHistoryNavigator.attachTo(searchInput, () => this.plugin.historyManager.getSearchHistory());
@@ -214,7 +214,7 @@ export class SearchToolbar {
                 'aria-label': 'Clear search input',
                 'tabindex': '-1'
             }
-        }) as HTMLButtonElement;
+        });
         setIcon(searchClearBtn, 'x');
 
         // Inline search options (VSCode-style)
@@ -270,7 +270,7 @@ export class SearchToolbar {
             cls: 'find-replace-input',
             placeholder: 'Replace (↑↓ for history)',
             attr: { 'tabindex': '2' }
-        }) as HTMLInputElement;
+        });
 
         // Attach history navigator to replace input
         this.replaceHistoryNavigator.attachTo(replaceInput, () => this.plugin.historyManager.getReplaceHistory());
@@ -282,7 +282,7 @@ export class SearchToolbar {
                 'aria-label': 'Clear replace input',
                 'tabindex': '-1'
             }
-        }) as HTMLButtonElement;
+        });
         setIcon(replaceClearBtn, 'x');
 
         // Clear button moved to replace row
@@ -362,7 +362,7 @@ export class SearchToolbar {
             cls: 'filter-input',
             placeholder: 'e.g. .md, Notes/, *.js',
             attr: { 'tabindex': '8' }
-        }) as HTMLInputElement;
+        });
 
         // Add clear button for include input
         const includeClearBtn = includeInputContainer.createEl('button', {
@@ -371,7 +371,7 @@ export class SearchToolbar {
                 'aria-label': 'Clear files to include',
                 'tabindex': '-1'
             }
-        }) as HTMLButtonElement;
+        });
         setIcon(includeClearBtn, 'x');
 
         // Exclude input row
@@ -386,7 +386,7 @@ export class SearchToolbar {
             cls: 'filter-input',
             placeholder: 'e.g. *.tmp, Archive/, *backup*',
             attr: { 'tabindex': '9' }
-        }) as HTMLInputElement;
+        });
 
         // Add clear button for exclude input
         const excludeClearBtn = excludeInputContainer.createEl('button', {
@@ -395,7 +395,7 @@ export class SearchToolbar {
                 'aria-label': 'Clear files to exclude',
                 'tabindex': '-1'
             }
-        }) as HTMLButtonElement;
+        });
         setIcon(excludeClearBtn, 'x');
 
         return {
