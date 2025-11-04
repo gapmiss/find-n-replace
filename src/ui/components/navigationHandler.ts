@@ -94,7 +94,7 @@ export class NavigationHandler {
         // F3 or Ctrl/Cmd + G: Find next (perform search)
         if (event.key === 'F3' || ((event.ctrlKey || event.metaKey) && event.key === 'g')) {
             event.preventDefault();
-            this.performSearchCallback();
+            void this.performSearchCallback();
             return true;
         }
 

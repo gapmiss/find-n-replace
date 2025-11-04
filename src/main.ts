@@ -29,7 +29,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 		);
 
 		this.addRibbonIcon('text-search', 'Find-n-Replace', () => {
-			this.activateView();
+			void this.activateView();
 		});
 
 		// Register commands for keyboard shortcuts
@@ -37,7 +37,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			id: 'open-find-n-replace',
 			name: 'Open',
 			callback: () => {
-				this.activateView();
+				void this.activateView();
 			}
 		});
 
@@ -47,7 +47,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			callback: async () => {
 				const view = await this.getOrCreateView();
 				if (view) {
-					view.commandPerformSearch();
+					await view.commandPerformSearch();
 				}
 			}
 		});
@@ -124,7 +124,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			callback: async () => {
 				const view = this.getActiveView();
 				if (view) {
-					view.commandReplaceSelected();
+					await view.commandReplaceSelected();
 				}
 			}
 		});
@@ -135,7 +135,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			callback: async () => {
 				const view = this.getActiveView();
 				if (view) {
-					view.commandReplaceAllVault();
+					await view.commandReplaceAllVault();
 				}
 			}
 		});
@@ -188,7 +188,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 				await leaf.setViewState({ type: VIEW_TYPE_FIND_REPLACE, active: true });
 			}
 
-			workspace.revealLeaf(leaf);
+			await workspace.revealLeaf(leaf);
 
 			// Focus the search input after activating the view
 			// For newly opened views, use a delay to ensure rendering is complete

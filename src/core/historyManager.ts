@@ -71,7 +71,7 @@ export class HistoryManager {
         }
 
         // Persist to settings
-        this.plugin.saveSettings();
+        void this.plugin.saveSettings();
         this.logger.debug('Added search to history:', trimmed, `(total: ${history.length})`);
     }
 
@@ -118,7 +118,7 @@ export class HistoryManager {
         }
 
         // Persist to settings
-        this.plugin.saveSettings();
+        void this.plugin.saveSettings();
         this.logger.debug('Added replace to history:', pattern, `(total: ${history.length})`);
     }
 
@@ -143,7 +143,7 @@ export class HistoryManager {
      */
     clearSearchHistory(): void {
         this.plugin.settings.searchHistory = [];
-        this.plugin.saveSettings();
+        void this.plugin.saveSettings();
         this.logger.info('Cleared search history');
     }
 
@@ -152,7 +152,7 @@ export class HistoryManager {
      */
     clearReplaceHistory(): void {
         this.plugin.settings.replaceHistory = [];
-        this.plugin.saveSettings();
+        void this.plugin.saveSettings();
         this.logger.info('Cleared replace history');
     }
 
@@ -175,7 +175,7 @@ export class HistoryManager {
         const index = history.indexOf(pattern);
         if (index !== -1) {
             history.splice(index, 1);
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             this.logger.debug('Removed search entry:', pattern);
         }
     }
@@ -190,7 +190,7 @@ export class HistoryManager {
         const index = history.indexOf(pattern);
         if (index !== -1) {
             history.splice(index, 1);
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             this.logger.debug('Removed replace entry:', pattern);
         }
     }
@@ -216,7 +216,7 @@ export class HistoryManager {
             this.logger.info(`Trimmed replace history to ${maxSize} entries (removed ${removed})`);
         }
 
-        this.plugin.saveSettings();
+        void this.plugin.saveSettings();
     }
 
 }

@@ -46,10 +46,10 @@ export class FileOperations {
                 // File not currently open - open in new leaf
                 leaf = this.app.workspace.getLeaf(true);
                 await leaf.openFile(file);
-                this.app.workspace.revealLeaf(leaf);
+                await this.app.workspace.revealLeaf(leaf);
             } else {
                 // File already open - just bring to front
-                this.app.workspace.revealLeaf(leaf);
+                await this.app.workspace.revealLeaf(leaf);
             }
 
             const mdView = leaf.view as MarkdownView;

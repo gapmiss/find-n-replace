@@ -601,13 +601,13 @@ export class SearchToolbar {
         includeInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 window.clearTimeout(updateTimeout); // Cancel debounced update
-                updateFiltersAndSearch(); // Immediate update
+                void updateFiltersAndSearch(); // Immediate update
             }
         });
         excludeInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 window.clearTimeout(updateTimeout); // Cancel debounced update
-                updateFiltersAndSearch(); // Immediate update
+                void updateFiltersAndSearch(); // Immediate update
             }
         });
 

@@ -194,7 +194,7 @@ export class UIRenderer {
                     // Optionally save to disk if persistence enabled
                     if (this.plugin.settings.rememberFileGroupStates) {
                         this.plugin.settings.fileGroupStates[filePath] = !isCurrentlyCollapsed;
-                        this.plugin.saveSettings(); // Persist to disk
+                        void this.plugin.saveSettings(); // Persist to disk
                     }
                 }
 
@@ -594,7 +594,7 @@ export class UIRenderer {
 
         // Save all state changes to disk (if persistence enabled)
         if (this.plugin.settings.rememberFileGroupStates) {
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
         }
 
         // Update the toolbar button state
@@ -648,7 +648,7 @@ export class UIRenderer {
 
         // Save changes if any cleanup was performed
         if (hasChanges) {
-            this.plugin.saveSettings();
+            void this.plugin.saveSettings();
             this.logger.debug('File group states cleaned up');
         }
     }

@@ -131,7 +131,7 @@ export class ActionHandler {
                     // Only re-search if there's an active query
                     if (query.length > 0) {
                         this.logger.debug(`[Toggle:${toggleName}] Calling performSearch for: "${query}"`);
-                        this.performSearchCallback();
+                        void this.performSearchCallback();
                     } else {
                         this.logger.debug(`[Toggle:${toggleName}] No query, skipping search`);
                     }
@@ -432,7 +432,7 @@ export class ActionHandler {
                 if (document.activeElement?.closest('.find-replace-container')) {
                     event.preventDefault();
                     if (!this.elements.ellipsisMenuBtn.disabled) {
-                        this.replaceAllInVault();
+                        void this.replaceAllInVault();
                     }
                 }
             }
@@ -444,7 +444,7 @@ export class ActionHandler {
                 if (document.activeElement?.closest('.find-replace-container')) {
                     event.preventDefault();
                     if (!this.elements.ellipsisMenuBtn.disabled) {
-                        this.replaceSelectedMatches();
+                        void this.replaceSelectedMatches();
                     }
                 }
             }

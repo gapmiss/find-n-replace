@@ -133,7 +133,7 @@ export class FindReplaceView extends ItemView {
             () => {
                 // Trigger search when filters are cleared
                 if (this.searchController) {
-                    this.searchController.performSearch();
+                    void this.searchController.performSearch();
                 }
             }
         );
@@ -1051,7 +1051,7 @@ export class FindReplaceView extends ItemView {
         if (query.length > 0) {
             // Clear cache to prevent stale regex
             this.searchEngine.clearCache();
-            this.searchController.performSearch();
+            void this.searchController.performSearch();
         }
     }
 }
