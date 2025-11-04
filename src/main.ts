@@ -143,7 +143,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 		this.addCommand({
 			id: 'expand-collapse-all',
 			name: 'Expand/collapse all results',
-			callback: async () => {
+			callback: () => {
 				const view = this.getActiveView();
 				if (view) {
 					view.commandExpandCollapseAll();
@@ -154,7 +154,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 		this.addCommand({
 			id: 'select-all-results',
 			name: 'Select all results',
-			callback: async () => {
+			callback: () => {
 				const view = this.getActiveView();
 				if (view) {
 					view.commandSelectAllResults();
