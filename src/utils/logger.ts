@@ -60,7 +60,7 @@ export class Logger {
     /**
      * Error logging - critical failures (always shown unless SILENT)
      */
-    error(message: string, error?: Error | unknown, showToUser: boolean = false): void {
+    error(message: string, error?: unknown, showToUser: boolean = false): void {
         if (this.getLogLevel() >= LogLevel.ERROR) {
             const fullMessage = `[${this.context}] ERROR: ${message}`;
 
@@ -85,7 +85,7 @@ export class Logger {
     /**
      * Critical error - always shown to user with notice
      */
-    critical(message: string, error?: Error | unknown): void {
+    critical(message: string, error?: unknown): void {
         this.error(message, error, true);
     }
 
