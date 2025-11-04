@@ -105,8 +105,8 @@ export class HelpModal extends Modal {
     private getCommandsWithHotkeys(): CommandInfo[] {
         const commands: CommandInfo[] = [
             {
-                id: 'open-find-n-replace',
-                name: 'Open Find-n-Replace',
+                id: 'open',
+                name: 'Open',
                 recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd>',
                 description: 'Opens the plugin sidebar view',
                 category: 'Primary'

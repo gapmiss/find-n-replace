@@ -259,9 +259,8 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         const filterInfoContent = filterInfoDiv.createDiv('setting-item-description');
         filterInfoContent.addClass('filter-info-box');
 
-        // Create the content using DOM API instead of innerHTML
         const titleLine = filterInfoContent.createEl('div');
-        titleLine.createEl('strong', { text: '💡 How default file filters work:' });
+        titleLine.createEl('strong', { text: 'How default file filters work:' });
 
         const list = filterInfoContent.createEl('div');
         list.appendText('• These default settings populate the ');
