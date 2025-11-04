@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf } from 'obsidian';
+import { Plugin, WorkspaceLeaf, MarkdownView } from 'obsidian';
 import { FindReplaceView, VIEW_TYPE_FIND_REPLACE } from './ui/views/findReplaceView';
 import {
 	VaultFindReplaceSettings,
@@ -160,6 +160,17 @@ export default class VaultFindReplacePlugin extends Plugin {
 				}
 			}
 		});
+
+		this.addCommand({
+			id: 'open-help',
+			name: 'Open help',
+			callback: async () => {
+				const view = await this.getOrCreateView();
+				if (view) {
+					view.commandOpenHelp();
+				}
+			}
+		});
 	}
 
 	onunload() {
@@ -171,6 +182,14 @@ export default class VaultFindReplacePlugin extends Plugin {
 	async activateView() {
 		try {
 			const { workspace } = this.app;
+
+			// Get selected text from the active editor, if any
+			let selectedText = '';
+			const activeView = workspace.getActiveViewOfType(MarkdownView);
+			if (activeView) {
+				const editor = activeView.editor;
+				selectedText = editor.getSelection();
+			}
 
 			let leaf: WorkspaceLeaf | null = null;
 			const leaves = workspace.getLeavesOfType(VIEW_TYPE_FIND_REPLACE);
@@ -196,6 +215,10 @@ export default class VaultFindReplacePlugin extends Plugin {
 			window.setTimeout(() => {
 				const view = this.getActiveView();
 				if (view) {
+					// Pre-populate search input with selected text if available
+					if (selectedText) {
+						view.setSearchText(selectedText);
+					}
 					view.commandFocusSearch();
 				}
 			}, focusDelay);

@@ -1043,6 +1043,23 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
+     * Command: Open help modal
+     */
+    commandOpenHelp(): void {
+        this.searchToolbar.openHelpModal();
+    }
+
+    /**
+     * Sets the search input text
+     * Used when opening the view with pre-populated search text
+     */
+    setSearchText(text: string): void {
+        if (this.elements && this.elements.searchInput) {
+            this.elements.searchInput.value = text;
+        }
+    }
+
+    /**
      * Helper: Toggle a search option button
      */
     private toggleSearchOption(button: HTMLElement): void {

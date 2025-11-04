@@ -1069,4 +1069,17 @@ export class SearchToolbar {
 
         this.logger.debug('Updated filter button state:', { activeFiltersCount });
     }
+
+    /**
+     * Opens the help modal
+     * Public method to be called from commands or other components
+     */
+    openHelpModal(): void {
+        try {
+            const helpModal = new HelpModal(this.plugin.app, this.plugin);
+            helpModal.open();
+        } catch (error) {
+            this.logger.error('Help modal error', error, true);
+        }
+    }
 }
