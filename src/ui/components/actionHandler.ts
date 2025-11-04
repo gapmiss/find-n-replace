@@ -22,6 +22,10 @@ export class ActionHandler {
     private getSelectedIndicesCallback?: () => Set<number>;
     private toggleExpandCollapseCallback?: () => void;
 
+    // Store keyboard event handlers for proper cleanup
+    private replaceAllKeyHandler: (event: KeyboardEvent) => void;
+    private replaceSelectedKeyHandler: (event: KeyboardEvent) => void;
+
     constructor(
         plugin: VaultFindReplacePlugin,
         elements: FindReplaceElements,
@@ -37,6 +41,29 @@ export class ActionHandler {
         this.replacementEngine = replacementEngine;
         this.performSearchCallback = performSearchCallback;
         this.renderResultsCallback = renderResultsCallback;
+
+        // Initialize keyboard handlers with proper this binding
+        this.replaceAllKeyHandler = (event: KeyboardEvent) => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                if (document.activeElement?.closest('.find-replace-container')) {
+                    event.preventDefault();
+                    if (!this.elements.ellipsisMenuBtn.disabled) {
+                        void this.replaceAllInVault();
+                    }
+                }
+            }
+        };
+
+        this.replaceSelectedKeyHandler = (event: KeyboardEvent) => {
+            if (event.altKey && event.key === 'Enter') {
+                if (document.activeElement?.closest('.find-replace-container')) {
+                    event.preventDefault();
+                    if (!this.elements.ellipsisMenuBtn.disabled) {
+                        void this.replaceSelectedMatches();
+                    }
+                }
+            }
+        };
     }
 
     /**
@@ -427,36 +454,19 @@ export class ActionHandler {
      */
     setupKeyboardShortcuts(): void {
         // Ctrl/Cmd + Enter: Replace all
-        document.addEventListener('keydown', (event) => {
-            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-                if (document.activeElement?.closest('.find-replace-container')) {
-                    event.preventDefault();
-                    if (!this.elements.ellipsisMenuBtn.disabled) {
-                        void this.replaceAllInVault();
-                    }
-                }
-            }
-        });
+        document.addEventListener('keydown', this.replaceAllKeyHandler);
 
         // Alt + Enter: Replace selected
-        document.addEventListener('keydown', (event) => {
-            if (event.altKey && event.key === 'Enter') {
-                if (document.activeElement?.closest('.find-replace-container')) {
-                    event.preventDefault();
-                    if (!this.elements.ellipsisMenuBtn.disabled) {
-                        void this.replaceSelectedMatches();
-                    }
-                }
-            }
-        });
+        document.addEventListener('keydown', this.replaceSelectedKeyHandler);
     }
 
     /**
      * Cleans up event listeners
      */
     cleanup(): void {
-        // Remove global keyboard listeners
-        document.removeEventListener('keydown', this.setupKeyboardShortcuts);
+        // Remove global keyboard listeners using stored references
+        document.removeEventListener('keydown', this.replaceAllKeyHandler);
+        document.removeEventListener('keydown', this.replaceSelectedKeyHandler);
         this.logger.debug('ActionHandler cleanup completed');
     }
 }
