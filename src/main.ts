@@ -27,7 +27,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			(leaf: WorkspaceLeaf) => new FindReplaceView(leaf, this.app, this)
 		);
 
-		this.addRibbonIcon('text-search', 'Find-n-Replace', () => {
+		this.addRibbonIcon('replace', 'Find-n-Replace', () => {
 			void this.activateView();
 		});
 

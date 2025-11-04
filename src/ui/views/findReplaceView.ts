@@ -69,7 +69,7 @@ export class FindReplaceView extends ItemView {
     // Required Obsidian ItemView methods - these define how the view appears in the interface
     getViewType(): string { return VIEW_TYPE_FIND_REPLACE; }    // Returns the unique view type identifier
     getDisplayText(): string { return 'Find-n-Replace'; } // Text shown in tabs and menus
-    getIcon(): string { return 'text-search'; }                 // Icon shown in tabs (Lucide icon name)
+    getIcon(): string { return 'replace'; }                 // Icon shown in tabs (Lucide icon name)
 
     /**
      * Called when the view is opened - sets up the entire UI structure
