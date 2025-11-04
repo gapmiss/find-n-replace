@@ -34,7 +34,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		// Register commands for keyboard shortcuts
 		this.addCommand({
-			id: 'open-find-n-replace',
+			id: 'open',
 			name: 'Open',
 			callback: () => {
 				void this.activateView();
