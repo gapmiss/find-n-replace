@@ -95,10 +95,10 @@ All guides include screenshot placeholders showing:
 
 ## 🔗 External Resources
 
-- **GitHub Repository**: [gapmiss/vault-find-replace](https://github.com/gapmiss/vault-find-replace)
+- **GitHub Repository**: [gapmiss/find-n-replace](https://github.com/gapmiss/find-n-replace)
 - **Obsidian Plugin Directory**: Find-n-Replace
-- **Issue Tracker**: [Report bugs or request features](https://github.com/gapmiss/vault-find-replace/issues)
-- **Discussions**: [Community support](https://github.com/gapmiss/vault-find-replace/discussions)
+- **Issue Tracker**: [Report bugs or request features](https://github.com/gapmiss/find-n-replace/issues)
+- **Discussions**: [Community support](https://github.com/gapmiss/find-n-replace/discussions)
 
 ## 📝 Documentation Version
 

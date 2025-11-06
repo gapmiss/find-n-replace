@@ -1,5 +1,5 @@
-> [!IMPORTANT]
-> This documentation is a work-in-progress.
+> [!NOTE]
+> **Documentation Status:** Text content is complete! Screenshot placeholders (📸) will be replaced with actual images soon.
 
 # Find-n-Replace Tips & Tricks
 
@@ -761,4 +761,4 @@ Run "Replace All in Vault" with untested regex pattern, causing widespread incor
 
 ---
 
-*Tips & Tricks Version 1.0.0 - Last updated: 2025-10-13*
+*Tips & Tricks Version 1.0.1 - Last updated: 2025-11-05*

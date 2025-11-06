@@ -1,5 +1,6 @@
-> [!IMPORTANT]
-> This documentation is a work-in-progress.
+> [!NOTE]
+> **Documentation Status:** Text content is complete! Screenshot placeholders (📸) will be replaced with actual images soon.
+
 
 # Find-n-Replace User Guide
 
@@ -1141,11 +1142,11 @@ Configure Find-n-Replace behavior in Obsidian Settings.
 4. Check for error messages or warnings
 
 **Report Bugs:**
-- GitHub Issues: [gapmiss/vault-find-replace/issues](https://github.com/gapmiss/vault-find-replace/issues)
+- GitHub Issues: [gapmiss/find-n-replace/issues](https://github.com/gapmiss/find-n-replace/issues)
 - Include: Plugin version, Obsidian version, console errors, steps to reproduce
 
 **Community Support:**
-- GitHub Discussions: [gapmiss/vault-find-replace/discussions](https://github.com/gapmiss/vault-find-replace/discussions)
+- GitHub Discussions: [gapmiss/find-n-replace/discussions](https://github.com/gapmiss/find-n-replace/discussions)
 - Obsidian Forum: Search for "Find-n-Replace"
 
 ---
@@ -1157,4 +1158,4 @@ Configure Find-n-Replace behavior in Obsidian Settings.
 
 ---
 
-*User Guide Version 1.0.0 - Last updated: 2025-10-13*
+*User Guide Version 1.0.1 - Last updated: 2025-11-05*
