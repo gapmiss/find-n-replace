@@ -118,6 +118,17 @@ export default class VaultFindReplacePlugin extends Plugin {
 		});
 
 		this.addCommand({
+			id: 'toggle-multiline',
+			name: 'Toggle multiline',
+			callback: async () => {
+				const view = await this.getOrCreateView();
+				if (view) {
+					view.commandToggleMultiline();
+				}
+			}
+		});
+
+		this.addCommand({
 			id: 'replace-selected',
 			name: 'Replace selected matches',
 			callback: async () => {

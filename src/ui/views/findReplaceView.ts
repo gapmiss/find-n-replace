@@ -1011,6 +1011,15 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
+     * Command: Toggle multiline option
+     */
+    commandToggleMultiline(): void {
+        this.toggleSearchOption(this.elements.multilineCheckbox);
+    }
+
+
+
+    /**
      * Command: Replace selected matches
      */
     async commandReplaceSelected(): Promise<void> {

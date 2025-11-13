@@ -161,6 +161,13 @@ export class HelpModal extends Modal {
                 category: 'Search options'
             },
             {
+                id: 'toggle-multiline',
+                name: 'Toggle multiline',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Alt</kbd>+<kbd>M</kbd>',
+                description: 'Toggles multiline mode',
+                category: 'Search options'
+            },
+            {
                 id: 'replace-selected',
                 name: 'Replace selected matches',
                 recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>',

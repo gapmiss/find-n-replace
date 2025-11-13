@@ -138,9 +138,10 @@ Configure these hotkeys in Obsidian Settings → Hotkeys → Find-n-Replace:
 | Open Find-n-Replace | `Ctrl/Cmd+Shift+F` | Matches VSCode convention |
 | Focus Search Input | `Ctrl/Cmd+Shift+H` | Quick access to search |
 | Focus Replace Input | `Ctrl/Cmd+Shift+R` | Jump to replace field |
-| Toggle Match Case | `Alt+C` | Quick toggle while searching |
-| Toggle Whole Word | `Alt+W` | Quick toggle while searching |
-| Toggle Regex | `Alt+R` | Enable/disable regex quickly |
+| Toggle Match Case | `Ctrl/Cmd+Alt+C` | Quick toggle while searching |
+| Toggle Whole Word | `Ctrl/Cmd+Alt+W` | Quick toggle while searching |
+| Toggle Regex | `Ctrl/Cmd+Alt+R` | Enable/disable regex quickly |
+| Toggle Multiline | `Ctrl/Cmd+Alt+M` | Enable/disable multiline quickly |
 | Select All Results | `Ctrl/Cmd+Shift+A` | Select all for bulk operations |
 | Replace Selected | `Ctrl/Cmd+Shift+E` | Execute selected replacements |
 
@@ -761,4 +762,4 @@ Run "Replace All in Vault" with untested regex pattern, causing widespread incor
 
 ---
 
-*Tips & Tricks Version 1.0.1 - Last updated: 2025-11-05*
+*Tips & Tricks Version 1.0.2 - Last updated: 2025-11-12*

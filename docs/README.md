@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> This documentation is a work-in-progress.
+> **Documentation Status:** Text content is complete! Screenshot placeholders (📸) will be replaced with actual images soon.
 
 # Find-n-Replace Documentation
 
@@ -104,7 +104,7 @@ All guides include screenshot placeholders showing:
 
 This documentation corresponds to **Find-n-Replace v1.0.0**
 
-Last updated: 2025-10-13
+Last updated: 2025-11-12
 
 ---
 
