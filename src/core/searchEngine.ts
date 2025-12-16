@@ -153,6 +153,31 @@ export class SearchEngine {
     }
 
     /**
+     * Checks if a regex pattern is potentially dangerous (could cause catastrophic backtracking)
+     * @param pattern - The regex pattern to check
+     * @returns Warning message if dangerous, null if safe
+     */
+    private checkDangerousPattern(pattern: string): string | null {
+        // Pattern: .* or .+ followed by a specific character/pattern (e.g., .*\.json)
+        // This can cause catastrophic backtracking on long lines without the match
+        if (/\.\*[^*+?{]/.test(pattern) || /\.\+[^*+?{]/.test(pattern)) {
+            return 'Pattern contains .* or .+ followed by specific characters, which can cause severe performance issues on long lines. Consider using non-greedy quantifiers (.*? or .+?) or more specific patterns.';
+        }
+
+        // Pattern: Nested quantifiers like (a+)+ or (a*)* which cause exponential time complexity
+        if (/\([^)]*[*+][^)]*\)[*+{]/.test(pattern)) {
+            return 'Pattern contains nested quantifiers which can cause exponential time complexity. Simplify the pattern to avoid performance issues.';
+        }
+
+        // Pattern: Overlapping alternations like (a|a)* which can cause backtracking
+        if (/\([^|)]*\|[^)]*\)[*+]/.test(pattern)) {
+            return 'Pattern contains quantified alternations which may cause excessive backtracking. Consider simplifying the pattern.';
+        }
+
+        return null;
+    }
+
+    /**
      * Main search function - searches filtered files in the vault
      * @param query - The search query string
      * @param options - Search configuration options
@@ -169,6 +194,15 @@ export class SearchEngine {
         if (!trimmedQuery) {
             this.logger.debug('Empty query, returning 0 results');
             return [];
+        }
+
+        // Check for dangerous regex patterns in regex mode
+        if (options.useRegex) {
+            const warning = this.checkDangerousPattern(trimmedQuery);
+            if (warning) {
+                this.logger.error(`Dangerous regex pattern detected: ${warning}`, undefined, true);
+                // Still proceed with search, but warn the user
+            }
         }
 
         const results: SearchResult[] = [];
