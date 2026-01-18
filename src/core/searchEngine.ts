@@ -371,7 +371,7 @@ export class SearchEngine {
             return colA - colB;
         });
 
-        this.logger.debug('Search completed:', {
+        this.logger.debug('performSearch completed:', {
             query: trimmedQuery,
             options,
             resultCount: results.length,
@@ -397,6 +397,143 @@ export class SearchEngine {
                 );
             }
         }
+
+        return results;
+    }
+
+    /**
+     * Searches a single file for matches - used for incremental updates when files are modified
+     * @param file - The file to search
+     * @param query - The search query string
+     * @param options - Search configuration options
+     * @returns Promise resolving to array of search results for this file
+     */
+    async searchSingleFile(file: TFile, query: string, options: SearchOptions): Promise<SearchResult[]> {
+        const trimmedQuery = query.trim();
+        this.logger.debug('searchSingleFile called:', { file: file.path, query: trimmedQuery, options });
+
+        if (!trimmedQuery) {
+            return [];
+        }
+
+        const results: SearchResult[] = [];
+
+        // Pre-build regex pattern if needed
+        let regex: RegExp | null = null;
+        if (options.useRegex || options.wholeWord) {
+            regex = this.buildSearchRegex(query, options);
+        }
+
+        // Pre-convert query for case-insensitive searches
+        const searchQuery = options.matchCase ? trimmedQuery : trimmedQuery.toLowerCase();
+
+        try {
+            const content = await this.app.vault.read(file);
+
+            // Use multiline processing if multiline option is enabled and we're using regex
+            if (options.multiline === true && options.useRegex && regex) {
+                for (const m of Array.from(content.matchAll(regex))) {
+                    if (!m[0]) continue;
+
+                    const beforeMatch = content.substring(0, m.index ?? 0);
+                    const lineNumber = beforeMatch.split('\n').length - 1;
+                    const lineStartPos = beforeMatch.lastIndexOf('\n') + 1;
+                    const colInLine = (m.index ?? 0) - lineStartPos;
+
+                    const lines = content.split('\n');
+                    const lineContent = lines[lineNumber] || '';
+
+                    results.push({
+                        file,
+                        line: lineNumber,
+                        content: lineContent,
+                        matchText: m[0],
+                        col: colInLine,
+                        pattern: query
+                    });
+                }
+                return results;
+            }
+
+            // Default line-by-line processing
+            const lines = content.split('\n');
+
+            // Special case: handle dot regex patterns that match everything
+            const isDotRegex = options.useRegex && regex && (regex.source === '.' || regex.source === '.*');
+            if (isDotRegex) {
+                for (let i = 0; i < lines.length; i++) {
+                    const lineText = lines[i];
+                    if (lineText.trim() === '') continue;
+
+                    results.push({
+                        file,
+                        line: i,
+                        content: lineText,
+                        matchText: lineText,
+                        col: 0,
+                        pattern: query
+                    });
+                }
+                return results;
+            }
+
+            // Normal processing: search each line for matches
+            for (let i = 0; i < lines.length; i++) {
+                const lineText = lines[i];
+                if (lineText.trim() === '') continue;
+
+                if ((options.useRegex || options.wholeWord) && regex) {
+                    for (const m of Array.from(lineText.matchAll(regex))) {
+                        if (!m[0]) continue;
+                        results.push({
+                            file,
+                            line: i,
+                            content: lineText,
+                            matchText: m[0],
+                            col: m.index ?? 0,
+                            pattern: query
+                        });
+                    }
+                } else {
+                    const haystack = options.matchCase ? lineText : lineText.toLowerCase();
+                    const needle = searchQuery;
+                    if (!needle) continue;
+
+                    let start = 0;
+                    while (true) {
+                        const idx = haystack.indexOf(needle, start);
+                        if (idx === -1) break;
+
+                        results.push({
+                            file,
+                            line: i,
+                            content: lineText,
+                            matchText: lineText.slice(idx, idx + needle.length),
+                            col: idx,
+                            pattern: query
+                        });
+
+                        start = idx + Math.max(needle.length, 1);
+                    }
+                }
+            }
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+            this.logger.warn(`Failed to read file ${file.path}: ${errorMsg}`, error);
+        }
+
+        // Sort results by line number, then column
+        results.sort((a, b) => {
+            if (a.line !== b.line) return a.line - b.line;
+            const colA = typeof a.col === "number" ? a.col : 0;
+            const colB = typeof b.col === "number" ? b.col : 0;
+            return colA - colB;
+        });
+
+        this.logger.debug('searchSingleFile completed:', {
+            file: file.path,
+            resultCount: results.length
+        });
 
         return results;
     }

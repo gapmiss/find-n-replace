@@ -860,6 +860,189 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
+     * Handles external file modifications - updates search results in-place
+     * Called when a file with search results is modified outside the plugin
+     * @param file - The file that was modified
+     */
+    async handleFileModified(file: TFile): Promise<void> {
+        // Skip if no current search results or no query
+        if (this.state.results.length === 0) {
+            return;
+        }
+
+        const query = this.elements.searchInput.value.trim();
+        if (!query) {
+            return;
+        }
+
+        // Check if modified file has any search results
+        const fileResultIndices: number[] = [];
+        for (let i = 0; i < this.state.results.length; i++) {
+            if (this.state.results[i].file.path === file.path) {
+                fileResultIndices.push(i);
+            }
+        }
+
+        if (fileResultIndices.length === 0) {
+            return; // File not in current results, no update needed
+        }
+
+        this.logger.debug(`File ${file.path} modified, updating ${fileResultIndices.length} results`);
+
+        try {
+            const searchOptions = this.searchController.getSearchOptions();
+
+            // Re-search the single file
+            const newFileResults = await this.searchEngine.searchSingleFile(file, query, searchOptions);
+
+            // Find the insertion point (where the first result for this file was)
+            const insertionIndex = fileResultIndices[0];
+
+            // Remove old results for this file (in reverse order to preserve indices)
+            const sortedIndices = [...fileResultIndices].sort((a, b) => b - a);
+            for (const index of sortedIndices) {
+                this.state.results.splice(index, 1);
+            }
+
+            // Adjust selections for removed indices
+            this.selectionManager.adjustSelectionForRemovedIndices(sortedIndices);
+
+            // Insert new results at the original position
+            // Adjust insertion index for removed items before it
+            const removedBeforeInsertion = sortedIndices.filter(i => i < insertionIndex).length;
+            const adjustedInsertionIndex = insertionIndex - removedBeforeInsertion;
+
+            // Insert new results
+            this.state.results.splice(adjustedInsertionIndex, 0, ...newFileResults);
+
+            // Update total results count
+            if (this.state.totalResults !== undefined) {
+                this.state.totalResults = this.state.totalResults - fileResultIndices.length + newFileResults.length;
+            }
+
+            this.logger.debug(`File ${file.path} update complete:`, {
+                oldCount: fileResultIndices.length,
+                newCount: newFileResults.length,
+                totalResults: this.state.results.length
+            });
+
+            // Re-render results with preserved selections
+            const replaceText = this.elements.replaceInput.value;
+            const lineElements = this.uiRenderer.renderResults(
+                this.state.results,
+                replaceText,
+                searchOptions,
+                this.state.totalResults,
+                this.state.isLimited
+            );
+
+            this.state.lineElements = lineElements;
+            this.selectionManager.setupSelection(lineElements, true); // Preserve existing selections
+
+            this.updateSearchStatistics();
+
+        } catch (error) {
+            this.logger.error(`Failed to update results for modified file ${file.path}`, error);
+            // Don't fall back to full search - just log the error
+        }
+    }
+
+    /**
+     * Handles file deletion - removes results for deleted file
+     * @param file - The file that was deleted
+     */
+    handleFileDeleted(file: TFile): void {
+        if (this.state.results.length === 0) {
+            return;
+        }
+
+        // Find all results for the deleted file
+        const fileResultIndices: number[] = [];
+        for (let i = 0; i < this.state.results.length; i++) {
+            if (this.state.results[i].file.path === file.path) {
+                fileResultIndices.push(i);
+            }
+        }
+
+        if (fileResultIndices.length === 0) {
+            return;
+        }
+
+        this.logger.debug(`File ${file.path} deleted, removing ${fileResultIndices.length} results`);
+
+        // Remove results (in reverse order to preserve indices)
+        const sortedIndices = [...fileResultIndices].sort((a, b) => b - a);
+        for (const index of sortedIndices) {
+            this.state.results.splice(index, 1);
+        }
+
+        // Adjust selections
+        this.selectionManager.adjustSelectionForRemovedIndices(sortedIndices);
+
+        // Update total results count
+        if (this.state.totalResults !== undefined) {
+            this.state.totalResults -= fileResultIndices.length;
+        }
+
+        // Re-render results
+        const replaceText = this.elements.replaceInput.value;
+        const searchOptions = this.searchController.getSearchOptions();
+        const lineElements = this.uiRenderer.renderResults(
+            this.state.results,
+            replaceText,
+            searchOptions,
+            this.state.totalResults,
+            this.state.isLimited
+        );
+
+        this.state.lineElements = lineElements;
+        this.selectionManager.setupSelection(lineElements, true);
+
+        this.updateSearchStatistics();
+    }
+
+    /**
+     * Handles file rename - updates file references in results
+     * @param file - The file after rename (with new path)
+     * @param oldPath - The previous path of the file
+     */
+    handleFileRenamed(file: TFile, oldPath: string): void {
+        if (this.state.results.length === 0) {
+            return;
+        }
+
+        // Find all results for the renamed file (by old path)
+        let updated = false;
+        for (const result of this.state.results) {
+            if (result.file.path === oldPath) {
+                // Update the file reference to the new TFile
+                result.file = file;
+                updated = true;
+            }
+        }
+
+        if (!updated) {
+            return;
+        }
+
+        this.logger.debug(`File renamed from ${oldPath} to ${file.path}, updating results`);
+
+        // Re-render to update displayed file paths
+        const replaceText = this.elements.replaceInput.value;
+        const searchOptions = this.searchController.getSearchOptions();
+        const lineElements = this.uiRenderer.renderResults(
+            this.state.results,
+            replaceText,
+            searchOptions,
+            this.state.totalResults,
+            this.state.isLimited
+        );
+
+        this.state.lineElements = lineElements;
+        this.selectionManager.setupSelection(lineElements, true);
+    }
+
+    /**
      * Finds the previous logical focus target when removing an element
      * @param currentElement - The element that will be removed
      * @returns The previous element that should receive focus

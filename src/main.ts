@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf, MarkdownView } from 'obsidian';
+import { Plugin, WorkspaceLeaf, MarkdownView, TFile, TAbstractFile, debounce } from 'obsidian';
 import { FindReplaceView, VIEW_TYPE_FIND_REPLACE } from './ui/views/findReplaceView';
 import {
 	VaultFindReplaceSettings,
@@ -182,6 +182,73 @@ export default class VaultFindReplacePlugin extends Plugin {
 				}
 			}
 		});
+
+		// Register file modification events to update search results dynamically
+		this.registerFileEvents();
+	}
+
+	/**
+	 * Registers file system event handlers for dynamic result updates
+	 * Uses debouncing to avoid excessive updates during rapid file changes
+	 */
+	private registerFileEvents(): void {
+		const FILE_MODIFY_DEBOUNCE_MS = 500;
+
+		// Create a debounced handler for file modifications
+		// Uses a Map to debounce per-file, so rapid edits to different files don't block each other
+		const pendingModifications = new Map<string, ReturnType<typeof debounce>>();
+
+		// File modify event - update search results when a file is edited
+		this.registerEvent(
+			this.app.vault.on('modify', (file: TAbstractFile) => {
+				if (!(file instanceof TFile)) return;
+
+				const view = this.getActiveView();
+				if (!view) return;
+
+				// Get or create a debounced handler for this specific file
+				let debouncedHandler = pendingModifications.get(file.path);
+				if (!debouncedHandler) {
+					debouncedHandler = debounce(async (f: TFile) => {
+						const currentView = this.getActiveView();
+						if (currentView) {
+							await currentView.handleFileModified(f);
+						}
+						// Clean up the handler after execution
+						pendingModifications.delete(f.path);
+					}, FILE_MODIFY_DEBOUNCE_MS, true);
+					pendingModifications.set(file.path, debouncedHandler);
+				}
+
+				debouncedHandler(file);
+			})
+		);
+
+		// File delete event - remove results for deleted files immediately
+		this.registerEvent(
+			this.app.vault.on('delete', (file: TAbstractFile) => {
+				if (!(file instanceof TFile)) return;
+
+				const view = this.getActiveView();
+				if (view) {
+					view.handleFileDeleted(file);
+				}
+			})
+		);
+
+		// File rename event - update file references in results immediately
+		this.registerEvent(
+			this.app.vault.on('rename', (file: TAbstractFile, oldPath: string) => {
+				if (!(file instanceof TFile)) return;
+
+				const view = this.getActiveView();
+				if (view) {
+					view.handleFileRenamed(file, oldPath);
+				}
+			})
+		);
+
+		this.logger.debug('File event handlers registered');
 	}
 
 	onunload() {
