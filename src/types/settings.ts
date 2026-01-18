@@ -35,6 +35,7 @@ export interface VaultFindReplaceSettings {
     confirmDestructiveActions: boolean; // Show confirmation for Replace All operations (default: true)
     rememberSearchOptions: boolean; // Persist search toggle states across sessions (default: false)
     rememberFileGroupStates: boolean; // Persist file group expand/collapse states across sessions (default: true)
+    warnDangerousRegex: boolean; // Show warning notice for potentially slow regex patterns (default: true)
     lastSearchOptions: {
         matchCase: boolean;
         wholeWord: boolean;
@@ -84,6 +85,7 @@ export const DEFAULT_SETTINGS: VaultFindReplaceSettings = {
     confirmDestructiveActions: true, // Show confirmation by default (safer)
     rememberSearchOptions: false, // Don't persist by default (fresh start each session)
     rememberFileGroupStates: true, // Persist file group states by default (better UX)
+    warnDangerousRegex: true, // Show warning by default (helps users avoid slow patterns)
     lastSearchOptions: {
         matchCase: false,
         wholeWord: false,

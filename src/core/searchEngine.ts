@@ -196,8 +196,8 @@ export class SearchEngine {
             return [];
         }
 
-        // Check for dangerous regex patterns in regex mode
-        if (options.useRegex) {
+        // Check for dangerous regex patterns in regex mode (if warning is enabled)
+        if (options.useRegex && this.plugin.settings.warnDangerousRegex) {
             const warning = this.checkDangerousPattern(trimmedQuery);
             if (warning) {
                 this.logger.error(`Dangerous regex pattern detected: ${warning}`, undefined, true);

@@ -887,13 +887,26 @@ export class FindReplaceView extends ItemView {
             return; // File not in current results, no update needed
         }
 
-        this.logger.debug(`File ${file.path} modified, updating ${fileResultIndices.length} results`);
+        const oldResultCount = fileResultIndices.length;
+        this.logger.debug(`File ${file.path} modified, updating ${oldResultCount} results`);
 
         try {
             const searchOptions = this.searchController.getSearchOptions();
 
+            // Clear regex cache to ensure fresh regex compilation
+            // This prevents stale regex state from affecting the search
+            this.searchEngine.clearCache();
+
             // Re-search the single file
             const newFileResults = await this.searchEngine.searchSingleFile(file, query, searchOptions);
+
+            // If we had results before but now have none, fall back to full search
+            // This handles edge cases where single-file search might fail unexpectedly
+            if (oldResultCount > 0 && newFileResults.length === 0) {
+                this.logger.warn(`File ${file.path} had ${oldResultCount} results but single-file search returned 0. Falling back to full search.`);
+                await this.performSearch();
+                return;
+            }
 
             // Find the insertion point (where the first result for this file was)
             const insertionIndex = fileResultIndices[0];

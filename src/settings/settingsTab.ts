@@ -329,6 +329,19 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                     })
             );
 
+        // Warn about dangerous regex patterns toggle
+        new Setting(containerEl)
+            .setName("Warn about slow regex patterns")
+            .setDesc("Show a warning notice when using regex patterns that may cause performance issues (e.g., .* or .+ followed by specific characters).")
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.warnDangerousRegex)
+                    .onChange(async (value) => {
+                        this.plugin.settings.warnDangerousRegex = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
+
         // Troubleshooting section
         new Setting(containerEl)
             .setName('Troubleshooting')
