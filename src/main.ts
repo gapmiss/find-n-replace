@@ -192,7 +192,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 	 * Uses debouncing to avoid excessive updates during rapid file changes
 	 */
 	private registerFileEvents(): void {
-		const FILE_MODIFY_DEBOUNCE_MS = 500;
+		const FILE_MODIFY_DEBOUNCE_MS = 250;
 
 		// Create a debounced handler for file modifications
 		// Uses a Map to debounce per-file, so rapid edits to different files don't block each other
@@ -209,10 +209,10 @@ export default class VaultFindReplacePlugin extends Plugin {
 				// Get or create a debounced handler for this specific file
 				let debouncedHandler = pendingModifications.get(file.path);
 				if (!debouncedHandler) {
-					debouncedHandler = debounce(async (f: TFile) => {
-						const currentView = this.getActiveView();
+					debouncedHandler = debounce((f: TFile) => {
+						const currentView: FindReplaceView | null = this.getActiveView();
 						if (currentView) {
-							await currentView.handleFileModified(f);
+							void currentView.handleFileModified(f);
 						}
 						// Clean up the handler after execution
 						pendingModifications.delete(f.path);
@@ -229,7 +229,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			this.app.vault.on('delete', (file: TAbstractFile) => {
 				if (!(file instanceof TFile)) return;
 
-				const view = this.getActiveView();
+				const view: FindReplaceView | null = this.getActiveView();
 				if (view) {
 					view.handleFileDeleted(file);
 				}
@@ -241,7 +241,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 			this.app.vault.on('rename', (file: TAbstractFile, oldPath: string) => {
 				if (!(file instanceof TFile)) return;
 
-				const view = this.getActiveView();
+				const view: FindReplaceView | null = this.getActiveView();
 				if (view) {
 					view.handleFileRenamed(file, oldPath);
 				}
@@ -339,7 +339,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 	async loadSettings() {
 		try {
-			const loadedData = await this.loadData() || {};
+			const loadedData: unknown = await this.loadData() || {};
 			this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
 		} catch (error) {
 			// Logger not initialized yet during loadSettings, use console as fallback
