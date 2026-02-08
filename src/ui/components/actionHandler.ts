@@ -186,7 +186,8 @@ export class ActionHandler {
             const toggleButtons = [
                 this.elements.matchCaseCheckbox,
                 this.elements.wholeWordCheckbox,
-                this.elements.regexCheckbox
+				this.elements.regexCheckbox,
+                this.elements.multilineCheckbox
             ];
 
             toggleButtons.forEach(btn => {

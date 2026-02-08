@@ -285,26 +285,25 @@ export class SearchToolbar {
         });
         setIcon(replaceClearBtn, 'x');
 
-        // Clear button moved to replace row
         const replaceRowActions = replaceRow.createDiv('find-replace-toolbar-actions');
-        const clearAllBtn = replaceRowActions.createEl('button', {
-            cls: 'inline-toggle-btn toolbar-action clickable-icon',
-            attr: {
-                'aria-label': 'Clear search',
-                'tabindex': '6'
-            }
-        });
-        setIcon(clearAllBtn, 'search-x');
-
         // Filter button (VSCode-style) - position after clear button
         const filterBtn = replaceRowActions.createEl('button', {
             cls: 'inline-toggle-btn toolbar-action clickable-icon',
             attr: {
                 'aria-label': 'Toggle file filters',
-                'tabindex': '7'
+                'tabindex': '6'
             }
         });
         setIcon(filterBtn, 'filter');
+
+        const clearAllBtn = replaceRowActions.createEl('button', {
+            cls: 'inline-toggle-btn toolbar-action clickable-icon',
+            attr: {
+                'aria-label': 'Clear search',
+                'tabindex': '7'
+            }
+        });
+        setIcon(clearAllBtn, 'search-x');
 
         return {
             replaceInput,
