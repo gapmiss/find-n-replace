@@ -174,7 +174,7 @@ export class ActionHandler {
      * Sets up clear button handler
      */
     private setupClearButtonHandler(): void {
-        this.elements.clearAllBtn.addEventListener('click', () => {
+        this.elements.clearAllBtn.addEventListener('click', async () => {
             this.elements.searchInput.value = '';
             this.elements.replaceInput.value = '';
 
@@ -194,9 +194,17 @@ export class ActionHandler {
                 if (btn) {
                     btn.setAttribute('aria-pressed', 'false');
                     btn.classList.remove('is-active');
-
                 }
             });
+
+            // Save to settings if "Remember Search Options" is enabled
+            if (this.plugin.settings.rememberSearchOptions) {
+                this.plugin.settings.lastSearchOptions.matchCase = false;
+                this.plugin.settings.lastSearchOptions.wholeWord = false;
+                this.plugin.settings.lastSearchOptions.useRegex = false;
+                this.plugin.settings.lastSearchOptions.multiline = false;
+                await this.plugin.saveSettings();
+            }
 
             // Clear results and hide adaptive toolbar
             this.elements.resultsContainer.empty();
