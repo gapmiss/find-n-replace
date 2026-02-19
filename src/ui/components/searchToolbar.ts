@@ -200,12 +200,14 @@ export class SearchToolbar {
         const searchInput = searchInputContainer.createEl('input', {
             type: 'text',
             cls: 'find-replace-input',
-            placeholder: 'Find (↑↓ for history)',
+            placeholder: this.plugin.settings.enableSearchHistory ? 'Find (↑↓ for history)' : 'Find',
             attr: { 'tabindex': '1' }
         });
 
         // Attach history navigator to search input
-        this.searchHistoryNavigator.attachTo(searchInput, () => this.plugin.historyManager.getSearchHistory());
+        if (this.plugin.settings.enableSearchHistory) {
+            this.searchHistoryNavigator.attachTo(searchInput, () => this.plugin.historyManager.getSearchHistory());
+        }
 
         // Add clear button for search input
         const searchClearBtn = searchInputContainer.createEl('button', {
@@ -268,12 +270,14 @@ export class SearchToolbar {
         const replaceInput = replaceInputContainer.createEl('input', {
             type: 'text',
             cls: 'find-replace-input',
-            placeholder: 'Replace (↑↓ for history)',
+            placeholder: this.plugin.settings.enableSearchHistory ? 'Replace (↑↓ for history)' : 'Replace',
             attr: { 'tabindex': '2' }
         });
 
         // Attach history navigator to replace input
-        this.replaceHistoryNavigator.attachTo(replaceInput, () => this.plugin.historyManager.getReplaceHistory());
+        if (this.plugin.settings.enableSearchHistory) {
+            this.replaceHistoryNavigator.attachTo(replaceInput, () => this.plugin.historyManager.getReplaceHistory());
+        }
 
         // Add clear button for replace input
         const replaceClearBtn = replaceInputContainer.createEl('button', {

@@ -67,7 +67,7 @@ export class SearchController {
                     try {
                         // Save search query to history when user presses Enter
                         const query = this.elements.searchInput.value.trim();
-                        if (query) {
+                        if (query && this.plugin.settings.enableSearchHistory) {
                             this.plugin.historyManager.addSearch(query);
                         }
                         await this.performSearch();
@@ -87,7 +87,7 @@ export class SearchController {
                         // Only save if there's a search query (otherwise pressing Enter in empty replace is pointless)
                         const query = this.elements.searchInput.value.trim();
                         const replaceText = this.elements.replaceInput.value;
-                        if (query && replaceText !== null && replaceText !== undefined && replaceText.trim() !== '') {
+                        if (query && replaceText !== null && replaceText !== undefined && replaceText.trim() !== '' && this.plugin.settings.enableSearchHistory) {
                             this.plugin.historyManager.addReplace(replaceText);
                         }
                         await this.performSearch();
