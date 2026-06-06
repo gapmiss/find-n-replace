@@ -1,6 +1,6 @@
 import { App, TAbstractFile, TFile } from 'obsidian';
 import { SearchResult, SearchOptions, SessionFilters } from '../types';
-import { Logger } from '../utils';
+import { Logger, sleep } from '../utils';
 import VaultFindReplacePlugin from '../main';
 
 /**
@@ -590,7 +590,7 @@ export class SearchEngine {
             this.logger.error('Unexpected regex error during buildSearchRegex:', error);
             this.logger.error('Pattern that failed:', pattern);
             this.logger.error('Options:', options);
-            throw new Error(`Unexpected regex compilation error: ${error.message}`);
+            throw new Error(`Unexpected regex compilation error: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 

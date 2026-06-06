@@ -2,7 +2,7 @@ import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import VaultFindReplacePlugin from "../main";
 import { LogLevel } from "../types";
 import { ConfirmModal } from "../modals/confirmModal";
-import { MODAL_POLL_INTERVAL } from "../utils";
+import { MODAL_POLL_INTERVAL, sleep } from "../utils";
 
 export class VaultFindReplaceSettingTab extends PluginSettingTab {
     plugin: VaultFindReplacePlugin;
@@ -361,7 +361,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                     .addOption(LogLevel.TRACE.toString(), "Trace - maximum verbosity (development)")
                     .setValue(this.plugin.settings.logLevel.toString())
                     .onChange(async (value) => {
-                        this.plugin.settings.logLevel = parseInt(value) as LogLevel;
+                        this.plugin.settings.logLevel = parseInt(value);
                         await this.plugin.saveSettings();
                     });
             });

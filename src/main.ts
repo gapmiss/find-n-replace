@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf, MarkdownView, TFile, TAbstractFile, debounce } from 'obsidian';
+import { Plugin, WorkspaceLeaf, MarkdownView, TFile, TAbstractFile, debounce, Debouncer } from 'obsidian';
 import { FindReplaceView, VIEW_TYPE_FIND_REPLACE } from './ui/views/findReplaceView';
 import {
 	VaultFindReplaceSettings,
@@ -9,9 +9,9 @@ import { HistoryManager } from './core/historyManager';
 import { Logger, FOCUS_DELAY } from './utils';
 
 export default class VaultFindReplacePlugin extends Plugin {
-	settings: VaultFindReplaceSettings;
-	historyManager: HistoryManager;
-	private logger: Logger;
+	settings!: VaultFindReplaceSettings;
+	historyManager!: HistoryManager;
+	private logger!: Logger;
 	async onload() {
 		await this.loadSettings();
 
@@ -196,7 +196,7 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 		// Create a debounced handler for file modifications
 		// Uses a Map to debounce per-file, so rapid edits to different files don't block each other
-		const pendingModifications = new Map<string, ReturnType<typeof debounce>>();
+		const pendingModifications = new Map<string, Debouncer<[TFile], void>>();
 
 		// File modify event - update search results when a file is edited
 		this.registerEvent(

@@ -201,7 +201,7 @@ export class HelpModal extends Modal {
         return commands.map(cmd => ({
             ...cmd,
             actualHotkey: this.getUserHotkey(cmd.id)
-        })) as (CommandInfo & { actualHotkey: string })[];
+        }));
     }
 
     private getUserHotkey(commandId: string): string {

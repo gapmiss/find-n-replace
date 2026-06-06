@@ -32,7 +32,7 @@ export class HistoryNavigator {
         input.addEventListener('keydown', (e) => this.handleKeyDown(e, getHistory));
 
         // Reset history position when user manually types
-        input.addEventListener('input', (e) => {
+        input.addEventListener('input', () => {
             if (!this.isNavigating) {
                 this.resetPosition();
             }

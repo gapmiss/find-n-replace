@@ -6,7 +6,7 @@ import { SearchEngine, ReplacementEngine, FileOperations } from '../../core';
 import { UIRenderer, SelectionManager, SearchController } from '../components';
 import { SearchToolbar } from '../components/searchToolbar';
 import { ActionHandler } from '../components/actionHandler';
-import { Logger, MODAL_POLL_INTERVAL, FOCUS_DELAY } from '../../utils';
+import { Logger, MODAL_POLL_INTERVAL, FOCUS_DELAY, sleep } from '../../utils';
 
 // Define the unique identifier for this view type - used by Obsidian to track and manage this view
 export const VIEW_TYPE_FIND_REPLACE = 'find-replace-view';
@@ -18,16 +18,16 @@ export const VIEW_TYPE_FIND_REPLACE = 'find-replace-view';
 export class FindReplaceView extends ItemView {
     // Component instances
     private searchEngine: SearchEngine;
-    private replacementEngine: ReplacementEngine;
-    private uiRenderer: UIRenderer;
-    private selectionManager: SelectionManager;
+    private replacementEngine!: ReplacementEngine;
+    private uiRenderer!: UIRenderer;
+    private selectionManager!: SelectionManager;
     private fileOperations: FileOperations;
-    private searchToolbar: SearchToolbar;
-    private actionHandler: ActionHandler;
-    private searchController: SearchController;
+    private searchToolbar!: SearchToolbar;
+    private actionHandler!: ActionHandler;
+    private searchController!: SearchController;
 
     // UI Element references
-    private elements: FindReplaceElements;
+    private elements!: FindReplaceElements;
 
     // State management
     private state: ViewState;
@@ -631,8 +631,8 @@ export class FindReplaceView extends ItemView {
      */
     private async updateResultsAfterReplacement(
         affectedResults: AffectedResults,
-        replaceText: string,
-        searchOptions: SearchOptions
+        _replaceText: string,
+        _searchOptions: SearchOptions
     ): Promise<void> {
         try {
             const originalResultCount = this.state.results.length;
@@ -728,9 +728,11 @@ export class FindReplaceView extends ItemView {
             this.logger.debug('Incremental update completed successfully');
 
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorStack = error instanceof Error ? error.stack : undefined;
             this.logger.error('Incremental update failed, falling back to full search', {
-                error: error.message,
-                stack: error.stack,
+                error: errorMessage,
+                stack: errorStack,
                 currentResultCount: this.state.results.length,
                 replacedIndices: affectedResults.replacedResultIndices
             });
@@ -819,7 +821,7 @@ export class FindReplaceView extends ItemView {
         originalResult: SearchResult,
         regex: RegExp,
         searchOptions: SearchOptions,
-        query: string
+        _query: string
     ): boolean {
         // For revalidation, we should check if the match content still exists anywhere on the line
         // rather than requiring exact position match (since positions shift after replacements)
@@ -1102,7 +1104,7 @@ export class FindReplaceView extends ItemView {
 
         // Find focusable element within the target line result
         if (targetSibling) {
-            return targetSibling.querySelector('.snippet, [role="button"]') as HTMLElement;
+            return targetSibling.querySelector<HTMLElement>('.snippet, [role="button"]');
         }
 
         // Fallback to search input if no other elements
@@ -1116,7 +1118,7 @@ export class FindReplaceView extends ItemView {
     private restoreFocusAfterReplacement(targetElement: HTMLElement | null): void {
         // Wait longer for DOM updates since we're doing incremental updates
         window.setTimeout(() => {
-            if (targetElement && document.contains(targetElement)) {
+            if (targetElement && activeDocument.contains(targetElement)) {
                 try {
                     targetElement.focus();
                     this.logger.debug('Focus restored to element after replacement:', targetElement);

@@ -69,11 +69,24 @@ vi.mock('obsidian', () => ({
     constructor() {}
   },
   Setting: class MockSetting {
+    settingEl: HTMLElement;
+    controlEl: HTMLElement;
+    constructor(containerEl: HTMLElement) {
+      this.settingEl = containerEl.createDiv?.('setting-item') || document.createElement('div');
+      this.controlEl = document.createElement('div');
+    }
     setName() { return this; }
     setDesc() { return this; }
+    setHeading() { return this; }
+    setClass() { return this; }
     addText() { return this; }
     addToggle() { return this; }
     addButton() { return this; }
+    addDropdown() { return this; }
+    addSlider() { return this; }
+    addTextArea() { return this; }
+    addExtraButton() { return this; }
+    then() { return this; }
   },
   // Mock functions
   setIcon: vi.fn(),
@@ -112,15 +125,20 @@ Object.defineProperty(window, 'performance', {
   }
 });
 
-// Global test utilities
-global.createMockFile = (path: string, content: string) => ({
-  path,
-  name: path.split('/').pop() || path,
-  basename: path.split('/').pop()?.replace(/\.[^.]*$/, '') || path,
-  extension: path.split('.').pop() || '',
-  stat: { mtime: Date.now(), ctime: Date.now(), size: content.length },
-  vault: null!
-});
+// Import the mocked TFile class for use in createMockFile
+import { TFile } from 'obsidian';
+
+// Global test utilities - create proper TFile instances
+global.createMockFile = (path: string, content: string) => {
+  // Create instance and set properties (mock TFile accepts path in constructor)
+  const file = new (TFile as unknown as new (path: string) => TFile)(path);
+  // Add additional properties that TFile would have
+  Object.assign(file, {
+    stat: { mtime: Date.now(), ctime: Date.now(), size: content.length },
+    vault: null!
+  });
+  return file;
+};
 
 // Console override for clean test output
 const originalConsole = { ...console };

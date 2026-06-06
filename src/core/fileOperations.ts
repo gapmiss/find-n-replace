@@ -11,12 +11,25 @@ export class FileOperations {
 
     constructor(app: App, plugin?: VaultFindReplacePlugin) {
         this.app = app;
-        this.logger = plugin ? Logger.create(plugin, 'FileOperations') : {
-            debug: console.debug.bind(console),
-            info: console.info.bind(console),
-            warn: console.warn.bind(console),
-            error: console.error.bind(console)
-        } as Logger;
+        if (plugin) {
+            this.logger = Logger.create(plugin, 'FileOperations');
+        } else {
+            // Fallback logger for standalone use
+            const noop = (): void => { /* no-op */ };
+            const warnFn = (...args: unknown[]): void => { console.warn(...args); };
+            const errorFn = (...args: unknown[]): void => { console.error(...args); };
+            this.logger = {
+                debug: noop,
+                info: noop,
+                warn: warnFn,
+                error: errorFn,
+                trace: noop,
+                critical: errorFn,
+                success: noop,
+                time: noop,
+                timeEnd: noop,
+            } as unknown as Logger;
+        }
     }
 
     /**

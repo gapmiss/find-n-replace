@@ -151,7 +151,7 @@ export class UIRenderer {
         header.setAttribute('aria-label', `Toggle ${filePath.replace('.md', '')} section`);
 
         // File name (without .md extension) - no longer focusable itself
-        const fileGroupHeading = header.createSpan({
+        header.createSpan({
             cls: 'file-group-heading',
             text: filePath.replace('.md', '')
         });
@@ -629,7 +629,7 @@ export class UIRenderer {
      * Cleans up saved file group states for files that no longer exist in the vault
      * @param currentFilePaths - Array of file paths that currently have search results
      */
-    private cleanupFileGroupStates(currentFilePaths: string[]): void {
+    private cleanupFileGroupStates(_currentFilePaths: string[]): void {
         const savedStates = this.plugin.settings.fileGroupStates;
         const vault = this.plugin.app.vault;
         let hasChanges = false;

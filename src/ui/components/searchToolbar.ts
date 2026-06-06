@@ -355,7 +355,7 @@ export class SearchToolbar {
 
         // Include input row
         const includeRow = filterPanel.createDiv('filter-input-row');
-        const includeLabel = includeRow.createSpan({
+        includeRow.createSpan({
             cls: 'filter-input-label',
             text: 'files to include:'
         });
@@ -379,7 +379,7 @@ export class SearchToolbar {
 
         // Exclude input row
         const excludeRow = filterPanel.createDiv('filter-input-row');
-        const excludeLabel = excludeRow.createSpan({
+        excludeRow.createSpan({
             cls: 'filter-input-label',
             text: 'files to exclude:'
         });
@@ -487,7 +487,7 @@ export class SearchToolbar {
         const adaptiveActions = adaptiveToolbar.createDiv('adaptive-action-buttons');
 
         // Selection count gap element for mobile spacing
-        const actionGap = adaptiveActions.createDiv('adaptive-action-gap');
+        adaptiveActions.createDiv('adaptive-action-gap');
 
         // Ellipsis menu container for replace actions
         const ellipsisMenuContainer = adaptiveActions.createDiv('ellipsis-menu-container');
@@ -593,7 +593,9 @@ export class SearchToolbar {
         let updateTimeout: number;
         const debouncedUpdate = () => {
             window.clearTimeout(updateTimeout);
-            updateTimeout = window.setTimeout(updateFiltersAndSearch, FILTER_UPDATE_DEBOUNCE_DELAY);
+            updateTimeout = window.setTimeout(() => {
+                void updateFiltersAndSearch();
+            }, FILTER_UPDATE_DEBOUNCE_DELAY);
         };
 
         // Input change handlers

@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { SelectionManager } from '@/ui/components/selectionManager';
-import { SearchToolbar } from '@/ui/components/searchToolbar';
-import { createMockApp, createMockPlugin } from '@tests/mocks';
-import { SearchResult } from '@/types/search';
-import { FindReplaceElements } from '@/types/ui';
+import { SelectionManager } from '../../ui/components/selectionManager';
+import { SearchToolbar } from '../../ui/components/searchToolbar';
+import { createMockApp, createMockPlugin } from '../mocks';
+import { SearchResult } from '../../types/search';
+import { FindReplaceElements } from '../../types/ui';
 
 describe('Component Architecture', () => {
   let mockApp: any;

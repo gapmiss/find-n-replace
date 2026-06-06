@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { HelpModal } from '@/modals/helpModal';
-import { createMockApp, createMockPlugin } from '@tests/mocks';
+import { HelpModal } from '../../modals/helpModal';
+import { createMockApp, createMockPlugin } from '../mocks';
 
 // Create a recursive mock element that can create more elements
 const createMockElement = (): any => ({
@@ -28,11 +28,27 @@ const createMockElement = (): any => ({
   }
 });
 
-// Mock the Modal class from Obsidian
+// Mock the Modal and Setting classes from Obsidian
 vi.mock('obsidian', async (importOriginal) => {
   const actual = await importOriginal() as any;
   return {
     ...actual,
+    Setting: class MockSetting {
+      settingEl: any;
+      controlEl: any;
+      constructor() {
+        this.settingEl = createMockElement();
+        this.controlEl = createMockElement();
+      }
+      setName() { return this; }
+      setDesc() { return this; }
+      setHeading() { return this; }
+      setClass() { return this; }
+      addText() { return this; }
+      addToggle() { return this; }
+      addButton() { return this; }
+      addDropdown() { return this; }
+    },
     Modal: class MockModal {
       app: any;
       contentEl: any;

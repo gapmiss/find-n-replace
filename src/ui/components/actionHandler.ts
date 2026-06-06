@@ -1,5 +1,5 @@
 import { debounce } from 'obsidian';
-import { Logger, MODAL_POLL_INTERVAL } from '../../utils';
+import { Logger, MODAL_POLL_INTERVAL, sleep } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
 import { FindReplaceElements, SearchOptions, SearchResult } from '../../types';
 import { SearchEngine, ReplacementEngine } from '../../core';
@@ -45,7 +45,7 @@ export class ActionHandler {
         // Initialize keyboard handlers with proper this binding
         this.replaceAllKeyHandler = (event: KeyboardEvent) => {
             if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-                if (document.activeElement?.closest('.find-replace-container')) {
+                if (activeDocument.activeElement?.closest('.find-replace-container')) {
                     event.preventDefault();
                     if (!this.elements.ellipsisMenuBtn.disabled) {
                         void this.replaceAllInVault();
@@ -56,7 +56,7 @@ export class ActionHandler {
 
         this.replaceSelectedKeyHandler = (event: KeyboardEvent) => {
             if (event.altKey && event.key === 'Enter') {
-                if (document.activeElement?.closest('.find-replace-container')) {
+                if (activeDocument.activeElement?.closest('.find-replace-container')) {
                     event.preventDefault();
                     if (!this.elements.ellipsisMenuBtn.disabled) {
                         void this.replaceSelectedMatches();
@@ -174,7 +174,8 @@ export class ActionHandler {
      * Sets up clear button handler
      */
     private setupClearButtonHandler(): void {
-        this.elements.clearAllBtn.addEventListener('click', async () => {
+        this.elements.clearAllBtn.addEventListener('click', () => {
+            void (async () => {
             this.elements.searchInput.value = '';
             this.elements.replaceInput.value = '';
 
@@ -212,6 +213,7 @@ export class ActionHandler {
 
             // Focus search input
             this.elements.searchInput.focus();
+            })();
         });
     }
 
@@ -467,10 +469,10 @@ export class ActionHandler {
      */
     setupKeyboardShortcuts(): void {
         // Ctrl/Cmd + Enter: Replace all
-        document.addEventListener('keydown', this.replaceAllKeyHandler);
+        activeDocument.addEventListener('keydown', this.replaceAllKeyHandler);
 
         // Alt + Enter: Replace selected
-        document.addEventListener('keydown', this.replaceSelectedKeyHandler);
+        activeDocument.addEventListener('keydown', this.replaceSelectedKeyHandler);
     }
 
     /**
@@ -478,8 +480,8 @@ export class ActionHandler {
      */
     cleanup(): void {
         // Remove global keyboard listeners using stored references
-        document.removeEventListener('keydown', this.replaceAllKeyHandler);
-        document.removeEventListener('keydown', this.replaceSelectedKeyHandler);
+        activeDocument.removeEventListener('keydown', this.replaceAllKeyHandler);
+        activeDocument.removeEventListener('keydown', this.replaceSelectedKeyHandler);
         this.logger.debug('ActionHandler cleanup completed');
     }
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { SearchEngine } from '@/core/searchEngine';
-import { createMockApp, createMockPlugin } from '@tests/mocks';
-import { SearchOptions } from '@/types/search';
+import { SearchEngine } from '../../core/searchEngine';
+import { createMockApp, createMockPlugin } from '../mocks';
+import { SearchOptions } from '../../types/search';
 
 describe('File Filtering System', () => {
   let searchEngine: SearchEngine;

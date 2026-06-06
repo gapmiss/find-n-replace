@@ -26,7 +26,7 @@ export class Logger {
      */
     trace(message: string, ...data: unknown[]): void {
         if (this.getLogLevel() >= LogLevel.TRACE) {
-            console.log(`[${this.context}] TRACE:`, message, ...data);
+            console.debug(`[${this.context}] TRACE:`, message, ...data);
         }
     }
 
@@ -35,7 +35,7 @@ export class Logger {
      */
     debug(message: string, ...data: unknown[]): void {
         if (this.getLogLevel() >= LogLevel.DEBUG) {
-            console.log(`[${this.context}] DEBUG:`, message, ...data);
+            console.debug(`[${this.context}] DEBUG:`, message, ...data);
         }
     }
 
@@ -44,7 +44,7 @@ export class Logger {
      */
     info(message: string, ...data: unknown[]): void {
         if (this.getLogLevel() >= LogLevel.INFO) {
-            console.info(`[${this.context}] INFO:`, message, ...data);
+            console.debug(`[${this.context}] INFO:`, message, ...data);
         }
     }
 
@@ -102,7 +102,7 @@ export class Logger {
      */
     time(label: string): void {
         if (this.getLogLevel() >= LogLevel.TRACE) {
-            console.time(`[${this.context}] ${label}`);
+            console.debug(`[${this.context}] ${label} - START`);
         }
     }
 
@@ -111,7 +111,7 @@ export class Logger {
      */
     timeEnd(label: string): void {
         if (this.getLogLevel() >= LogLevel.TRACE) {
-            console.timeEnd(`[${this.context}] ${label}`);
+            console.debug(`[${this.context}] ${label} - END`);
         }
     }
 

@@ -1,14 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { Logger } from '@/utils/logger';
-import { LogLevel } from '@/types/settings';
-import { createMockPlugin } from '@tests/mocks';
+import { Logger } from '../../utils/logger';
+import { LogLevel } from '../../types/settings';
+import { createMockPlugin } from '../mocks';
 
 // Mock console methods
 const mockConsole = {
-  log: vi.fn(),
+  debug: vi.fn(),
   warn: vi.fn(),
-  error: vi.fn(),
-  info: vi.fn()
+  error: vi.fn()
 };
 
 // Replace global console
@@ -59,8 +58,8 @@ describe('Logger', () => {
 
         expect(mockConsole.error).not.toHaveBeenCalled();
         expect(mockConsole.warn).not.toHaveBeenCalled();
-        expect(mockConsole.info).not.toHaveBeenCalled();
-        expect(mockConsole.log).not.toHaveBeenCalled();
+        expect(mockConsole.debug).not.toHaveBeenCalled();
+        expect(mockConsole.debug).not.toHaveBeenCalled();
       });
     });
 
@@ -79,8 +78,8 @@ describe('Logger', () => {
 
         expect(mockConsole.error).toHaveBeenCalledTimes(1);
         expect(mockConsole.warn).not.toHaveBeenCalled();
-        expect(mockConsole.info).not.toHaveBeenCalled();
-        expect(mockConsole.log).not.toHaveBeenCalled();
+        expect(mockConsole.debug).not.toHaveBeenCalled();
+        expect(mockConsole.debug).not.toHaveBeenCalled();
       });
     });
 
@@ -99,8 +98,8 @@ describe('Logger', () => {
 
         expect(mockConsole.error).toHaveBeenCalledTimes(1);
         expect(mockConsole.warn).toHaveBeenCalledTimes(1);
-        expect(mockConsole.info).not.toHaveBeenCalled();
-        expect(mockConsole.log).not.toHaveBeenCalled();
+        expect(mockConsole.debug).not.toHaveBeenCalled();
+        expect(mockConsole.debug).not.toHaveBeenCalled();
       });
     });
 
@@ -119,8 +118,7 @@ describe('Logger', () => {
 
         expect(mockConsole.error).toHaveBeenCalledTimes(1);
         expect(mockConsole.warn).toHaveBeenCalledTimes(1);
-        expect(mockConsole.info).toHaveBeenCalledTimes(1);
-        expect(mockConsole.log).not.toHaveBeenCalled();
+        expect(mockConsole.debug).toHaveBeenCalledTimes(1); // info uses console.debug
       });
     });
 
@@ -139,8 +137,7 @@ describe('Logger', () => {
 
         expect(mockConsole.error).toHaveBeenCalledTimes(1);
         expect(mockConsole.warn).toHaveBeenCalledTimes(1);
-        expect(mockConsole.info).toHaveBeenCalledTimes(1);
-        expect(mockConsole.log).toHaveBeenCalledTimes(1); // debug uses console.log
+        expect(mockConsole.debug).toHaveBeenCalledTimes(2); // info + debug use console.debug
       });
     });
 
@@ -159,8 +156,7 @@ describe('Logger', () => {
 
         expect(mockConsole.error).toHaveBeenCalledTimes(1);
         expect(mockConsole.warn).toHaveBeenCalledTimes(1);
-        expect(mockConsole.info).toHaveBeenCalledTimes(1);
-        expect(mockConsole.log).toHaveBeenCalledTimes(2); // debug + trace use console.log
+        expect(mockConsole.debug).toHaveBeenCalledTimes(3); // info + debug + trace use console.debug
       });
     });
   });
@@ -182,7 +178,7 @@ describe('Logger', () => {
     it('should handle multiple arguments', () => {
       logger.debug('Debug:', { data: 'value' }, 'additional info');
 
-      expect(mockConsole.log).toHaveBeenCalledWith(
+      expect(mockConsole.debug).toHaveBeenCalledWith(
         '[TestComponent] DEBUG:',
         'Debug:',
         { data: 'value' },
@@ -197,12 +193,12 @@ describe('Logger', () => {
       logger.info('Object:', testObj);
       logger.info('Array:', testArray);
 
-      expect(mockConsole.info).toHaveBeenCalledWith(
+      expect(mockConsole.debug).toHaveBeenCalledWith(
         '[TestComponent] INFO:',
         'Object:',
         testObj
       );
-      expect(mockConsole.info).toHaveBeenCalledWith(
+      expect(mockConsole.debug).toHaveBeenCalledWith(
         '[TestComponent] INFO:',
         'Array:',
         testArray
@@ -227,7 +223,7 @@ describe('Logger', () => {
 
       logger.debug('This should not be processed');
 
-      expect(mockConsole.log).not.toHaveBeenCalled();
+      expect(mockConsole.debug).not.toHaveBeenCalled();
     });
 
     it('should not log when log level is insufficient for debug', () => {
@@ -237,7 +233,7 @@ describe('Logger', () => {
       logger.debug('This debug message should not appear');
 
       // Debug won't be logged at WARN level
-      expect(mockConsole.log).not.toHaveBeenCalled();
+      expect(mockConsole.debug).not.toHaveBeenCalled();
     });
   });
 
@@ -279,7 +275,7 @@ describe('Logger', () => {
       logger = Logger.create(mockPlugin, '');
       logger.info('Test message');
 
-      expect(mockConsole.info).toHaveBeenCalledWith(
+      expect(mockConsole.debug).toHaveBeenCalledWith(
         '[] INFO:',
         'Test message'
       );
@@ -290,7 +286,7 @@ describe('Logger', () => {
       logger = Logger.create(mockPlugin, 'Component:With:Special/Characters');
       logger.info('Test message');
 
-      expect(mockConsole.info).toHaveBeenCalledWith(
+      expect(mockConsole.debug).toHaveBeenCalledWith(
         '[Component:With:Special/Characters] INFO:',
         'Test message'
       );
@@ -304,7 +300,7 @@ describe('Logger', () => {
 
       logger.info(undefined as unknown as string);
 
-      expect(mockConsole.info).toHaveBeenCalledWith(
+      expect(mockConsole.debug).toHaveBeenCalledWith(
         '[TestComponent] INFO:',
         undefined
       );
@@ -316,7 +312,7 @@ describe('Logger', () => {
 
       logger.info(null as unknown as string);
 
-      expect(mockConsole.info).toHaveBeenCalledWith(
+      expect(mockConsole.debug).toHaveBeenCalledWith(
         '[TestComponent] INFO:',
         null
       );
@@ -328,7 +324,7 @@ describe('Logger', () => {
 
       logger.info('');
 
-      expect(mockConsole.info).toHaveBeenCalledWith(
+      expect(mockConsole.debug).toHaveBeenCalledWith(
         '[TestComponent] INFO:',
         ''
       );
@@ -358,8 +354,8 @@ describe('Logger', () => {
       logger.warn('Warning message');
       logger.error('Error message');
 
-      expect(mockConsole.log).not.toHaveBeenCalled();
-      expect(mockConsole.info).not.toHaveBeenCalled();
+      expect(mockConsole.debug).not.toHaveBeenCalled();
+      expect(mockConsole.debug).not.toHaveBeenCalled();
       expect(mockConsole.warn).not.toHaveBeenCalled();
       expect(mockConsole.error).not.toHaveBeenCalled();
     });
@@ -383,8 +379,8 @@ describe('Logger', () => {
       expect(endTime - startTime).toBeLessThan(50);
 
       // Verify no actual console calls were made
-      expect(mockConsole.log).not.toHaveBeenCalled();
-      expect(mockConsole.info).not.toHaveBeenCalled();
+      expect(mockConsole.debug).not.toHaveBeenCalled();
+      expect(mockConsole.debug).not.toHaveBeenCalled();
       expect(mockConsole.warn).not.toHaveBeenCalled();
     });
   });
@@ -413,13 +409,13 @@ describe('Logger', () => {
       logger = Logger.create(mockPlugin, 'TestComponent');
 
       logger.debug('Should not appear');
-      expect(mockConsole.log).not.toHaveBeenCalled();
+      expect(mockConsole.debug).not.toHaveBeenCalled();
 
       // Change settings
       mockPlugin.settings.logLevel = LogLevel.DEBUG;
 
       logger.debug('Should appear now');
-      expect(mockConsole.log).toHaveBeenCalled();
+      expect(mockConsole.debug).toHaveBeenCalled();
     });
   });
 });

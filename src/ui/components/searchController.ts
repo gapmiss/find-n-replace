@@ -1,5 +1,5 @@
 import { debounce } from 'obsidian';
-import { Logger } from '../../utils';
+import { Logger, sleep } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
 import { FindReplaceElements, SearchOptions, ViewState, SessionFilters } from '../../types';
 import { SearchEngine } from '../../core';
@@ -291,7 +291,7 @@ export class SearchController {
             // Safe timeEnd - only call if timer exists
             try {
                 this.logger.timeEnd(timerName);
-            } catch (timerError) {
+            } catch {
                 // Timer may not exist if error occurred early
                 this.logger.debug('Timer cleanup failed (expected in some cases)');
             }
