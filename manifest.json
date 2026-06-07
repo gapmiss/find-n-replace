@@ -1,7 +1,7 @@
 {
 	"id": "find-n-replace",
 	"name": "Find-n-Replace",
-	"version": "1.0.15",
+	"version": "1.0.16",
 	"minAppVersion": "1.13.0",
 	"description": "A VSCode-style vault-wide search & replace sidebar view.",
 	"author": "@gapmiss",
