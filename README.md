@@ -2,7 +2,7 @@
 
 A vault-wide **search and replace** plugin for Obsidian. Find-n-Replace helps you locate content across your entire vault through powerful search operations, then replace matches efficiently with regex support, multi-selection capabilities, file filtering, and real-time preview.
 
-![alt text](./docs/images/readme-screenshot-1.png)
+![Find-n-Replace plugin interface showing vault-wide search results](./docs/images/readme-screenshot-1.png)
 
 ## What This Plugin Does
 
@@ -541,14 +541,9 @@ node release.mjs major
 - **Testable**: Isolated components with dependency injection
 - **Test Coverage**: 296 automated tests preventing regressions and edge cases (100% pass rate)
 
-### Contributing Guidelines
-1. Follow existing code style and TypeScript conventions
-2. Add comprehensive logging for debugging
-3. Include error handling for all async operations
-4. **Run test suite before submitting:** `npm test` (296 tests must pass)
-5. **Add tests for new features:** Follow existing test patterns in `src/tests/unit/`
-6. Test with large vaults to ensure performance
-7. Update documentation for any API changes
+### Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code standards, and pull request guidelines.
 
 ## Technical Details
 
