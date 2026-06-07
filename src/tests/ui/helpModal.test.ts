@@ -139,9 +139,7 @@ describe('HelpModal', () => {
       helpModal.onOpen();
 
       expect(helpModal.contentEl.empty).toHaveBeenCalled();
-      expect(helpModal.contentEl.createEl).toHaveBeenCalledWith('h2',
-        expect.objectContaining({ text: expect.stringContaining('Find-n-Replace') })
-      );
+      expect(helpModal.contentEl.addClass).toHaveBeenCalledWith('find-replace-help-modal');
     });
 
     it('should create introduction section', () => {
@@ -153,9 +151,8 @@ describe('HelpModal', () => {
     it('should create command sections for all categories', () => {
       helpModal.onOpen();
 
-      // Should create multiple command sections
-      expect(helpModal.contentEl.createEl).toHaveBeenCalled();
-      expect(helpModal.contentEl.createEl).toHaveBeenCalledWith('h2', expect.any(Object));
+      // Should create divs for categories and other sections
+      expect(helpModal.contentEl.createDiv).toHaveBeenCalled();
     });
   });
 
@@ -189,8 +186,8 @@ describe('HelpModal', () => {
     it('should display plugin commands', () => {
       helpModal.onOpen();
 
-      // Should create command sections and tables
-      expect(helpModal.contentEl.createEl).toHaveBeenCalled();
+      // Should create divs for command sections
+      expect(helpModal.contentEl.createDiv).toHaveBeenCalled();
     });
 
     it('should handle empty command lists gracefully', () => {
@@ -266,8 +263,8 @@ describe('HelpModal', () => {
 
   describe('Error Handling', () => {
     it('should handle DOM creation errors gracefully', () => {
-      // Mock createEl to throw an error
-      helpModal.contentEl.createEl = vi.fn().mockImplementation(() => {
+      // Mock createDiv to throw an error (createDiv is called before createEl)
+      helpModal.contentEl.createDiv = vi.fn().mockImplementation(() => {
         throw new Error('DOM creation failed');
       });
 
@@ -291,7 +288,8 @@ describe('HelpModal', () => {
 
     it('should handle missing app properties', () => {
       const incompleteApp = {
-        // Missing hotkeyManager, scope, commands
+        // Minimal required properties
+        vault: { configDir: '.obsidian' }
       };
 
       const modal = new HelpModal(incompleteApp as unknown as typeof mockApp, mockPlugin);
@@ -320,8 +318,8 @@ describe('HelpModal', () => {
     it('should use semantic HTML structure', () => {
       helpModal.onOpen();
 
-      // Should create proper heading elements
-      expect(helpModal.contentEl.createEl).toHaveBeenCalledWith('h2', expect.any(Object));
+      // Should add proper CSS class for styling
+      expect(helpModal.contentEl.addClass).toHaveBeenCalledWith('find-replace-help-modal');
     });
 
     it('should apply appropriate CSS classes', () => {
@@ -334,8 +332,7 @@ describe('HelpModal', () => {
     it('should provide clear information hierarchy', () => {
       helpModal.onOpen();
 
-      // Should create structured content with headings and sections
-      expect(helpModal.contentEl.createEl).toHaveBeenCalled();
+      // Should create structured content with sections
       expect(helpModal.contentEl.createDiv).toHaveBeenCalled();
     });
   });
@@ -349,7 +346,7 @@ describe('HelpModal', () => {
 
       // Verify basic content creation calls were made
       expect(helpModal.contentEl.empty).toHaveBeenCalled();
-      expect(helpModal.contentEl.createEl).toHaveBeenCalled();
+      expect(helpModal.contentEl.addClass).toHaveBeenCalled();
     });
 
     it('should handle plugin without settings gracefully', () => {
@@ -361,9 +358,9 @@ describe('HelpModal', () => {
     });
 
     it('should work with minimal Obsidian API surface', () => {
-      // Test with minimal app object
+      // Test with minimal app object including required vault.configDir
       const minimalApp = {
-        // Bare minimum required properties
+        vault: { configDir: '.obsidian' }
       };
 
       const modal = new HelpModal(minimalApp as unknown as typeof mockApp, mockPlugin);

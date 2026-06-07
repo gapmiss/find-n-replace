@@ -7,6 +7,7 @@ import { TFile, TFolder, Vault } from 'obsidian';
 export class MockVault {
     private files: Map<string, string> = new Map();
     private mockFiles: Map<string, TFile> = new Map();
+    configDir = '.obsidian';
 
     constructor() {
         // Initialize with edge case test data designed to catch bugs

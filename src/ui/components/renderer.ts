@@ -347,6 +347,9 @@ export class UIRenderer {
 
                     // Only show preview if it's different and not empty
                     if (preview !== matchText && preview.trim()) {
+                        // Add class to mark for strikethrough styling (replaces :has selector)
+                        mark.addClass('has-replace-preview');
+
                         // For multiline previews, show first line + indicator
                         const previewLines = preview.split('\n');
                         const previewFirstLine = previewLines[0];
@@ -406,7 +409,7 @@ export class UIRenderer {
         if (before) container.appendText(before);
 
         // Create highlighted match element
-        container.createEl("mark", { text: mid });
+        const mark = container.createEl("mark", { text: mid });
 
         // === REPLACEMENT PREVIEW FEATURE ===
         // Show what the replacement will look like if replacement text is provided
@@ -435,6 +438,9 @@ export class UIRenderer {
 
                 // Only show preview if it's different from the original
                 if (preview !== mid) {
+                    // Add class to mark for strikethrough styling (replaces :has selector)
+                    mark.addClass('has-replace-preview');
+
                     container.createSpan({
                         cls: "replace-preview",
                         text: preview

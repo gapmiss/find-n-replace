@@ -363,7 +363,6 @@ Result: Matches complete code blocks including language and content
 - **Enter/Space**: Execute replace action when replace button is focused
 
 ### Selection
-<!-- - **Ctrl/Cmd+A**: Select all results -->
 - **Ctrl/Cmd+Click**: Toggle individual result selection
 - **Escape**: Clear current selection
 

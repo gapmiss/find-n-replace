@@ -10,7 +10,8 @@
 }
 
 /* --- Find-n-Replace Help Modal Styling (Globally Scoped - Modals) --- */
-.modal:has(.find-replace-help-modal) {
+/* Note: Width is set via TypeScript when modal opens by adding .find-replace-help-modal-container class */
+.modal.find-replace-help-modal-container {
     --dialog-width: 720px;
     width: var(--dialog-width);
 }
@@ -229,8 +230,9 @@
     width: 100%;
 }
 
-[data-type="find-replace-view"] .find-replace-input {
-    padding: 6px 28px 6px 10px !important;
+[data-type="find-replace-view"] .find-replace-container .find-replace-input,
+[data-type="find-replace-view"] input.find-replace-input[type="text"] {
+    padding: 6px 28px 6px 10px;
     width: 100%;
     color: var(--text-muted);
 }
@@ -270,14 +272,15 @@
 }
 
 /* --- Results list --- */
-[data-type="find-replace-view"] .find-replace-results {
+[data-type="find-replace-view"] .find-replace-results,
+[data-type="find-replace-view"] div.find-replace-results {
     display: flex;
     flex-direction: column;
     gap: 8px;
     overflow: auto;
     padding: 0 .25em 3em .25em;
     border-radius: 6px;
-    margin: 0 !important;
+    margin: 0;
     background: var(--background-secondary);
     outline: none; /* Remove default outline */
 }
@@ -405,9 +408,10 @@
     background-color: var(--text-highlight-bg);
 }
 
-[data-type="find-replace-view"] .line-result mark:has(+ span.replace-preview) {
+/* Note: .has-replace-preview class is added via TypeScript when replacement preview is shown */
+[data-type="find-replace-view"] .line-result mark.has-replace-preview {
     margin-right: 1px;
-    background-color: rgba(var(--background-modifier-error-rgb), 0.2) !important;
+    background-color: rgba(var(--background-modifier-error-rgb), 0.2);
     text-decoration: line-through;
 }
 
@@ -453,8 +457,9 @@
     color: var(--text-muted);
 }
 
-[data-type="find-replace-view"] .hidden {
-    display: none !important;
+[data-type="find-replace-view"] .hidden,
+[data-type="find-replace-view"] [class].hidden {
+    display: none;
 }
 
 /* ==============================================
@@ -506,9 +511,10 @@
     margin-bottom: 0;
 }
 
-[data-type="find-replace-view"] .filter-input-label {
+[data-type="find-replace-view"] .filter-input-label,
+[data-type="find-replace-view"] .filter-input-row .filter-input-label {
     min-width: 60px;
-    font-size: var(--font-smaller) !important;
+    font-size: var(--font-smaller);
     color: var(--text-muted);
 }
 
@@ -596,9 +602,10 @@
     height: 16px;
 }
 
-[data-type="find-replace-view"] .find-replace-input-container .find-replace-input {
-    padding-left: 32px !important; /* Make room for left icon */
-    padding-right: 28px !important; /* Make room for clear icon */
+[data-type="find-replace-view"] .find-replace-input-container .find-replace-input,
+[data-type="find-replace-view"] .find-replace-input-container input.find-replace-input[type="text"] {
+    padding-left: 32px; /* Make room for left icon */
+    padding-right: 28px; /* Make room for clear icon */
     width: 100%;
 }
 
@@ -655,9 +662,10 @@
     width: 100%;
 }
 
-[data-type="find-replace-view"] .filter-input-container .filter-input {
+[data-type="find-replace-view"] .filter-input-container .filter-input,
+[data-type="find-replace-view"] .filter-input-container input.filter-input[type="text"] {
     width: 100%;
-    padding-right: 20px !important; /* Make room for clear icon */
+    padding-right: 20px; /* Make room for clear icon */
     box-sizing: border-box;
 }
 
@@ -678,8 +686,9 @@
 }
 
 [data-type="find-replace-view"] .inline-toggle-btn.is-active,
-[data-type="find-replace-view"] .inline-toggle-btn[aria-pressed="true"] {
-    color: var(--interactive-accent) !important;
+[data-type="find-replace-view"] .inline-toggle-btn[aria-pressed="true"],
+[data-type="find-replace-view"] button.inline-toggle-btn.is-active {
+    color: var(--interactive-accent);
 }
 
 /* --- Toolbar Actions --- */
@@ -756,8 +765,9 @@
 }
 
 /* --- Desktop/Mobile Layout Control --- */
-[data-type="find-replace-view"] .desktop-only {
-    display: none !important; /* Always hidden - using ellipsis menu instead */
+[data-type="find-replace-view"] .desktop-only,
+[data-type="find-replace-view"] [class].desktop-only {
+    display: none; /* Always hidden - using ellipsis menu instead */
 }
 
 /* --- Enhanced Responsive Design --- */
@@ -797,8 +807,9 @@
     }
 
     /* Hide desktop action buttons, show ellipsis menu */
-    [data-type="find-replace-view"] .desktop-only {
-        display: none !important;
+    [data-type="find-replace-view"] .desktop-only,
+    [data-type="find-replace-view"] [class].desktop-only {
+        display: none;
     }
 
     [data-type="find-replace-view"] .ellipsis-menu-container {
@@ -870,8 +881,9 @@
         display: flex;
     }
 
-    [data-type="find-replace-view"] .desktop-only {
-        display: none !important; /* Always hidden */
+    [data-type="find-replace-view"] .desktop-only,
+    [data-type="find-replace-view"] [class].desktop-only {
+        display: none; /* Always hidden */
     }
 
     [data-type="find-replace-view"] .adaptive-action-gap {

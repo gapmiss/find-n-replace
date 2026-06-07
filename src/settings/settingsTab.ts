@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Notice } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice, SettingDefinitionItem } from "obsidian";
 import VaultFindReplacePlugin from "../main";
 import { LogLevel } from "../types";
 import { ConfirmModal } from "../modals/confirmModal";
@@ -12,358 +12,248 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
         this.plugin = plugin;
     }
 
-    display(): void {
-        const { containerEl } = this;
-        containerEl.empty();
-        containerEl.addClass('find-n-replace-settings');
-
-        // TODO: Implement search result highlighting feature
-        // See ROADMAP.md - High Priority feature
-        /*
-        // Highlight duration
-        new Setting(containerEl)
-            .setName("Highlight duration")
-            .setDesc("How long (in milliseconds) to keep highlights visible before fading out.")
-            .addText((text) =>
-                text
-                    .setPlaceholder("2000")
-                    .setValue(this.plugin.settings.highlightDuration.toString())
-                    .onChange(async (value) => {
-                        const num = parseInt(value, 10);
-                        if (!isNaN(num) && num > 0) {
-                            this.plugin.settings.highlightDuration = num;
-                            await this.plugin.saveSettings();
-                        }
-                    })
-            );
-
-        // Persistent highlight toggle
-        new Setting(containerEl)
-            .setName("Persistent highlight")
-            .setDesc("Keep highlights visible until you run another search. Overrides highlight duration.")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.persistentHighlight)
-                    .onChange(async (value) => {
-                        this.plugin.settings.persistentHighlight = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-        */
-
-        // Max results
-        new Setting(containerEl)
-            .setName("Maximum results")
-            .setDesc("Maximum number of search results to display. Higher values may impact performance.")
-            .addText((text) =>
-                text
-                    .setPlaceholder("1000")
-                    .setValue(this.plugin.settings.maxResults.toString())
-                    .onChange(async (value) => {
-                        const num = parseInt(value, 10);
-                        if (!isNaN(num) && num > 0) {
-                            this.plugin.settings.maxResults = num;
-                            await this.plugin.saveSettings();
-                        }
-                    })
-            );
-
-        // Auto search toggle
-        new Setting(containerEl)
-            .setName("Enable auto-search")
-            .setDesc("Automatically search as you type (with debounce delay).")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.enableAutoSearch)
-                    .onChange(async (value) => {
-                        this.plugin.settings.enableAutoSearch = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-
-        // Search debounce delay
-        new Setting(containerEl)
-            .setName("Search debounce delay")
-            .setDesc("Delay in milliseconds before auto-search triggers while typing.")
-            .addText((text) =>
-                text
-                    .setPlaceholder("300")
-                    .setValue(this.plugin.settings.searchDebounceDelay.toString())
-                    .onChange(async (value) => {
-                        const num = parseInt(value, 10);
-                        if (!isNaN(num) && num >= 0) {
-                            this.plugin.settings.searchDebounceDelay = num;
-                            await this.plugin.saveSettings();
-                        }
-                    })
-            );
-
-        // History settings section
-        new Setting(containerEl)
-            .setName('Search history')
-            .setHeading();
-
-        // Enable search history toggle
-        new Setting(containerEl)
-            .setName("Enable search history")
-            .setDesc("Save search and replace patterns for quick access using arrow keys (↑↓).")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.enableSearchHistory)
-                    .onChange(async (value) => {
-                        this.plugin.settings.enableSearchHistory = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-
-        // Max history size
-        new Setting(containerEl)
-            .setName("Maximum history entries")
-            .setDesc("Maximum number of search and replace patterns to remember. Range: 10-200.")
-            .addText((text) =>
-                text
-                    .setPlaceholder("50")
-                    .setValue(this.plugin.settings.maxHistorySize.toString())
-                    .onChange(async (value) => {
-                        const num = parseInt(value, 10);
-                        if (!isNaN(num) && num >= 10 && num <= 200) {
-                            this.plugin.settings.maxHistorySize = num;
-                            await this.plugin.saveSettings();
-                            // Trim existing history if needed
-                            this.plugin.historyManager.updateMaxSize();
-                        }
-                    })
-            );
-
-        // Clear history button
-        new Setting(containerEl)
-            .setName("Clear search history")
-            .setDesc(`Clear all saved search and replace patterns. Current history size: ${this.plugin.settings.searchHistory.length} search, ${this.plugin.settings.replaceHistory.length} replace.`)
-            .addButton((button) =>
-                button
-                    .setButtonText("Clear all history")
-                    .setWarning()
-                    .onClick(async () => {
-                        // Show confirmation modal
-                        const modal = new ConfirmModal(
-                            this.app,
-                            "Are you sure you want to clear all search and replace history? This action cannot be undone.",
-                            {
-                                confirmText: "Clear",
-                                confirmClass: "mod-warning",
-                                cancelText: "Cancel"
+    getSettingDefinitions(): SettingDefinitionItem[] {
+        return [
+            // Core settings group
+            {
+                type: 'group',
+                heading: 'Search settings',
+                items: [
+                    {
+                        name: "Maximum results",
+                        desc: "Maximum number of search results to display. Higher values may impact performance.",
+                        control: {
+                            type: "text",
+                            key: "maxResults",
+                            placeholder: "1000",
+                            validate: (value: string) => {
+                                const num = parseInt(value, 10);
+                                if (isNaN(num) || num <= 0) {
+                                    return "Must be a positive number";
+                                }
+                                return undefined;
                             }
-                        );
-                        modal.open();
-
-                        // Wait for modal to close using async/await polling
-                        while (modal.isOpen) {
-                            await sleep(MODAL_POLL_INTERVAL);
                         }
-
-                        // Only clear if user confirmed
-                        if (modal.result) {
-                            this.plugin.historyManager.clearAllHistory();
-                            await this.plugin.saveSettings();
-                            new Notice("Search and replace history cleared");
-                            // Refresh the display to update the count
-                            this.display();
+                    },
+                    {
+                        name: "Enable auto-search",
+                        desc: "Automatically search as you type (with debounce delay).",
+                        control: { type: "toggle", key: "enableAutoSearch" }
+                    },
+                    {
+                        name: "Search debounce delay",
+                        desc: "Delay in milliseconds before auto-search triggers while typing.",
+                        control: {
+                            type: "text",
+                            key: "searchDebounceDelay",
+                            placeholder: "300",
+                            validate: (value: string) => {
+                                const num = parseInt(value, 10);
+                                if (isNaN(num) || num < 0) {
+                                    return "Must be a non-negative number";
+                                }
+                                return undefined;
+                            }
                         }
-                    })
-            );
+                    }
+                ]
+            },
 
-        // TODO: Implement line number display in search results
-        // See ROADMAP.md - Medium Priority feature
-        /*
-        // Show line numbers
-        new Setting(containerEl)
-            .setName("Show line numbers")
-            .setDesc("Display line numbers in search results.")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.showLineNumbers)
-                    .onChange(async (value) => {
-                        this.plugin.settings.showLineNumbers = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-        */
+            // Search history group
+            {
+                type: 'group',
+                heading: 'Search history',
+                items: [
+                    {
+                        name: "Enable search history",
+                        desc: "Save search and replace patterns for quick access using arrow keys (↑↓).",
+                        control: { type: "toggle", key: "enableSearchHistory" }
+                    },
+                    {
+                        name: "Maximum history entries",
+                        desc: "Maximum number of search and replace patterns to remember. Range: 10-200.",
+                        control: {
+                            type: "text",
+                            key: "maxHistorySize",
+                            placeholder: "50",
+                            validate: (value: string) => {
+                                const num = parseInt(value, 10);
+                                if (isNaN(num) || num < 10 || num > 200) {
+                                    return "Must be between 10 and 200";
+                                }
+                                return undefined;
+                            }
+                        }
+                    },
+                    {
+                        name: "Clear search history",
+                        render: (setting: Setting) => {
+                            const updateDesc = () => {
+                                setting.setDesc(`Clear all saved search and replace patterns. Current history size: ${this.plugin.settings.searchHistory.length} search, ${this.plugin.settings.replaceHistory.length} replace.`);
+                            };
+                            updateDesc();
+                            setting.addButton((button) =>
+                                button
+                                    .setButtonText("Clear all history")
+                                    .setDestructive()
+                                    .onClick(async () => {
+                                        const modal = new ConfirmModal(
+                                            this.app,
+                                            "Are you sure you want to clear all search and replace history? This action cannot be undone.",
+                                            {
+                                                confirmText: "Clear",
+                                                confirmClass: "mod-warning",
+                                                cancelText: "Cancel"
+                                            }
+                                        );
+                                        modal.open();
 
-        // TODO: Implement file extension display in file headers
-        // See ROADMAP.md - Low Priority feature
-        /*
-        // Show file extensions
-        new Setting(containerEl)
-            .setName("Show file extensions")
-            .setDesc("Display file extensions in search results.")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.showFileExtensions)
-                    .onChange(async (value) => {
-                        this.plugin.settings.showFileExtensions = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-        */
+                                        while (modal.isOpen) {
+                                            await sleep(MODAL_POLL_INTERVAL);
+                                        }
 
-        // File filtering default settings
-        new Setting(containerEl)
-            .setName('File filtering defaults')
-            .setHeading();
-        containerEl.createEl("p", {
-            text: "These settings provide default values when opening a new find & replace view. Once a view is open, filter changes are session-only.",
-            cls: "setting-item-description"
-        });
+                                        if (modal.result) {
+                                            this.plugin.historyManager.clearAllHistory();
+                                            await this.plugin.saveSettings();
+                                            new Notice("Search and replace history cleared");
+                                            updateDesc();
+                                        }
+                                    })
+                            );
+                        }
+                    }
+                ]
+            },
 
-        // Default files to include (VSCode-style)
-        new Setting(containerEl)
-            .setName("Default files to include")
-            .setDesc("Default patterns that populate the \"files to include\" input when opening the view. Supports extensions (.md), folders (Notes/), and globs (*.js). Example: .md,.txt,Notes/,Projects/")
-            .addText((text) =>
-                text
-                    .setPlaceholder("e.g. .md, Notes/, *.js")
-                    .setValue(this.plugin.settings.defaultIncludePatterns.join(','))
-                    .onChange(async (value) => {
-                        this.plugin.settings.defaultIncludePatterns = value
-                            .split(',')
-                            .map(pattern => pattern.trim())
-                            .filter(pattern => pattern.length > 0);
-                        await this.plugin.saveSettings();
-                    })
-            );
+            // File filtering defaults group
+            {
+                type: 'group',
+                heading: 'File filtering defaults',
+                items: [
+                    {
+                        name: "Filter behavior",
+                        desc: "These settings provide default values when opening a new find & replace view. Once a view is open, filter changes are session-only."
+                    },
+                    {
+                        name: "Default files to include",
+                        desc: "Default patterns that populate the \"files to include\" input when opening the view. Supports extensions (.md), folders (Notes/), and globs (*.js). Example: .md,.txt,Notes/,Projects/",
+                        render: (setting: Setting) => {
+                            setting.addText((text) =>
+                                text
+                                    .setPlaceholder("e.g. .md, Notes/, *.js")
+                                    .setValue(this.plugin.settings.defaultIncludePatterns.join(','))
+                                    .onChange(async (value) => {
+                                        this.plugin.settings.defaultIncludePatterns = value
+                                            .split(',')
+                                            .map(pattern => pattern.trim())
+                                            .filter(pattern => pattern.length > 0);
+                                        await this.plugin.saveSettings();
+                                    })
+                            );
+                        }
+                    },
+                    {
+                        name: "Default files to exclude",
+                        desc: "Default patterns that populate the \"files to exclude\" input when opening the view. Supports globs (*.tmp), folders (Archive/), and patterns (*backup*). Example: *.tmp,Archive/,*backup*",
+                        render: (setting: Setting) => {
+                            setting.addText((text) =>
+                                text
+                                    .setPlaceholder("e.g. *.tmp, Archive/, *backup*")
+                                    .setValue(this.plugin.settings.defaultExcludePatterns.join(','))
+                                    .onChange(async (value) => {
+                                        this.plugin.settings.defaultExcludePatterns = value
+                                            .split(',')
+                                            .map(pattern => pattern.trim())
+                                            .filter(pattern => pattern.length > 0);
+                                        await this.plugin.saveSettings();
+                                    })
+                            );
+                        }
+                    },
+                    {
+                        name: "How default file filters work",
+                        render: (setting: Setting) => {
+                            setting.settingEl.addClass('filter-info-box');
+                            const descEl = setting.descEl;
 
-        // Default files to exclude (VSCode-style)
-        new Setting(containerEl)
-            .setName("Default files to exclude")
-            .setDesc("Default patterns that populate the \"files to exclude\" input when opening the view. Supports globs (*.tmp), folders (Archive/), and patterns (*backup*). Example: *.tmp,Archive/,*backup*")
-            .addText((text) =>
-                text
-                    .setPlaceholder("e.g. *.tmp, Archive/, *backup*")
-                    .setValue(this.plugin.settings.defaultExcludePatterns.join(','))
-                    .onChange(async (value) => {
-                        this.plugin.settings.defaultExcludePatterns = value
-                            .split(',')
-                            .map(pattern => pattern.trim())
-                            .filter(pattern => pattern.length > 0);
-                        await this.plugin.saveSettings();
-                    })
-            );
+                            const list = descEl.createEl('div');
+                            list.appendText('• These default settings populate the ');
+                            list.createEl('strong', { text: '"files to include"' });
+                            list.appendText(' and ');
+                            list.createEl('strong', { text: '"files to exclude"' });
+                            list.appendText(' inputs when you open the Find-n-Replace view');
+                            list.createEl('br');
 
-        // Add information section about how default settings work
-        const filterInfoDiv = containerEl.createDiv('setting-item');
-        filterInfoDiv.createEl('div', {
-            cls: 'setting-item-info',
-            text: ''
-        });
+                            list.appendText('• Filter inputs in the view are ');
+                            list.createEl('strong', { text: 'session-only' });
+                            list.appendText(' - they don\'t modify these default settings');
+                            list.createEl('br');
 
-        const filterInfoContent = filterInfoDiv.createDiv('setting-item-description');
-        filterInfoContent.addClass('filter-info-box');
+                            list.appendText('• To apply new defaults: change settings above, then ');
+                            list.createEl('strong', { text: 'close and reopen' });
+                            list.appendText(' the Find-n-Replace view');
+                            list.createEl('br');
 
-        const titleLine = filterInfoContent.createEl('div');
-        titleLine.createEl('strong', { text: 'How default file filters work:' });
+                            list.appendText('• Leave settings empty to start with no filters by default');
+                            list.createEl('br');
 
-        const list = filterInfoContent.createEl('div');
-        list.appendText('• These default settings populate the ');
-        list.createEl('strong', { text: '"files to include"' });
-        list.appendText(' and ');
-        list.createEl('strong', { text: '"files to exclude"' });
-        list.appendText(' inputs when you open the Find-n-Replace view');
-        list.createEl('br');
+                            list.appendText('• Uses VSCode-style pattern syntax for familiar file filtering');
+                        }
+                    }
+                ]
+            },
 
-        list.appendText('• Filter inputs in the view are ');
-        list.createEl('strong', { text: 'session-only' });
-        list.appendText(' - they don\'t modify these default settings');
-        list.createEl('br');
+            // User experience group
+            {
+                type: 'group',
+                heading: 'User experience',
+                items: [
+                    {
+                        name: "Confirm destructive actions",
+                        desc: "Show confirmation dialog before replace all in vault operations. Disable for faster workflow if you're confident.",
+                        control: { type: "toggle", key: "confirmDestructiveActions" }
+                    },
+                    {
+                        name: "Remember search options",
+                        desc: "Persist match case, whole word, regex, and multiline toggle states across sessions. When disabled, toggles reset to off each time you open the view.",
+                        control: { type: "toggle", key: "rememberSearchOptions" }
+                    },
+                    {
+                        name: "Remember file group states across restarts",
+                        desc: "Persist expand/collapse state of result file groups to disk. When enabled, group states are saved across Obsidian restarts. When disabled, states only persist during current session (reset when view closes).",
+                        control: { type: "toggle", key: "rememberFileGroupStates" }
+                    },
+                    {
+                        name: "Warn about slow regex patterns",
+                        desc: "Show a warning notice when using regex patterns that may cause performance issues (e.g., .* or .+ followed by specific characters).",
+                        control: { type: "toggle", key: "warnDangerousRegex" }
+                    }
+                ]
+            },
 
-        list.appendText('• To apply new defaults: change settings above, then ');
-        list.createEl('strong', { text: 'close and reopen' });
-        list.appendText(' the Find-n-Replace view');
-        list.createEl('br');
-
-        list.appendText('• Leave settings empty to start with no filters by default');
-        list.createEl('br');
-
-        list.appendText('• Uses VSCode-style pattern syntax for familiar file filtering');
-
-        // User experience settings section
-        new Setting(containerEl)
-            .setName('User experience')
-            .setHeading();
-
-        // Confirm destructive actions toggle
-        new Setting(containerEl)
-            .setName("Confirm destructive actions")
-            .setDesc("Show confirmation dialog before replace all in vault operations. Disable for faster workflow if you're confident.")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.confirmDestructiveActions)
-                    .onChange(async (value) => {
-                        this.plugin.settings.confirmDestructiveActions = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-
-        // Remember search options toggle
-        new Setting(containerEl)
-            .setName("Remember search options")
-            .setDesc("Persist match case, whole word, regex, and multiline toggle states across sessions. When disabled, toggles reset to off each time you open the view.")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.rememberSearchOptions)
-                    .onChange(async (value) => {
-                        this.plugin.settings.rememberSearchOptions = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-
-        // Remember file group states toggle
-        new Setting(containerEl)
-            .setName("Remember file group states across restarts")
-            .setDesc("Persist expand/collapse state of result file groups to disk. When enabled, group states are saved across Obsidian restarts. When disabled, states only persist during current session (reset when view closes).")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.rememberFileGroupStates)
-                    .onChange(async (value) => {
-                        this.plugin.settings.rememberFileGroupStates = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-
-        // Warn about dangerous regex patterns toggle
-        new Setting(containerEl)
-            .setName("Warn about slow regex patterns")
-            .setDesc("Show a warning notice when using regex patterns that may cause performance issues (e.g., .* or .+ followed by specific characters).")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.warnDangerousRegex)
-                    .onChange(async (value) => {
-                        this.plugin.settings.warnDangerousRegex = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-
-        // Troubleshooting section
-        new Setting(containerEl)
-            .setName('Troubleshooting')
-            .setHeading();
-
-        // Log level dropdown
-        new Setting(containerEl)
-            .setName("Console logging level")
-            .setDesc("Control how much information is shown in the browser console. Higher levels include all lower levels.")
-            .addDropdown((dropdown) => {
-                dropdown
-                    .addOption(LogLevel.SILENT.toString(), "Silent - no console output")
-                    .addOption(LogLevel.ERROR.toString(), "Errors only - critical failures only (recommended)")
-                    .addOption(LogLevel.WARN.toString(), "Standard - errors and warnings")
-                    .addOption(LogLevel.INFO.toString(), "Verbose - all info, warnings, and errors")
-                    .addOption(LogLevel.DEBUG.toString(), "Debug - full debugging output")
-                    .addOption(LogLevel.TRACE.toString(), "Trace - maximum verbosity (development)")
-                    .setValue(this.plugin.settings.logLevel.toString())
-                    .onChange(async (value) => {
-                        this.plugin.settings.logLevel = parseInt(value);
-                        await this.plugin.saveSettings();
-                    });
-            });
+            // Troubleshooting group
+            {
+                type: 'group',
+                heading: 'Troubleshooting',
+                items: [
+                    {
+                        name: "Console logging level",
+                        desc: "Control how much information is shown in the browser console. Higher levels include all lower levels.",
+                        control: {
+                            type: "dropdown",
+                            key: "logLevel",
+                            options: {
+                                [LogLevel.SILENT.toString()]: "Silent - no console output",
+                                [LogLevel.ERROR.toString()]: "Errors only - critical failures only (recommended)",
+                                [LogLevel.WARN.toString()]: "Standard - errors and warnings",
+                                [LogLevel.INFO.toString()]: "Verbose - all info, warnings, and errors",
+                                [LogLevel.DEBUG.toString()]: "Debug - full debugging output",
+                                [LogLevel.TRACE.toString()]: "Trace - maximum verbosity (development)"
+                            }
+                        }
+                    }
+                ]
+            }
+        ];
     }
 }

@@ -62,6 +62,9 @@ export class HelpModal extends Modal {
         // Add scoped class to prevent CSS conflicts
         contentEl.addClass('find-replace-help-modal');
 
+        // Add container class to modal element for width styling (replaces :has selector)
+        this.modalEl.addClass('find-replace-help-modal-container');
+
         // Modal title
         new Setting(contentEl).setName('Find-n-Replace - Keyboard shortcuts').setHeading();
 
