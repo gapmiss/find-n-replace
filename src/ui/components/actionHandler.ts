@@ -16,7 +16,6 @@ export class ActionHandler {
     private replacementEngine: ReplacementEngine;
     private performSearchCallback: () => Promise<void>;
     private renderResultsCallback: (preserveSelection?: boolean) => void;
-    private isSearching: boolean = false;
     private getResultsCallback?: () => SearchResult[];
     private getSelectedIndicesCallback?: () => Set<number>;
     private getSessionFiltersCallback?: () => SessionFilters;
@@ -79,16 +78,6 @@ export class ActionHandler {
         this.setupReplaceInputHandler();
         this.setupClearButtonHandler();
         this.setupExpandCollapseHandler();
-    }
-
-    /**
-     * Updates the isSearching state (called from SearchController)
-     * Used to coordinate state between SearchController and ActionHandler.
-     *
-     * @param {boolean} isSearching - True if search is in progress, false otherwise
-     */
-    setSearchingState(isSearching: boolean): void {
-        this.isSearching = isSearching;
     }
 
     /**

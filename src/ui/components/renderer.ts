@@ -1,7 +1,7 @@
 import { setIcon } from 'obsidian';
 import { SearchResult, FindReplaceElements } from '../../types';
 import { SearchEngine } from '../../core';
-import { Logger, CONTEXT_AFTER_MATCH, CONTEXT_BEFORE_MATCH, expandReplacement } from '../../utils';
+import { Logger, CONTEXT_AFTER_MATCH, CONTEXT_BEFORE_MATCH, MAX_FILE_GROUP_STATES, expandReplacement } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
 
 /**
@@ -633,6 +633,7 @@ export class UIRenderer {
 
     /**
      * Cleans up saved file group states for files that no longer exist in the vault
+     * and caps size to prevent unbounded growth
      * @param currentFilePaths - Array of file paths that currently have search results
      */
     private cleanupFileGroupStates(_currentFilePaths: string[]): void {
@@ -650,6 +651,17 @@ export class UIRenderer {
                 hasChanges = true;
                 this.logger.debug(`Cleaned up state for non-existent file: ${filePath}`);
             }
+        }
+
+        // Cap size by removing oldest entries (insertion order)
+        const keys = Object.keys(savedStates);
+        if (keys.length > MAX_FILE_GROUP_STATES) {
+            const toRemove = keys.length - MAX_FILE_GROUP_STATES;
+            for (let i = 0; i < toRemove; i++) {
+                delete savedStates[keys[i]];
+            }
+            hasChanges = true;
+            this.logger.debug(`Evicted ${toRemove} oldest file group states`);
         }
 
         // Save changes if any cleanup was performed

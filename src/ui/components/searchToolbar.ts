@@ -295,7 +295,7 @@ export class SearchToolbar {
             cls: 'inline-toggle-btn toolbar-action clickable-icon',
             attr: {
                 'aria-label': 'Toggle file filters',
-                'tabindex': '6'
+                'tabindex': '7'
             }
         });
         setIcon(filterBtn, 'filter');
@@ -304,7 +304,7 @@ export class SearchToolbar {
             cls: 'inline-toggle-btn toolbar-action clickable-icon',
             attr: {
                 'aria-label': 'Clear search',
-                'tabindex': '7'
+                'tabindex': '8'
             }
         });
         setIcon(clearAllBtn, 'search-x');
@@ -364,7 +364,7 @@ export class SearchToolbar {
             type: 'text',
             cls: 'filter-input',
             placeholder: 'e.g. .md, Notes/, *.js',
-            attr: { 'tabindex': '8' }
+            attr: { 'tabindex': '9' }
         });
 
         // Add clear button for include input
@@ -388,7 +388,7 @@ export class SearchToolbar {
             type: 'text',
             cls: 'filter-input',
             placeholder: 'e.g. *.tmp, Archive/, *backup*',
-            attr: { 'tabindex': '9' }
+            attr: { 'tabindex': '10' }
         });
 
         // Add clear button for exclude input
@@ -419,14 +419,14 @@ export class SearchToolbar {
      *
      * @remarks
      * This container is populated by UIRenderer with search results organized by file.
-     * The container is focusable (tabindex: 12) and serves as the target for keyboard navigation
+     * The container is focusable (tabindex: 13) and serves as the target for keyboard navigation
      * from the adaptive toolbar.
      * Initially hidden until results are rendered.
      */
     createResultsContainer(containerEl: HTMLElement): HTMLElement {
         return containerEl.createDiv({
             cls: 'find-replace-results hidden',
-            attr: { 'tabindex': '12' }
+            attr: { 'tabindex': '13' }
         });
     }
 
@@ -498,7 +498,7 @@ export class SearchToolbar {
             attr: {
                 'disabled': true, // Start disabled (no results)
                 'aria-label': 'Replace actions menu',
-                'tabindex': '10'
+                'tabindex': '11'
             }
         });
         setIcon(ellipsisMenuBtn, 'more-horizontal');
@@ -511,7 +511,7 @@ export class SearchToolbar {
             cls: 'adaptive-action-btn clickable-icon hidden',
             attr: {
                 'aria-label': 'Expand all',
-                'tabindex': '11'
+                'tabindex': '12'
             }
         });
         setIcon(expandCollapseBtn, 'copy-plus'); // Set initial icon to "expand" since we start collapsed
@@ -1004,27 +1004,6 @@ export class SearchToolbar {
                 e.preventDefault();
                 showEllipsisMenu(e);
             }
-        });
-
-        // Add custom event listeners for keyboard shortcuts
-        ellipsisMenuBtn.addEventListener('replace-all-vault', () => {
-            void (async () => {
-                try {
-                    await this.replaceAllVaultCallback();
-                } catch (error) {
-                    this.logger.error('Replace all vault keyboard shortcut error', error, true);
-                }
-            })();
-        });
-
-        ellipsisMenuBtn.addEventListener('replace-selected', () => {
-            void (async () => {
-                try {
-                    await this.replaceSelectedCallback();
-                } catch (error) {
-                    this.logger.error('Replace selected keyboard shortcut error', error, true);
-                }
-            })();
         });
     }
 

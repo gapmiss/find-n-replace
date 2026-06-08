@@ -4,5 +4,4 @@
 
 export { UIRenderer } from './renderer';
 export { SelectionManager } from './selectionManager';
-export { NavigationHandler } from './navigationHandler';
 export { SearchController } from './searchController';

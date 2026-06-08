@@ -13,6 +13,8 @@ export class HistoryNavigator {
     private currentIndex: number = -1; // -1 means not in history mode
     private draft: string = ''; // Saves current input when entering history mode
     private isNavigating: boolean = false; // Prevent feedback loop
+    private keydownListener: ((e: KeyboardEvent) => void) | null = null;
+    private inputListener: (() => void) | null = null;
 
     constructor(plugin: VaultFindReplacePlugin) {
         this.plugin = plugin;
@@ -28,15 +30,16 @@ export class HistoryNavigator {
         this.input = input;
         this.history = getHistory(); // Initial load
 
-        // Set up keyboard event listener
-        input.addEventListener('keydown', (e) => this.handleKeyDown(e, getHistory));
-
-        // Reset history position when user manually types
-        input.addEventListener('input', () => {
+        // Store listener references for cleanup
+        this.keydownListener = (e: KeyboardEvent) => this.handleKeyDown(e, getHistory);
+        this.inputListener = () => {
             if (!this.isNavigating) {
                 this.resetPosition();
             }
-        });
+        };
+
+        input.addEventListener('keydown', this.keydownListener);
+        input.addEventListener('input', this.inputListener);
 
         this.logger.debug('HistoryNavigator attached to input');
     }
@@ -172,7 +175,17 @@ export class HistoryNavigator {
      * @internal Test utility - cleanup happens via component disposal in production
      */
     detach(): void {
+        if (this.input) {
+            if (this.keydownListener) {
+                this.input.removeEventListener('keydown', this.keydownListener);
+            }
+            if (this.inputListener) {
+                this.input.removeEventListener('input', this.inputListener);
+            }
+        }
         this.input = null;
+        this.keydownListener = null;
+        this.inputListener = null;
         this.history = [];
         this.resetPosition();
         this.logger.debug('HistoryNavigator detached');

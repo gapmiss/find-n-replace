@@ -1,5 +1,4 @@
 import { FindReplaceElements } from '../../types';
-import { SearchResult } from '../../types/search';
 import { Logger } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
 
@@ -205,101 +204,6 @@ export class SelectionManager {
 
         // Menu items are dynamically enabled/disabled when menu is created (button references removed)
     }
-
-    /**
-     * Handles keyboard shortcuts for selection
-     * Processes Ctrl/Cmd+A (select all) and Escape (clear selection) keyboard shortcuts.
-     *
-     * @param {KeyboardEvent} event - The keyboard event to process
-     * @returns {boolean} True if the event was handled and should be prevented, false otherwise
-     *
-     * @remarks
-     * **Supported Shortcuts:**
-     * - Ctrl/Cmd+A: Select all results (always handled)
-     * - Escape: Clear selection (only handled if selections exist)
-     *
-     * **Event Handling:**
-     * - Prevents default browser behavior when shortcuts are triggered
-     * - Returns true to indicate event was consumed
-     * - Returns false to allow event bubbling for unhandled keys
-     */
-    handleKeyboardShortcut(event: KeyboardEvent): boolean {
-        // Ctrl/Cmd + A: Select all
-        if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
-            event.preventDefault();
-            this.selectAll();
-            return true;
-        }
-
-        // Escape: Clear selection
-        if (event.key === 'Escape') {
-            if (this.hasSelection()) {
-                event.preventDefault();
-                this.clearSelection();
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Gets indices of selected results within a specific file
-     * Filters selected indices to return only those belonging to the specified file.
-     *
-     * @param {string} filePath - Path of the file to filter by
-     * @param {SearchResult[]} allResults - All search results for index-to-file mapping
-     * @returns {number[]} Array of selected indices for the specified file
-     *
-     * @remarks
-     * Used for file-specific operations like "Replace all in file" with selections.
-     */
-    getSelectedIndicesForFile(filePath: string, allResults: SearchResult[]): number[] {
-        return Array.from(this.selectedIndices).filter(idx => {
-            const result = allResults[idx];
-            return result?.file?.path === filePath;
-        });
-    }
-
-    /**
-     * Selects all results for a specific file
-     * Adds all result indices belonging to the specified file to the selection.
-     *
-     * @param {string} filePath - Path of the file
-     * @param {SearchResult[]} allResults - All search results for index-to-file mapping
-     *
-     * @remarks
-     * Useful for bulk operations on a single file's results.
-     * Preserves existing selections for other files.
-     */
-    selectAllInFile(filePath: string, allResults: SearchResult[]): void {
-        allResults.forEach((result, idx) => {
-            if (result.file.path === filePath) {
-                this.selectedIndices.add(idx);
-            }
-        });
-        this.updateSelectionUI();
-    }
-
-    /**
-     * Deselects all results for a specific file
-     * Removes all result indices belonging to the specified file from the selection.
-     *
-     * @param {string} filePath - Path of the file
-     * @param {SearchResult[]} allResults - All search results for index-to-file mapping
-     *
-     * @remarks
-     * Opposite of selectAllInFile(). Preserves selections for other files.
-     */
-    deselectAllInFile(filePath: string, allResults: SearchResult[]): void {
-        allResults.forEach((result, idx) => {
-            if (result.file.path === filePath) {
-                this.selectedIndices.delete(idx);
-            }
-        });
-        this.updateSelectionUI();
-    }
-
 
     /**
      * Adjusts selection indices when results are removed from the array

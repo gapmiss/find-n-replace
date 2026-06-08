@@ -221,7 +221,6 @@ export class FindReplaceView extends ItemView {
         // Set up all event handlers using ActionHandler
         this.actionHandler.setupEventHandlers();
         this.actionHandler.setupKeyboardShortcuts();
-        this.actionHandler.setSearchingState(this.searchController.getSearchingState());
 
         // Set up result click handling (not handled by ActionHandler)
         this.setupResultClickHandlers();
@@ -259,13 +258,6 @@ export class FindReplaceView extends ItemView {
 
         // Satisfy async requirement (ItemView.onClose must return Promise<void>)
         return Promise.resolve();
-    }
-
-    /**
-     * Called when plugin settings change - no longer needed as filters are session-only
-     */
-    onSettingsChanged(): void {
-        // No action needed - filters are now session-only and don't sync with settings
     }
 
     /**
@@ -547,58 +539,6 @@ export class FindReplaceView extends ItemView {
     private async confirmReplaceEmpty(message: string): Promise<boolean> {
         const modal = new ConfirmModal(this.app, message);
         return modal.openAndConfirm();
-    }
-
-    /**
-     * Creates a checkbox option with label and proper event handling
-     * @param parent - Parent element to attach the option to
-     * @param label - Display text for the option
-     * @param id - Unique identifier for this option
-     * @returns The container element for this option
-     */
-    private createOption(parent: HTMLElement, label: string, id: string): HTMLElement {
-        const toggleContainer = parent.createDiv('toggle-container');
-
-        // Create label element
-        toggleContainer.createEl(
-            'label',
-            {
-                text: `${label}:`,
-                attr: {
-                    'for': `toggle-${id}-checkbox`
-                }
-            }
-        );
-
-        // Create container for the checkbox
-        const checkboxContainer = toggleContainer.createDiv('checkbox-container');
-
-        // Create the actual checkbox input
-        const checkbox = checkboxContainer.createEl(
-            'input',
-            {
-                cls: 'toggle-checkbox',
-                attr: {
-                    type: 'checkbox',
-                    id: `toggle-${id}-checkbox`
-                }
-            }
-        );
-
-        // Handle clicking on the container
-        checkboxContainer.addEventListener('click', () => {
-            const isEnabled = checkboxContainer.classList.toggle('is-enabled');
-            checkbox.checked = isEnabled;
-            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-        });
-
-        // Handle checkbox changes
-        checkbox.addEventListener('change', () => {
-            const isEnabled = checkbox.checked;
-            checkboxContainer.classList.toggle('is-enabled', isEnabled);
-        });
-
-        return toggleContainer;
     }
 
     // Search-related methods have been moved to SearchController

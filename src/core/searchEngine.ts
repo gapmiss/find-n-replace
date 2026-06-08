@@ -645,7 +645,6 @@ export class SearchEngine {
         return true;
     }
 
-
     /**
      * Cleanup method for when the engine is no longer needed
      * Clears all cached data and references
