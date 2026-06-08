@@ -1,7 +1,7 @@
 import { setIcon } from 'obsidian';
 import { SearchResult, FindReplaceElements } from '../../types';
 import { SearchEngine } from '../../core';
-import { Logger, CONTEXT_AFTER_MATCH, CONTEXT_BEFORE_MATCH } from '../../utils';
+import { Logger, CONTEXT_AFTER_MATCH, CONTEXT_BEFORE_MATCH, expandReplacement } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
 
 /**
@@ -681,27 +681,13 @@ export class UIRenderer {
 
     /**
      * Expands a replacement string with regex capture groups
+     * Delegates to shared expandReplacement utility for consistency with actual replacement
      * @param replaceText - The replacement pattern (e.g., "🚧🚧$1🚧🚧")
      * @param match - The regex match result containing capture groups
      * @returns The expanded replacement string
      */
     private expandReplacementString(replaceText: string, match: RegExpExecArray): string {
-        let result = replaceText;
-
-        // Replace $& with the full match
-        result = result.replace(/\$&/g, match[0]);
-
-        // Replace $n with capture groups (where n is 1-99)
-        for (let i = 1; i < match.length; i++) {
-            const captureGroup = match[i] || ''; // Use empty string if capture group is undefined
-            const regex = new RegExp(`\\$${i}`, 'g');
-            result = result.replace(regex, captureGroup);
-        }
-
-        // Replace $$ with literal $
-        result = result.replace(/\$\$/g, '$');
-
-        return result;
+        return expandReplacement(replaceText, match);
     }
 
     /**

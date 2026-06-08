@@ -107,6 +107,16 @@ export class MockVault {
         this.files.set(file.path, data);
     }
 
+    async process(file: TFile, fn: (content: string) => string): Promise<string> {
+        const content = this.files.get(file.path);
+        if (content === undefined) {
+            throw new Error(`File not found: ${file.path}`);
+        }
+        const newContent = fn(content);
+        this.files.set(file.path, newContent);
+        return newContent;
+    }
+
     getMarkdownFiles(): TFile[] {
         return Array.from(this.mockFiles.values())
             .filter(file => file.path.endsWith('.md'));

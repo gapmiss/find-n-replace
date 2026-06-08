@@ -915,6 +915,7 @@ export class SearchToolbar {
                 }
 
                 // Trigger auto-search when toggle state changes (if search query exists)
+                // Note: searchController.performSearch() clears the cache automatically
                 if (searchInput) {
                     const searchQuery = searchInput.value.trim();
                     if (searchQuery.length > 0) {

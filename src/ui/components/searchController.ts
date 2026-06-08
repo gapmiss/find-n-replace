@@ -21,6 +21,7 @@ export class SearchController {
     // Search state management
     private currentSearchController: AbortController | null = null;
     private isSearching: boolean = false;
+    private searchSeq = 0; // Monotonic counter to detect stale searches
 
     constructor(
         plugin: VaultFindReplacePlugin,
@@ -163,39 +164,44 @@ export class SearchController {
      * @throws Will log errors and show user notification on search failure
      */
     async performSearch(): Promise<void> {
-        const callId = Date.now().toString();
-        this.logger.debug(`[${callId}] ===== SEARCH START =====`);
+        const searchId = Date.now().toString();
+        this.logger.debug(`[${searchId}] ===== SEARCH START =====`);
 
-        // FORCE CANCEL ANY RUNNING SEARCH IMMEDIATELY
-        if (this.currentSearchController) {
-            this.logger.debug(`[${callId}] FORCE CANCELLING previous search controller`);
-            this.currentSearchController.abort();
-        }
+        // Cancel any running search and create new controller
+        this.currentSearchController?.abort();
+        const controller = new AbortController();
+        this.currentSearchController = controller;
 
-        // Create new controller for this search
-        this.currentSearchController = new AbortController();
+        // Increment sequence - captures "this search's identity"
+        const mySeq = ++this.searchSeq;
 
-        // FORCE CLEAR SearchEngine cache to prevent stale state
+        // Helper to check if this search has been superseded
+        const isStale = () => controller.signal.aborted || mySeq !== this.searchSeq;
+
+        // Clear SearchEngine cache to prevent stale state
         this.searchEngine.clearCache();
-        this.logger.debug(`[${callId}] Cleared SearchEngine cache`);
+        this.logger.debug(`[${searchId}] Cleared SearchEngine cache, seq=${mySeq}`);
 
-        // WAIT for any previous search to fully complete before starting new one
+        // Wait for any previous search to fully complete
         if (this.isSearching) {
-            this.logger.debug(`[${callId}] Concurrent search detected, waiting for completion...`);
+            this.logger.debug(`[${searchId}] Concurrent search detected, waiting for completion...`);
             let waitCount = 0;
             while (this.isSearching && waitCount < 100) { // Max 1000ms wait
                 await sleep(10);
                 waitCount++;
             }
             if (this.isSearching) {
-                this.logger.warn(`[${callId}] Previous search failed to complete within timeout, force resetting`);
+                this.logger.warn(`[${searchId}] Previous search failed to complete within timeout, force resetting`);
                 this.isSearching = false;
             }
         }
 
-        // NOW we can safely start the new search
-        this.currentSearchController = new AbortController();
-        const searchId = callId;
+        // Check if we were superseded while waiting
+        if (isStale()) {
+            this.logger.debug(`[${searchId}] Search superseded while waiting, aborting`);
+            return;
+        }
+
         const timerName = `performSearch-${searchId}`;
         this.isSearching = true;
 
@@ -207,7 +213,6 @@ export class SearchController {
             this.logger.debug(`[${searchId}] Query: "${query}"`);
 
             // Read search options ONCE at the start and FREEZE them for entire search
-            // This PREVENTS race conditions from option changes during search
             const searchOptions = this.readSearchOptionsOnce();
             this.logger.debug(`[${searchId}] Search options FROZEN:`, searchOptions);
 
@@ -218,13 +223,13 @@ export class SearchController {
                 return;
             }
 
-            // Check if search was cancelled
-            if (this.currentSearchController?.signal.aborted) {
-                this.logger.debug(`[${searchId}] Search cancelled before starting`);
+            // Check if search was superseded
+            if (isStale()) {
+                this.logger.debug(`[${searchId}] Search superseded before starting`);
                 return;
             }
 
-            // Validate regex if regex mode is enabled (ONLY validation here, not in SearchEngine)
+            // Validate regex if regex mode is enabled
             if (searchOptions.useRegex) {
                 try {
                     new RegExp(query.trim());
@@ -235,22 +240,21 @@ export class SearchController {
                 }
             }
 
-            // Check if search was cancelled before performing search
-            if (this.currentSearchController?.signal.aborted) {
-                this.logger.debug(`[${searchId}] Search cancelled before execution`);
+            // Check if search was superseded before performing search
+            if (isStale()) {
+                this.logger.debug(`[${searchId}] Search superseded before execution`);
                 return;
             }
 
             this.logger.debug(`[${searchId}] Starting SearchEngine.performSearch`);
-            // Get session filters for this search
             const sessionFilters = this.getSessionFiltersCallback();
-            // Perform the actual search with session filters
             const results = await this.searchEngine.performSearch(query, searchOptions, sessionFilters);
             this.logger.debug(`[${searchId}] SearchEngine.performSearch completed: ${results.length} results`);
 
-            // Check if search was cancelled after completion
-            if (this.currentSearchController?.signal.aborted) {
-                this.logger.debug(`[${searchId}] Search cancelled after completion, not updating UI`);
+            // CRITICAL: Check if search was superseded after completion
+            // This prevents stale results from rendering
+            if (isStale()) {
+                this.logger.debug(`[${searchId}] Search superseded after completion, discarding results`);
                 return;
             }
 
@@ -269,7 +273,7 @@ export class SearchController {
 
             // Update state and render results using FROZEN search options
             this.state.results = finalResults;
-            this.state.totalResults = results.length; // Store total for UI feedback
+            this.state.totalResults = results.length;
             this.state.isLimited = isLimited;
             this.renderResultsCallback(searchOptions);
 
@@ -279,20 +283,16 @@ export class SearchController {
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {
                 this.logger.warn(`[${searchId}] Search was CANCELLED (AbortError)`);
-                // Notify user when search is cancelled (helpful for long-running searches)
                 this.logger.error('Search cancelled. Starting new search...', undefined, true);
             } else if (error instanceof Error && error.message.includes('timeout')) {
                 this.logger.error(`[${searchId}] Search TIMEOUT`, error);
-                // Show user-friendly timeout message
                 this.logger.error('Search timed out. Try simplifying your search pattern or using filters to narrow the scope.', undefined, true);
             } else {
                 this.logger.error(`[${searchId}] Search operation FAILED`, error, true);
             }
-            // Safe timeEnd - only call if timer exists
             try {
                 this.logger.timeEnd(timerName);
             } catch {
-                // Timer may not exist if error occurred early
                 this.logger.debug('Timer cleanup failed (expected in some cases)');
             }
         } finally {

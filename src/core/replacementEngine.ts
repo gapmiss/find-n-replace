@@ -1,7 +1,7 @@
 import { App, Notice, TFile } from 'obsidian';
 import { SearchResult, SearchOptions, ReplacementMode, ReplacementTarget, ReplacementResult, AffectedResults } from '../types';
 import { SearchEngine } from './searchEngine';
-import { Logger } from '../utils';
+import { Logger, expandReplacement } from '../utils';
 import VaultFindReplacePlugin from '../main';
 
 /**
@@ -186,193 +186,217 @@ export class ReplacementEngine {
         replaceAllInFile: boolean = false
     ): Promise<void> {
         try {
-            let content = await this.app.vault.read(file);
-
-            const regex = this.searchEngine.buildSearchRegex(matches[0]?.pattern || '', searchOptions);
-
-            // Handle multiline replacements differently
-            if (searchOptions.multiline === true && searchOptions.useRegex) {
-                // For multiline, work on entire content instead of line-by-line
-                if (replaceAllInFile) {
-                    // Replace all matches in entire content
-                    content = content.replace(regex, (match, ...rest: (string | number)[]) => {
-                        const offset = rest[rest.length - 2] as number;
-                        const input = rest[rest.length - 1] as string;
-                        const groups = rest.slice(0, -2) as string[];
-
-                        // Reconstruct RegExpExecArray-like object
-                        interface RegExpExecArrayLike extends Array<string> {
-                            index: number;
-                            input: string;
-                        }
-                        const execArray = [match, ...groups] as RegExpExecArrayLike;
-                        execArray.index = offset;
-                        execArray.input = input;
-
-                        return this.expandReplacement(execArray as RegExpExecArray, replaceText, input, searchOptions);
-                    });
-                } else {
-                    // Replace only specific matches - sort by position to maintain order
-                    const sortedMatches = [...matches].sort((a, b) => {
-                        const aPos = this.getCharacterPosition(content, a.line, a.col || 0);
-                        const bPos = this.getCharacterPosition(content, b.line, b.col || 0);
-                        return bPos - aPos; // Reverse order for safe replacement
-                    });
-
-                    // Replace in reverse order to maintain positions
-                    for (const match of sortedMatches) {
-                        const charPos = this.getCharacterPosition(content, match.line, match.col || 0);
-
-                        // Find the actual match at this position
-                        regex.lastIndex = 0;
-                        let regexMatch: RegExpExecArray | null;
-                        while ((regexMatch = regex.exec(content)) !== null) {
-                            if (regexMatch.index === charPos && regexMatch[0] === match.matchText) {
-                                const replacement = this.expandReplacement(regexMatch, replaceText, content, searchOptions);
-                                content = content.slice(0, regexMatch.index) + replacement + content.slice(regexMatch.index + regexMatch[0].length);
-                                break;
-                            }
-                            if (regexMatch[0].length === 0) {
-                                regex.lastIndex++;
-                                if (regex.lastIndex >= content.length) break;
-                            }
-                        }
-                    }
-                }
-
-                // Write back the modified content
-                await this.app.vault.modify(file, content);
-                return;
-            }
-
-            // Original line-by-line processing for non-multiline
-            const lines = content.split('\n');
-
-        if (replaceAllInFile) {
-            // Replace all matches in the file (once per unique line to prevent repeated replacements)
-            const uniqueLines = Array.from(new Set(matches.map(m => m.line)));
-            for (const lineNum of uniqueLines) {
-                const lineText = lines[lineNum] ?? '';
-                lines[lineNum] = lineText.replace(regex, (match, ...rest: (string | number)[]) => {
-                    // Extract capture groups and match info from regex replace callback
-                    // rest = [group1, group2, ..., offset, input]
-                    const offset = rest[rest.length - 2] as number;
-                    const input = rest[rest.length - 1] as string;
-                    const groups = rest.slice(0, -2) as string[];
-
-                    // Reconstruct a RegExpExecArray-like object for replacement expansion
-                    interface RegExpExecArrayLike extends Array<string> {
-                        index: number;
-                        input: string;
-                    }
-                    const execArray = [match, ...groups] as RegExpExecArrayLike;
-                    execArray.index = offset;
-                    execArray.input = input;
-
-                    return this.expandReplacement(execArray as RegExpExecArray, replaceText, input, searchOptions);
-                });
-            }
-        } else {
-            // Replace only the specified matches (use reverse-sorted order to keep indices valid)
-            matches.sort((a, b) =>
-                a.line === b.line ? (b.col || 0) - (a.col || 0) : b.line - a.line
-            );
-
-            // Process matches in reverse order so string indices remain valid
-            for (const res of matches) {
-                const lineText = lines[res.line] ?? '';
-                let matchArr: RegExpExecArray | null;
-                regex.lastIndex = 0; // Reset regex state
-
-                // Find the specific match at the expected position
-                // Protection against infinite loops and runaway regex patterns
-                const startTime = Date.now();
-                const REGEX_TIMEOUT_MS = 5000; // 5 second timeout for complex patterns
-
-                let foundMatch = false;
-                while ((matchArr = regex.exec(lineText)) !== null) {
-                    // SECURITY: Check for timeout to prevent runaway regex (ReDoS protection)
-                    if (Date.now() - startTime > REGEX_TIMEOUT_MS) {
-                        const userMessage = `Regex pattern timed out in file "${file.path}". Try simplifying your search pattern.`;
-                        this.logger.error(userMessage, undefined, true);
-                        throw new Error(`Regex execution timeout after ${REGEX_TIMEOUT_MS}ms. Pattern may be too complex or unsafe.`);
-                    }
-
-                    if (matchArr.index === res.col) {
-                        // Found the exact match - perform replacement
-                        const replacement = this.expandReplacement(matchArr, replaceText, lineText, searchOptions);
-                        lines[res.line] =
-                            lineText.slice(0, matchArr.index) +
-                            replacement +
-                            lineText.slice(matchArr.index + matchArr[0].length);
-                        foundMatch = true;
-                        break;
-                    }
-
-                    // CRITICAL: Prevent infinite loops with zero-length matches
-                    // Examples: /(?=x)/, /\b/, /^/, /$/, /(?!x)/, etc.
-                    // Without this, regex.exec() will match at the same position forever
-                    if (matchArr[0].length === 0) {
-                        regex.lastIndex++;
-                        // Safety check: don't go past the end of the string
-                        if (regex.lastIndex >= lineText.length) {
-                            break;
-                        }
-                    }
-                }
-
-                // If we didn't find the match at the expected position, this could indicate a logic error
-                if (!foundMatch) {
-                    this.logger.warn(`Could not find match at expected position - line ${res.line}, col ${res.col}, text: "${res.matchText}"`);
-                }
-            }
-        }
-
-            // Write the modified content back to the file
-            await this.app.vault.modify(file, lines.join('\n'));
+            // Use vault.process() for atomic read-modify-write (Obsidian Rule #19)
+            // Prevents data loss if file changes between read and write
+            await this.app.vault.process(file, (content) => {
+                return this.transformContent(content, matches, replaceText, searchOptions, replaceAllInFile, file.path);
+            });
         } catch (error) {
-            // Handle file operation errors gracefully
             this.logger.error(`Failed to replace content in file ${file.path}:`, error);
             throw new Error(`Replacement failed for file "${file.path}": ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 
     /**
+     * Pure transformation function for file content replacement
+     * @param content - Original file content
+     * @param matches - Array of SearchResult objects to replace
+     * @param replaceText - The replacement text
+     * @param searchOptions - Current search options
+     * @param replaceAllInFile - If true, replaces all matches; if false, only specified matches
+     * @param filePath - File path for logging
+     * @returns Modified content
+     */
+    private transformContent(
+        content: string,
+        matches: SearchResult[],
+        replaceText: string,
+        searchOptions: SearchOptions,
+        replaceAllInFile: boolean,
+        filePath: string
+    ): string {
+        const regex = this.searchEngine.buildSearchRegex(matches[0]?.pattern || '', searchOptions);
+
+        // Handle multiline replacements differently
+        if (searchOptions.multiline === true && searchOptions.useRegex) {
+            return this.transformMultilineContent(content, matches, replaceText, searchOptions, replaceAllInFile, regex);
+        }
+
+        // Line-by-line processing for non-multiline
+        const lines = content.split('\n');
+
+        if (replaceAllInFile) {
+            this.replaceAllInLines(lines, matches, replaceText, searchOptions, regex);
+        } else {
+            this.replaceSpecificMatches(lines, matches, replaceText, searchOptions, regex, filePath);
+        }
+
+        return lines.join('\n');
+    }
+
+    /**
+     * Handles multiline content transformation
+     */
+    private transformMultilineContent(
+        content: string,
+        matches: SearchResult[],
+        replaceText: string,
+        searchOptions: SearchOptions,
+        replaceAllInFile: boolean,
+        regex: RegExp
+    ): string {
+        if (replaceAllInFile) {
+            // Replace all matches in entire content
+            return content.replace(regex, (match, ...rest: (string | number)[]) => {
+                const offset = rest[rest.length - 2] as number;
+                const input = rest[rest.length - 1] as string;
+                const groups = rest.slice(0, -2) as string[];
+
+                interface RegExpExecArrayLike extends Array<string> {
+                    index: number;
+                    input: string;
+                }
+                const execArray = [match, ...groups] as RegExpExecArrayLike;
+                execArray.index = offset;
+                execArray.input = input;
+
+                return this.expandReplacement(execArray as RegExpExecArray, replaceText, input, searchOptions);
+            });
+        }
+
+        // Replace only specific matches - sort by position (reverse order for safe replacement)
+        const sortedMatches = [...matches].sort((a, b) => {
+            const aPos = this.getCharacterPosition(content, a.line, a.col || 0);
+            const bPos = this.getCharacterPosition(content, b.line, b.col || 0);
+            return bPos - aPos;
+        });
+
+        let result = content;
+        for (const match of sortedMatches) {
+            const charPos = this.getCharacterPosition(result, match.line, match.col || 0);
+
+            regex.lastIndex = 0;
+            let regexMatch: RegExpExecArray | null;
+            while ((regexMatch = regex.exec(result)) !== null) {
+                if (regexMatch.index === charPos && regexMatch[0] === match.matchText) {
+                    const replacement = this.expandReplacement(regexMatch, replaceText, result, searchOptions);
+                    result = result.slice(0, regexMatch.index) + replacement + result.slice(regexMatch.index + regexMatch[0].length);
+                    break;
+                }
+                if (regexMatch[0].length === 0) {
+                    regex.lastIndex++;
+                    if (regex.lastIndex >= result.length) break;
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Replaces all matches in the specified lines
+     */
+    private replaceAllInLines(
+        lines: string[],
+        matches: SearchResult[],
+        replaceText: string,
+        searchOptions: SearchOptions,
+        regex: RegExp
+    ): void {
+        const uniqueLines = Array.from(new Set(matches.map(m => m.line)));
+        for (const lineNum of uniqueLines) {
+            const lineText = lines[lineNum] ?? '';
+            lines[lineNum] = lineText.replace(regex, (match, ...rest: (string | number)[]) => {
+                const offset = rest[rest.length - 2] as number;
+                const input = rest[rest.length - 1] as string;
+                const groups = rest.slice(0, -2) as string[];
+
+                interface RegExpExecArrayLike extends Array<string> {
+                    index: number;
+                    input: string;
+                }
+                const execArray = [match, ...groups] as RegExpExecArrayLike;
+                execArray.index = offset;
+                execArray.input = input;
+
+                return this.expandReplacement(execArray as RegExpExecArray, replaceText, input, searchOptions);
+            });
+        }
+    }
+
+    /**
+     * Replaces only specific matches at exact positions
+     */
+    private replaceSpecificMatches(
+        lines: string[],
+        matches: SearchResult[],
+        replaceText: string,
+        searchOptions: SearchOptions,
+        regex: RegExp,
+        filePath: string
+    ): void {
+        // Sort in reverse order to keep indices valid
+        matches.sort((a, b) =>
+            a.line === b.line ? (b.col || 0) - (a.col || 0) : b.line - a.line
+        );
+
+        for (const res of matches) {
+            const lineText = lines[res.line] ?? '';
+            let matchArr: RegExpExecArray | null;
+            regex.lastIndex = 0;
+
+            const startTime = Date.now();
+            const REGEX_TIMEOUT_MS = 5000;
+
+            let foundMatch = false;
+            while ((matchArr = regex.exec(lineText)) !== null) {
+                if (Date.now() - startTime > REGEX_TIMEOUT_MS) {
+                    this.logger.error(`Regex pattern timed out in file "${filePath}". Try simplifying your search pattern.`, undefined, true);
+                    throw new Error(`Regex execution timeout after ${REGEX_TIMEOUT_MS}ms. Pattern may be too complex or unsafe.`);
+                }
+
+                if (matchArr.index === res.col && matchArr[0] === res.matchText) {
+                    // Position AND content match - safe to replace
+                    const replacement = this.expandReplacement(matchArr, replaceText, lineText, searchOptions);
+                    lines[res.line] =
+                        lineText.slice(0, matchArr.index) +
+                        replacement +
+                        lineText.slice(matchArr.index + matchArr[0].length);
+                    foundMatch = true;
+                    break;
+                }
+
+                if (matchArr[0].length === 0) {
+                    regex.lastIndex++;
+                    if (regex.lastIndex >= lineText.length) break;
+                }
+            }
+
+            if (!foundMatch) {
+                this.logger.warn(`Could not find match at expected position - line ${res.line}, col ${res.col}, text: "${res.matchText}"`);
+            }
+        }
+    }
+
+    /**
      * Expands replacement text with special tokens like $1, $&, etc.
-     * Handles regex capture groups and special replacement sequences
+     * Delegates to shared expandReplacement utility for consistency with preview
      * @param matchArr - The RegExp match result with capture groups
      * @param replacement - The replacement text template
-     * @param input - The original input string
+     * @param _input - The original input string (unused, match.input is used instead)
      * @param searchOptions - Current search options
      * @returns The final replacement string
      */
     expandReplacement(
         matchArr: RegExpExecArray,
         replacement: string,
-        input: string,
+        _input: string,
         searchOptions: SearchOptions
     ): string {
-        // Handle replacement tokens like $1, $&, $$, $` and $' and escaped \n/\t.
-        // If regex mode is OFF, return the replacement text literally (no special processing).
-        if (!searchOptions.useRegex) return replacement; // No expansion in non-regex mode
+        // No expansion in non-regex mode - return replacement text literally
+        if (!searchOptions.useRegex) return replacement;
 
-        const offset = matchArr.index ?? 0;
-        let out = replacement;
-
-        // Replace numbered capture groups: $1, $2, $3, etc.
-        out = out.replace(/\$(\d+)/g, (_, n) => matchArr[Number(n)] ?? '');
-
-        // Replace special regex tokens
-        out = out
-            .replace(/\$\$/g, '$')           // $$ -> literal $
-            .replace(/\$&/g, matchArr[0])    // $& -> entire match
-            .replace(/\$`/g, input.slice(0, offset))                       // $` -> text before match
-            .replace(/\$'/g, input.slice(offset + (matchArr[0]?.length ?? 0))); // $' -> text after match
-
-        // Handle escaped whitespace characters
-        out = out.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
-
-        return out;
+        // Delegate to shared utility for consistency between preview and actual replacement
+        return expandReplacement(replacement, matchArr);
     }
 
     /**

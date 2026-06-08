@@ -8,8 +8,9 @@ export interface ConfirmModalOptions {
 
 export class ConfirmModal extends Modal {
     result: boolean = false;
-    isOpen: boolean = false; // track open state
+    isOpen: boolean = false;
     private options: ConfirmModalOptions;
+    private resolvePromise: ((value: boolean) => void) | null = null;
 
     constructor(app: App, private message: string, options?: ConfirmModalOptions) {
         super(app);
@@ -18,6 +19,17 @@ export class ConfirmModal extends Modal {
             confirmClass: options?.confirmClass || 'mod-cta',
             cancelText: options?.cancelText || 'Cancel'
         };
+    }
+
+    /**
+     * Opens the modal and returns a Promise that resolves with the user's choice
+     * Replaces the spin-wait polling pattern
+     */
+    openAndConfirm(): Promise<boolean> {
+        return new Promise((resolve) => {
+            this.resolvePromise = resolve;
+            this.open();
+        });
     }
 
     onOpen() {
@@ -50,5 +62,10 @@ export class ConfirmModal extends Modal {
     onClose() {
         this.isOpen = false;
         this.contentEl.empty();
+        // Resolve the promise when modal closes
+        if (this.resolvePromise) {
+            this.resolvePromise(this.result);
+            this.resolvePromise = null;
+        }
     }
 }

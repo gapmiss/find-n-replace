@@ -6,7 +6,7 @@ import { SearchEngine, ReplacementEngine, FileOperations } from '../../core';
 import { UIRenderer, SelectionManager, SearchController } from '../components';
 import { SearchToolbar } from '../components/searchToolbar';
 import { ActionHandler } from '../components/actionHandler';
-import { Logger, MODAL_POLL_INTERVAL, FOCUS_DELAY, sleep } from '../../utils';
+import { Logger, FOCUS_DELAY } from '../../utils';
 
 // Define the unique identifier for this view type - used by Obsidian to track and manage this view
 export const VIEW_TYPE_FIND_REPLACE = 'find-replace-view';
@@ -186,7 +186,10 @@ export class FindReplaceView extends ItemView {
             this.searchEngine,
             this.replacementEngine,
             () => this.searchController.performSearch(),
-            (preserveSelection: boolean = false) => this.renderResults(preserveSelection)
+            (preserveSelection: boolean = false) => {
+                const searchOptions = this.searchController.getSearchOptions();
+                this.renderResultsWithOptions(searchOptions, preserveSelection);
+            }
         );
 
         // Update SearchToolbar callbacks now that ActionHandler is available
@@ -198,7 +201,8 @@ export class FindReplaceView extends ItemView {
         // Set up state callbacks for ActionHandler
         this.actionHandler.setStateCallbacks(
             () => this.state.results,
-            () => this.selectionManager.getSelectedIndices()
+            () => this.selectionManager.getSelectedIndices(),
+            () => this.searchToolbar.getSessionFilters()
         );
 
         // Set up expand/collapse callback for ActionHandler
@@ -295,31 +299,15 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
-     * Renders search results using FROZEN search options (no race conditions)
-     */
-    private renderResultsWithOptions(searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean }): void {
-        const replaceText = this.elements.replaceInput.value;
-        const lineElements = this.uiRenderer.renderResults(
-            this.state.results,
-            replaceText,
-            searchOptions,
-            this.state.totalResults,
-            this.state.isLimited
-        );
-
-        // Update state and set up selection
-        this.state.lineElements = lineElements;
-        this.selectionManager.setupSelection(lineElements);
-    }
-
-    /**
-     * DEPRECATED: Use renderResultsWithOptions() to avoid race conditions
-     * This method reads search options which can cause inconsistency during search
+     * Renders search results with provided search options
+     * @param searchOptions - The search options to use for rendering
      * @param preserveSelection - Whether to preserve existing selections (default: false)
      */
-    private renderResults(preserveSelection: boolean = false): void {
+    private renderResultsWithOptions(
+        searchOptions: { matchCase: boolean; wholeWord: boolean; useRegex: boolean },
+        preserveSelection: boolean = false
+    ): void {
         const replaceText = this.elements.replaceInput.value;
-        const searchOptions = this.searchController.getSearchOptions(); // WARNING: Race condition risk!
         const lineElements = this.uiRenderer.renderResults(
             this.state.results,
             replaceText,
@@ -558,14 +546,7 @@ export class FindReplaceView extends ItemView {
      */
     private async confirmReplaceEmpty(message: string): Promise<boolean> {
         const modal = new ConfirmModal(this.app, message);
-        modal.open();
-
-        // Wait for the modal to close using async/await polling
-        while (modal.isOpen) {
-            await sleep(MODAL_POLL_INTERVAL);
-        }
-
-        return modal.result;
+        return modal.openAndConfirm();
     }
 
     /**

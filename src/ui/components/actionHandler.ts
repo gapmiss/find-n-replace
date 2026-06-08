@@ -1,7 +1,6 @@
-import { debounce } from 'obsidian';
-import { Logger, MODAL_POLL_INTERVAL, sleep } from '../../utils';
+import { Logger } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
-import { FindReplaceElements, SearchOptions, SearchResult } from '../../types';
+import { FindReplaceElements, SearchOptions, SearchResult, SessionFilters } from '../../types';
 import { SearchEngine, ReplacementEngine } from '../../core';
 import { ConfirmModal } from '../../modals';
 
@@ -20,6 +19,7 @@ export class ActionHandler {
     private isSearching: boolean = false;
     private getResultsCallback?: () => SearchResult[];
     private getSelectedIndicesCallback?: () => Set<number>;
+    private getSessionFiltersCallback?: () => SessionFilters;
     private toggleExpandCollapseCallback?: () => void;
 
     // Store keyboard event handlers for proper cleanup
@@ -68,7 +68,8 @@ export class ActionHandler {
 
     /**
      * Sets up all event handlers for the UI
-     * Initializes event listeners for replace input, toggle buttons, clear button, and expand/collapse.
+     * Initializes event listeners for replace input, clear button, and expand/collapse.
+     * Note: Toggle handlers are managed by SearchToolbar to avoid double-firing searches.
      *
      * @remarks
      * This method must be called during view initialization to enable user interactions.
@@ -76,7 +77,6 @@ export class ActionHandler {
      */
     setupEventHandlers(): void {
         this.setupReplaceInputHandler();
-        this.setupToggleHandlers();
         this.setupClearButtonHandler();
         this.setupExpandCollapseHandler();
     }
@@ -97,16 +97,19 @@ export class ActionHandler {
      *
      * @param {function} getResultsCallback - Function that returns current search results array
      * @param {function} getSelectedIndicesCallback - Function that returns Set of selected result indices
+     * @param {function} getSessionFiltersCallback - Function that returns current session filters
      *
      * @remarks
      * Must be called before any replace operations to ensure state access is available.
      */
     setStateCallbacks(
         getResultsCallback: () => SearchResult[],
-        getSelectedIndicesCallback: () => Set<number>
+        getSelectedIndicesCallback: () => Set<number>,
+        getSessionFiltersCallback: () => SessionFilters
     ): void {
         this.getResultsCallback = getResultsCallback;
         this.getSelectedIndicesCallback = getSelectedIndicesCallback;
+        this.getSessionFiltersCallback = getSessionFiltersCallback;
     }
 
     /**
@@ -126,47 +129,6 @@ export class ActionHandler {
     private setupReplaceInputHandler(): void {
         this.elements.replaceInput.addEventListener('input', () => {
             this.renderResultsCallback(true); // Preserve selections for replace text changes
-        });
-    }
-
-    /**
-     * Sets up toggle button handlers with debouncing
-     */
-    private setupToggleHandlers(): void {
-        const toggleButtons = [
-            this.elements.matchCaseCheckbox,
-            this.elements.wholeWordCheckbox,
-            this.elements.regexCheckbox
-        ];
-
-        toggleButtons.forEach(toggleBtn => {
-            if (toggleBtn) {
-                const toggleName = toggleBtn.getAttribute('aria-label') || 'unknown';
-                const debouncedToggleSearch = debounce(() => {
-                    const query = this.elements.searchInput.value.trim();
-                    this.logger.debug(`[Toggle:${toggleName}] Click triggered for query: "${query}"`);
-
-                    // Check if search is already in progress
-                    if (this.isSearching) {
-                        this.logger.warn(`[Toggle:${toggleName}] Search in progress, option change may cause inconsistency`);
-                    }
-
-                    // Clear SearchEngine cache when options change to prevent stale regex
-                    this.searchEngine.clearCache();
-                    this.logger.debug(`[Toggle:${toggleName}] Cleared SearchEngine cache due to option change`);
-
-                    // Only re-search if there's an active query
-                    if (query.length > 0) {
-                        this.logger.debug(`[Toggle:${toggleName}] Calling performSearch for: "${query}"`);
-                        void this.performSearchCallback();
-                    } else {
-                        this.logger.debug(`[Toggle:${toggleName}] No query, skipping search`);
-                    }
-                }, this.plugin.settings.searchDebounceDelay);
-
-                this.logger.debug(`[Toggle:${toggleName}] Setting up click listener with debounce: ${this.plugin.settings.searchDebounceDelay}ms`);
-                toggleBtn.addEventListener('click', debouncedToggleSearch);
-            }
         });
     }
 
@@ -357,31 +319,48 @@ export class ActionHandler {
             return;
         }
 
-        // Show confirmation modal for replace all operation (if enabled in settings)
-        if (this.plugin.settings.confirmDestructiveActions) {
-            const confirmResult = await this.showReplaceAllConfirmation(query, replaceText);
-            if (!confirmResult) {
-                this.logger.debug('Replace all operation cancelled by user');
-                return;
-            }
-        }
-
         try {
-            this.logger.info(`Starting replace all operation: "${query}" → "${replaceText}"`);
+            // Get session filters for unlimited search
+            if (!this.getSessionFiltersCallback) {
+                this.logger.error('No session filters callback set');
+                return;
+            }
+            const sessionFilters = this.getSessionFiltersCallback();
 
-            // Get current results from callback
-            if (!this.getResultsCallback) {
-                this.logger.error('No results callback set');
+            // Run UNLIMITED search to get ALL matches (not just displayed results)
+            this.logger.debug('Running unlimited search for Replace All');
+            const allResults = await this.searchEngine.performSearch(query, searchOptions, sessionFilters);
+            this.logger.debug(`Unlimited search found ${allResults.length} total matches`);
+
+            if (allResults.length === 0) {
+                this.logger.warn('No matches found for replace all');
                 return;
             }
 
-            const currentResults = this.getResultsCallback();
+            // Count unique files for confirmation message
+            const uniqueFiles = new Set(allResults.map(r => r.file.path));
+
+            // Show confirmation modal with REAL total count
+            if (this.plugin.settings.confirmDestructiveActions) {
+                const confirmResult = await this.showReplaceAllConfirmation(
+                    allResults.length,
+                    uniqueFiles.size,
+                    replaceText
+                );
+                if (!confirmResult) {
+                    this.logger.debug('Replace all operation cancelled by user');
+                    return;
+                }
+            }
+
+            this.logger.info(`Starting replace all operation: "${query}" → "${replaceText}" (${allResults.length} matches)`);
+
             const selectedIndices = new Set<number>(); // Empty for vault-wide replacement
 
-            // Perform replacement using dispatchReplace
+            // Perform replacement on ALL results (not limited)
             const result = await this.replacementEngine.dispatchReplace(
                 'vault',
-                currentResults,
+                allResults,
                 selectedIndices,
                 replaceText,
                 searchOptions
@@ -403,12 +382,19 @@ export class ActionHandler {
     }
 
     /**
-     * Shows confirmation modal for replace all operation
+     * Shows confirmation modal for replace all operation with real counts
      */
-    private async showReplaceAllConfirmation(query: string, replaceText: string): Promise<boolean> {
+    private async showReplaceAllConfirmation(
+        matchCount: number,
+        fileCount: number,
+        replaceText: string
+    ): Promise<boolean> {
+        const matchText = matchCount === 1 ? '1 match' : `${matchCount.toLocaleString()} matches`;
+        const fileText = fileCount === 1 ? '1 file' : `${fileCount} files`;
+
         const message = replaceText === ''
-            ? 'Replace all matches across the vault with an empty value? This action cannot be undone.'
-            : 'Replace all matches across the vault? This action cannot be undone.';
+            ? `Delete ${matchText} across ${fileText}? This action cannot be undone.`
+            : `Replace ${matchText} across ${fileText}? This action cannot be undone.`;
 
         return this.showReplaceConfirmation(message);
     }
@@ -418,14 +404,7 @@ export class ActionHandler {
      */
     private async showReplaceConfirmation(message: string): Promise<boolean> {
         const modal = new ConfirmModal(this.plugin.app, message);
-        modal.open();
-
-        // Wait for the modal to close using async/await polling
-        while (modal.isOpen) {
-            await sleep(MODAL_POLL_INTERVAL);
-        }
-
-        return modal.result;
+        return modal.openAndConfirm();
     }
 
     /**

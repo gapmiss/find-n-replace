@@ -14,6 +14,18 @@ export class SearchEngine {
     private lastSearchOptions: string = '';
     private failedFiles: string[] = []; // Track files that failed during search
 
+    // Default text file extensions to search (excludes binary files like images, PDFs, etc.)
+    private static readonly TEXT_EXTENSIONS = new Set([
+        'md', 'txt', 'js', 'ts', 'jsx', 'tsx', 'css', 'scss', 'sass', 'less',
+        'json', 'yaml', 'yml', 'xml', 'html', 'htm', 'csv', 'svg',
+        'py', 'rb', 'java', 'c', 'cpp', 'h', 'hpp', 'cs', 'go', 'rs', 'swift',
+        'sh', 'bash', 'zsh', 'ps1', 'bat', 'cmd',
+        'sql', 'graphql', 'gql',
+        'ini', 'conf', 'config', 'env', 'properties',
+        'log', 'markdown', 'mdown', 'mkd', 'mdx',
+        'tex', 'bib', 'org', 'rst', 'adoc', 'asciidoc'
+    ]);
+
     constructor(app: App, plugin: VaultFindReplacePlugin) {
         this.app = app;
         this.plugin = plugin;
@@ -63,8 +75,9 @@ export class SearchEngine {
         // Filter out folders - we only want files
         let filteredFiles: TFile[] = files.filter((file): file is TFile => file instanceof TFile);
 
-        // Filter by file extensions if specified
+        // Filter by file extensions
         if (settings.fileExtensions.length > 0) {
+            // User specified extensions - use those
             filteredFiles = filteredFiles.filter(file => {
                 if (!(file instanceof TFile)) return false;
                 const extension = file.extension;
@@ -73,6 +86,16 @@ export class SearchEngine {
                     ext === extension || ext === '.' + extension
                 );
                 this.logger.trace(`File ${file.path}: extension ${extension}, included: ${included}`);
+                return included;
+            });
+        } else {
+            // No extensions specified - use default text extensions to exclude binary files
+            filteredFiles = filteredFiles.filter(file => {
+                if (!(file instanceof TFile)) return false;
+                const included = SearchEngine.TEXT_EXTENSIONS.has(file.extension.toLowerCase());
+                if (!included) {
+                    this.logger.trace(`File ${file.path}: extension ${file.extension} not in text list, skipping`);
+                }
                 return included;
             });
         }
@@ -249,6 +272,9 @@ export class SearchEngine {
                 try {
                     const content = await this.app.vault.read(file);
 
+                    // Split content once and reuse for all processing
+                    const lines = content.split('\n');
+
                     // Use multiline processing if multiline option is enabled and we're using regex
                     if (options.multiline === true && options.useRegex && regex) {
                         // Process entire file content for multiline matches
@@ -262,7 +288,6 @@ export class SearchEngine {
                             const colInLine = (m.index ?? 0) - lineStartPos;
 
                             // Get the line content for display (show first line of match)
-                            const lines = content.split('\n');
                             const lineContent = lines[lineNumber] || '';
 
                             results.push({
@@ -277,8 +302,7 @@ export class SearchEngine {
                         return; // Skip line-by-line processing
                     }
 
-                    // Default line-by-line processing
-                    const lines = content.split('\n');
+                    // Default line-by-line processing (reuses lines array from above)
 
                 // Special case: handle dot regex patterns that match everything
                 const isDotRegex = options.useRegex && regex && (regex.source === '.' || regex.source === '.*');
@@ -430,6 +454,9 @@ export class SearchEngine {
         try {
             const content = await this.app.vault.read(file);
 
+            // Split content once and reuse for all processing
+            const lines = content.split('\n');
+
             // Use multiline processing if multiline option is enabled and we're using regex
             if (options.multiline === true && options.useRegex && regex) {
                 for (const m of Array.from(content.matchAll(regex))) {
@@ -440,7 +467,6 @@ export class SearchEngine {
                     const lineStartPos = beforeMatch.lastIndexOf('\n') + 1;
                     const colInLine = (m.index ?? 0) - lineStartPos;
 
-                    const lines = content.split('\n');
                     const lineContent = lines[lineNumber] || '';
 
                     results.push({
@@ -455,8 +481,7 @@ export class SearchEngine {
                 return results;
             }
 
-            // Default line-by-line processing
-            const lines = content.split('\n');
+            // Default line-by-line processing (reuses lines array from above)
 
             // Special case: handle dot regex patterns that match everything
             const isDotRegex = options.useRegex && regex && (regex.source === '.' || regex.source === '.*');
@@ -552,6 +577,8 @@ export class SearchEngine {
         // Return cached regex if options haven't changed
         if (this.lastSearchOptions === cacheKey && this.lastCompiledRegex) {
             this.logger.debug('Using cached regex for:', cacheKey);
+            // Reset lastIndex to avoid stale position from previous use
+            this.lastCompiledRegex.lastIndex = 0;
             return this.lastCompiledRegex;
         }
 

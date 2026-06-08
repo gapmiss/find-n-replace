@@ -339,12 +339,13 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 	async loadSettings() {
 		try {
-			const loadedData: unknown = await this.loadData() || {};
-			this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
+			const loadedData = (await this.loadData()) as Partial<VaultFindReplaceSettings> | null;
+			// Deep clone DEFAULT_SETTINGS to avoid mutating module-level defaults
+			this.settings = Object.assign(structuredClone(DEFAULT_SETTINGS), loadedData ?? {});
 		} catch (error) {
 			// Logger not initialized yet during loadSettings, use console as fallback
 			console.error('find-n-replace: Failed to load settings, using defaults:', error);
-			this.settings = { ...DEFAULT_SETTINGS };
+			this.settings = structuredClone(DEFAULT_SETTINGS);
 		}
 	}
 
