@@ -812,124 +812,14 @@
     display: none; /* Always hidden - using ellipsis menu instead */
 }
 
-/* --- Enhanced Responsive Design --- */
-/* Mobile phones - 480px and below */
-@media (max-width: 480px) {
-    [data-type="find-replace-view"] .find-replace-search-toolbar {
-        padding: var(--size-4-1);
-    }
-
-    [data-type="find-replace-view"] .find-replace-search-row {
-        flex-wrap: wrap;
-        gap: var(--size-4-1);
-    }
-
-    [data-type="find-replace-view"] .find-replace-replace-row {
-        flex-wrap: wrap;
-        gap: var(--size-4-1);
-    }
-
-    [data-type="find-replace-view"] .find-replace-input-container {
-        min-width: 180px;
-        flex: 1;
-    }
-
-    [data-type="find-replace-view"] .find-replace-inline-options {
-        order: 3;
-        width: 100%;
-        justify-content: space-around;
-        padding: var(--size-4-1) 0;
-        border-top: 1px solid var(--background-modifier-border);
-        margin-top: var(--size-4-1);
-    }
-
-    [data-type="find-replace-view"] .find-replace-toolbar-actions {
-        order: 2;
-        min-width: auto;
-    }
-
-    /* Hide desktop action buttons, show ellipsis menu */
-    [data-type="find-replace-view"] .desktop-only,
-    [data-type="find-replace-view"] [class].desktop-only {
-        display: none;
-    }
-
-    [data-type="find-replace-view"] .ellipsis-menu-container {
-        display: flex;
-    }
-
-    /* Larger touch targets for mobile */
+/* --- Mobile Touch Target Sizing --- */
+/* Use pointer: coarse to detect touch devices regardless of viewport size */
+@media (pointer: coarse) {
     [data-type="find-replace-view"] .inline-toggle-btn,
     [data-type="find-replace-view"] .adaptive-action-btn {
         min-width: 44px;
         min-height: 44px;
         padding: 8px;
-    }
-
-    /* Stack adaptive toolbar vertically on very small screens */
-    [data-type="find-replace-view"] .find-replace-adaptive-toolbar {
-        flex-direction: column;
-        gap: var(--size-4-1);
-        text-align: center;
-    }
-
-    [data-type="find-replace-view"] .adaptive-results-summary {
-        justify-content: center;
-    }
-
-    [data-type="find-replace-view"] .adaptive-action-buttons {
-        justify-content: center;
-    }
-
-    /* Mobile menu adjustments no longer needed - Obsidian Menu handles this automatically */
-}
-
-/* Tablets and narrow desktop - 481px to 768px */
-@media (max-width: 768px) and (min-width: 481px) {
-    [data-type="find-replace-view"] .find-replace-search-row {
-        flex-wrap: wrap;
-    }
-
-    [data-type="find-replace-view"] .find-replace-input-container {
-        min-width: 200px;
-    }
-
-    [data-type="find-replace-view"] .find-replace-inline-options {
-        order: 3;
-        width: 100%;
-        justify-content: center;
-        padding-top: var(--size-4-1);
-        border-top: 1px solid var(--background-modifier-border);
-    }
-
-    [data-type="find-replace-view"] .find-replace-toolbar-actions {
-        order: 2;
-    }
-
-    /* Show ellipsis menu only on tablets for cleaner layout */
-    [data-type="find-replace-view"] .desktop-only {
-        display: none;
-    }
-
-    [data-type="find-replace-view"] .ellipsis-menu-container {
-        display: flex;
-    }
-}
-
-/* Wide desktop - 769px and above */
-@media (min-width: 769px) {
-    /* Always show ellipsis menu, never show desktop buttons */
-    [data-type="find-replace-view"] .ellipsis-menu-container {
-        display: flex;
-    }
-
-    [data-type="find-replace-view"] .desktop-only,
-    [data-type="find-replace-view"] [class].desktop-only {
-        display: none; /* Always hidden */
-    }
-
-    [data-type="find-replace-view"] .adaptive-action-gap {
-        display: block; /* Keep gap for proper spacing */
     }
 }
 
