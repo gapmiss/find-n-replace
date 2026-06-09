@@ -229,25 +229,11 @@ export class SearchEngine {
         }
 
         const results: SearchResult[] = [];
-        // Use getAllLoadedFiles() when any filtering is configured via session filters
-        const hasSessionFilters = sessionFilters && (
-            (sessionFilters.fileExtensions && sessionFilters.fileExtensions.length > 0) ||
-            (sessionFilters.searchInFolders && sessionFilters.searchInFolders.length > 0) ||
-            (sessionFilters.includePatterns && sessionFilters.includePatterns.length > 0) ||
-            (sessionFilters.excludeFolders && sessionFilters.excludeFolders.length > 0) ||
-            (sessionFilters.excludePatterns && sessionFilters.excludePatterns.length > 0)
-        );
-
-        // Always search all files when no specific filtering is configured
-        // This ensures comprehensive search coverage by default
-        const shouldUseAllFiles = hasSessionFilters || !sessionFilters;
-
-        const allFiles = shouldUseAllFiles ?
-            this.app.vault.getAllLoadedFiles() :
-            this.app.vault.getMarkdownFiles();
-
+        // Always use getAllLoadedFiles() for consistent behavior
+        // The filterFiles() method applies TEXT_EXTENSIONS to exclude binary files
+        const allFiles = this.app.vault.getAllLoadedFiles();
         const files = this.filterFiles(allFiles, sessionFilters);
-        this.logger.debug('Found', files.length, shouldUseAllFiles ? 'files' : 'markdown files', 'to search');
+        this.logger.debug('Found', files.length, 'files to search');
 
         // Pre-build regex pattern if needed (for performance)
         let regex: RegExp | null = null;

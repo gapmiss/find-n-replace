@@ -165,13 +165,26 @@ export class UIRenderer {
         // Make the entire header focusable and clickable for expand/collapse
         header.setAttribute('tabindex', tabIndex.toString());
         header.setAttribute('role', 'button');
-        header.setAttribute('aria-label', `Toggle ${filePath.replace('.md', '')} section (Ctrl/Cmd+Click to select all)`);
+        header.setAttribute('aria-label', `Toggle ${filePath.replace(/\.[^.]+$/, '')} section (Ctrl/Cmd+Click to select all)`);
 
-        // File name (without .md extension) - no longer focusable itself
+        // Extract file extension for badge display
+        const extMatch = filePath.match(/\.([^.]+)$/);
+        const fileExt = extMatch ? extMatch[1].toLowerCase() : '';
+        const isMarkdown = fileExt === 'md';
+
+        // File name (without extension for .md files, with extension for others)
         header.createSpan({
             cls: 'file-group-heading',
-            text: filePath.replace('.md', '')
+            text: isMarkdown ? filePath.replace(/\.md$/, '') : filePath
         });
+
+        // Show file extension badge for non-markdown files
+        if (!isMarkdown && fileExt) {
+            header.createSpan({
+                cls: 'file-ext-badge',
+                text: `.${fileExt}`
+            });
+        }
 
         // Display count of results in this file
         header.createSpan({ cls: 'file-results-count', text: ` (${fileResults.length})` });
@@ -180,7 +193,7 @@ export class UIRenderer {
         const replaceAllFileBtn = header.createEl('button', {
             cls: 'clickable-icon',
             attr: {
-                'aria-label': `Replace all in "${filePath.replace('.md', '')}"`,
+                'aria-label': `Replace all in "${filePath.replace(/\.[^.]+$/, '')}"`,
                 'data-tooltip-position': 'top',
                 'tabindex': (tabIndex + 1).toString()
             }

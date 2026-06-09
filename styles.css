@@ -345,6 +345,16 @@
     margin-inline: var(--size-4-1);
 }
 
+[data-type="find-replace-view"] .file-ext-badge {
+    font-size: var(--font-smallest);
+    color: var(--text-on-accent);
+    background-color: var(--interactive-accent);
+    padding: 1px 5px;
+    border-radius: var(--radius-s);
+    margin-left: var(--size-4-1);
+    opacity: 0.8;
+}
+
 /* --- Single matched line result --- */
 [data-type="find-replace-view"] .line-result {
     display: flex;

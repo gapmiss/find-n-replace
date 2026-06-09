@@ -197,6 +197,20 @@ export class HelpModal extends Modal {
                 recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>K</kbd>',
                 description: 'Clears inputs and resets toggles',
                 category: 'Utility'
+            },
+            {
+                id: 'open-help',
+                name: 'Open help',
+                recommendedHotkey: '<kbd>?</kbd>',
+                description: 'Opens this help dialog',
+                category: 'Utility'
+            },
+            {
+                id: 'toggle-word-wrap',
+                name: 'Toggle word-wrap',
+                recommendedHotkey: '<kbd>Ctrl/Cmd</kbd>+<kbd>Alt</kbd>+<kbd>Z</kbd>',
+                description: 'Wraps long result lines',
+                category: 'View'
             }
         ];
 
@@ -379,6 +393,13 @@ export class HelpModal extends Modal {
         const filterGuideDiv = container.createDiv('help-file-filtering');
         new Setting(filterGuideDiv).setName('File filtering guide').setHeading();
 
+        // Default behavior note
+        const defaultP = filterGuideDiv.createEl('p');
+        defaultP.insertAdjacentText('beforeend', 'By default, Find-n-Replace searches ');
+        const allTypesStrong = defaultP.createEl('strong');
+        allTypesStrong.insertAdjacentText('beforeend', 'all text file types');
+        defaultP.insertAdjacentText('beforeend', ' (.md, .txt, .html, .json, .js, .css, etc.). Non-markdown files show a colored extension badge in results for easy identification.');
+
         // Introduction paragraph
         const introP = filterGuideDiv.createEl('p');
         introP.insertAdjacentText('beforeend', 'Use the ');
@@ -392,7 +413,7 @@ export class HelpModal extends Modal {
         introP.insertAdjacentText('beforeend', ' and ');
         const excludeStrong = introP.createEl('strong');
         excludeStrong.insertAdjacentText('beforeend', '"files to exclude"');
-        introP.insertAdjacentText('beforeend', ' inputs. This helps you search only the files you need, improving performance on large vaults.');
+        introP.insertAdjacentText('beforeend', ' inputs. Use these to narrow your search to specific files or folders.');
 
         // Pattern types section
         const patternTypesDiv = filterGuideDiv.createDiv('filter-pattern-types');
@@ -430,15 +451,15 @@ export class HelpModal extends Modal {
 
         // Include patterns section
         const includeDiv = filterGuideDiv.createDiv('filter-include-section');
-        includeDiv.createEl('h4', { text: 'files to include (search only these files)' });
+        includeDiv.createEl('h4', { text: 'files to include (narrow search to these files)' });
 
         const includeExamples = includeDiv.createEl('ul');
         const includeItems = [
-            '`.md` - Only markdown files',
-            '`.md,.txt` - Markdown and text files only',
+            '`.md` - Only markdown files (exclude other text types)',
             '`Notes/,Daily/` - Only files in Notes and Daily folders',
-            '`*.js` - Only JavaScript files (using glob pattern)',
-            '`Notes/*.md` - Only markdown files in the Notes folder'
+            '`*.html` - Only HTML files (e.g., web clippings)',
+            '`Notes/*.md` - Only markdown files in the Notes folder',
+            '`_SS/` - Only files in a specific folder'
         ];
 
         includeItems.forEach(item => {
@@ -471,11 +492,11 @@ export class HelpModal extends Modal {
 
         const examplesList = examplesDiv.createEl('ul');
         const examples = [
-            '<strong>Search only active notes:</strong> Include: <code>.md</code>, Exclude: <code>Archive/,Templates/</code>',
-            '<strong>Search specific project:</strong> Include: <code>Projects/MyProject/</code>',
-            '<strong>Skip all temporary files:</strong> Exclude: <code>*.tmp,*backup*,.trash/</code>',
-            '<strong>Search code files:</strong> Include: <code>.js,.ts,.css,.html</code>',
-            '<strong>Large vault optimization:</strong> Include: <code>Notes/,Daily/</code>, Exclude: <code>Archive/,*.pdf</code>'
+            '<strong>Markdown only:</strong> Include: <code>.md</code> (ignores .html, .json, etc.)',
+            '<strong>Search specific folder:</strong> Include: <code>Projects/MyProject/</code>',
+            '<strong>Skip temporary files:</strong> Exclude: <code>*.tmp,*backup*,.trash/</code>',
+            '<strong>Web clippings only:</strong> Include: <code>.html</code>',
+            '<strong>Large vault optimization:</strong> Include: <code>Notes/</code>, Exclude: <code>Archive/</code>'
         ];
 
         examples.forEach(example => {
