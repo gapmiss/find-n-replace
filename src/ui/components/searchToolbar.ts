@@ -649,6 +649,7 @@ export class SearchToolbar {
      * - `.md` → fileExtensions array (dot removed)
      * - `Notes/` → searchInFolders or excludeFolders (trailing slash removed)
      * - `*.js` → includePatterns or excludePatterns (contains wildcards)
+     * - `test-capture.md` → includePatterns or excludePatterns (filename with extension)
      *
      * **Session-Only Behavior:**
      * - Reads from sessionFilters property (in-memory state)
@@ -687,6 +688,13 @@ export class SearchToolbar {
 
     /**
      * Parse filter patterns into extensions, folders, and globs
+     *
+     * Pattern classification:
+     * - `.md` → extension (starts with dot)
+     * - `*.js`, `test?` → glob (contains wildcards)
+     * - `Notes/` → folder (ends with slash)
+     * - `test-capture.md` → glob (has file extension)
+     * - `Notes` → folder (plain name)
      */
     private parseFilterPatterns(input: string): { extensions: string[], folders: string[], globs: string[] } {
         const patterns = input.split(',').map(p => p.trim()).filter(p => p.length > 0);
@@ -701,9 +709,15 @@ export class SearchToolbar {
             } else if (pattern.includes('*') || pattern.includes('?')) {
                 // Glob pattern (contains wildcards)
                 globs.push(pattern);
-            } else {
-                // Folder (plain name, remove trailing slash if present)
+            } else if (pattern.endsWith('/')) {
+                // Explicit folder (has trailing slash)
                 folders.push(pattern.replace(/\/$/, ''));
+            } else if (/\.[a-zA-Z0-9]{1,10}$/.test(pattern)) {
+                // Filename with extension (e.g., "test-capture.md", "notes.txt")
+                globs.push(pattern);
+            } else {
+                // Folder (plain name without extension)
+                folders.push(pattern);
             }
         });
 
