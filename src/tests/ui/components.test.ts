@@ -77,6 +77,92 @@ describe('Component Architecture', () => {
     it('should dispose resources properly', () => {
       expect(() => selectionManager.dispose()).not.toThrow();
     });
+
+    describe('Selection Index Adjustment', () => {
+      it('should adjust selection indices when results are removed', () => {
+        const mockElements = {
+          searchInput: document.createElement('input'),
+          replaceInput: document.createElement('input'),
+          resultsContainer: document.createElement('div')
+        } as Partial<FindReplaceElements> as FindReplaceElements;
+
+        const manager = new SelectionManager(mockElements, mockPlugin);
+        const lineEls = [0, 1, 2, 3, 4].map(() => document.createElement('div') as HTMLDivElement);
+        manager.setupSelection(lineEls);
+
+        // Select indices 1, 3, 4
+        manager.toggleSelection(1);
+        manager.toggleSelection(3);
+        manager.toggleSelection(4);
+
+        // Remove index 2 (sorted descending as required)
+        manager.adjustSelectionForRemovedIndices([2]);
+
+        const selected = manager.getSelectedIndices();
+        // Index 1 stays, indices 3 and 4 shift down to 2 and 3
+        expect(selected.has(1)).toBe(true);
+        expect(selected.has(2)).toBe(true);
+        expect(selected.has(3)).toBe(true);
+        expect(selected.size).toBe(3);
+      });
+
+      it('should adjust selection indices when results are inserted', () => {
+        const mockElements = {
+          searchInput: document.createElement('input'),
+          replaceInput: document.createElement('input'),
+          resultsContainer: document.createElement('div')
+        } as Partial<FindReplaceElements> as FindReplaceElements;
+
+        const manager = new SelectionManager(mockElements, mockPlugin);
+        const lineEls = [0, 1, 2, 3, 4].map(() => document.createElement('div') as HTMLDivElement);
+        manager.setupSelection(lineEls);
+
+        // Select indices 1, 3, 4
+        manager.toggleSelection(1);
+        manager.toggleSelection(3);
+        manager.toggleSelection(4);
+
+        // Insert 2 results at index 2
+        manager.adjustSelectionForInsertedIndices(2, 2);
+
+        const selected = manager.getSelectedIndices();
+        // Index 1 stays, indices 3 and 4 shift up to 5 and 6
+        expect(selected.has(1)).toBe(true);
+        expect(selected.has(5)).toBe(true);
+        expect(selected.has(6)).toBe(true);
+        expect(selected.size).toBe(3);
+      });
+
+      it('should handle combined remove and insert (external file edit scenario)', () => {
+        const mockElements = {
+          searchInput: document.createElement('input'),
+          replaceInput: document.createElement('input'),
+          resultsContainer: document.createElement('div')
+        } as Partial<FindReplaceElements> as FindReplaceElements;
+
+        const manager = new SelectionManager(mockElements, mockPlugin);
+        const lineEls = [0, 1, 2, 3, 4, 5].map(() => document.createElement('div') as HTMLDivElement);
+        manager.setupSelection(lineEls);
+
+        // Select indices 4 and 5 (in "file B" which comes after "file A")
+        manager.toggleSelection(4);
+        manager.toggleSelection(5);
+
+        // Simulate file A (indices 1-2) being edited: remove old, insert new
+        // Remove indices 1 and 2 (sorted descending)
+        manager.adjustSelectionForRemovedIndices([2, 1]);
+        // Now selections are at indices 2 and 3 (shifted down)
+
+        // Insert 3 new results at index 1 (file A grew by 1 match)
+        manager.adjustSelectionForInsertedIndices(1, 3);
+
+        const selected = manager.getSelectedIndices();
+        // Indices should now be 5 and 6 (shifted up by 3, but also down by 2 earlier)
+        expect(selected.has(5)).toBe(true);
+        expect(selected.has(6)).toBe(true);
+        expect(selected.size).toBe(2);
+      });
+    });
   });
 
   describe('Component Error Handling', () => {

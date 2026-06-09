@@ -869,6 +869,9 @@ export class FindReplaceView extends ItemView {
             // Insert new results
             this.state.results.splice(adjustedInsertionIndex, 0, ...newFileResults);
 
+            // Adjust selections for inserted indices (shift indices >= insertion point up)
+            this.selectionManager.adjustSelectionForInsertedIndices(adjustedInsertionIndex, newFileResults.length);
+
             // Update total results count
             if (this.state.totalResults !== undefined) {
                 this.state.totalResults = this.state.totalResults - fileResultIndices.length + newFileResults.length;

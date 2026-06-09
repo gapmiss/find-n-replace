@@ -324,6 +324,51 @@ export class SelectionManager {
     }
 
     /**
+     * Adjusts selection indices when results are inserted into the array
+     * Shifts selected indices at or after the insertion point up by the count.
+     *
+     * @param {number} insertionIndex - Index where new results were inserted
+     * @param {number} count - Number of results that were inserted
+     *
+     * @remarks
+     * **Critical for External File Modification:**
+     * - When a file is modified externally, its results are removed and re-inserted
+     * - Selections in files after the modified file must shift up
+     * - Without this, "Replace selected" would target wrong matches
+     *
+     * **Algorithm:**
+     * - For each selected index >= insertionIndex, add count to it
+     * - Indices before insertionIndex remain unchanged
+     *
+     * **Example:**
+     * - Original selection: [1, 3, 5]
+     * - Insert 2 results at index 2
+     * - New selection: [1, 5, 7] (indices 3 and 5 shifted up by 2)
+     */
+    adjustSelectionForInsertedIndices(insertionIndex: number, count: number): void {
+        if (count === 0) return;
+
+        const newSelection = new Set<number>();
+        for (const selectedIndex of this.selectedIndices) {
+            if (selectedIndex >= insertionIndex) {
+                newSelection.add(selectedIndex + count);
+            } else {
+                newSelection.add(selectedIndex);
+            }
+        }
+
+        const oldSize = this.selectedIndices.size;
+        this.selectedIndices = newSelection;
+        this.updateSelectionUI();
+
+        this.logger.debug('Selection adjusted for inserted indices:', {
+            insertionIndex,
+            count,
+            selectionSize: oldSize
+        });
+    }
+
+    /**
      * Resets the selection manager
      * Clears all selections and element references without disposing the manager.
      *
