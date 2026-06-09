@@ -797,11 +797,7 @@ export class FindReplaceView extends ItemView {
      * @param file - The file that was modified
      */
     async handleFileModified(file: TFile): Promise<void> {
-        // Skip if no current search results or no query
-        if (this.state.results.length === 0) {
-            return;
-        }
-
+        // Skip if no query - nothing to search for
         const query = this.elements.searchInput.value.trim();
         if (!query) {
             return;
@@ -813,10 +809,6 @@ export class FindReplaceView extends ItemView {
             if (this.state.results[i].file.path === file.path) {
                 fileResultIndices.push(i);
             }
-        }
-
-        if (fileResultIndices.length === 0) {
-            return; // File not in current results, no update needed
         }
 
         const oldResultCount = fileResultIndices.length;
@@ -831,6 +823,18 @@ export class FindReplaceView extends ItemView {
 
             // Re-search the single file
             const newFileResults = await this.searchEngine.searchSingleFile(file, query, searchOptions);
+
+            // If file wasn't in results but now has matches, do full search to maintain proper ordering
+            if (oldResultCount === 0 && newFileResults.length > 0) {
+                this.logger.debug(`File ${file.path} now has ${newFileResults.length} new matches. Running full search.`);
+                await this.performSearch();
+                return;
+            }
+
+            // If file wasn't in results and still has no matches, nothing to do
+            if (oldResultCount === 0 && newFileResults.length === 0) {
+                return;
+            }
 
             // If we had results before but now have none, fall back to full search
             // This handles edge cases where single-file search might fail unexpectedly
