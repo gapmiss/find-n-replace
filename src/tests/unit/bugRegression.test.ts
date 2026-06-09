@@ -52,6 +52,50 @@ describe('Bug Regression Tests', () => {
     });
   });
 
+  describe('Zero-Length Regex Match Prevention', () => {
+    it('should terminate when matching zero-length regex patterns like a*', () => {
+      const content = 'abc';
+      const pattern = /a*/g;
+      const startTime = Date.now();
+
+      // Simulate the fixed doesLineStillMatch logic using matchAll
+      // This must terminate - the old exec() loop would hang forever
+      pattern.lastIndex = 0;
+      const matches = Array.from(content.matchAll(pattern));
+
+      const duration = Date.now() - startTime;
+      expect(duration).toBeLessThan(100);
+      expect(matches.length).toBeGreaterThan(0);
+      expect(matches.some(m => m[0] === 'a')).toBe(true);
+    });
+
+    it('should handle empty-match patterns without infinite loop', () => {
+      const patterns = [/a*/g, /\d*/g, /(foo)?/g, /x?/g, /(?:)/g];
+      const content = 'test content 123';
+
+      for (const pattern of patterns) {
+        const startTime = Date.now();
+        pattern.lastIndex = 0;
+        const matches = Array.from(content.matchAll(pattern));
+
+        const duration = Date.now() - startTime;
+        expect(duration).toBeLessThan(100);
+        expect(Array.isArray(matches)).toBe(true);
+      }
+    });
+
+    it('should correctly identify match content with zero-length capable patterns', () => {
+      const content = 'aaa bbb aaa';
+      const pattern = /a*/g;
+      pattern.lastIndex = 0;
+
+      const matches = Array.from(content.matchAll(pattern));
+      const hasTargetMatch = matches.some(m => m[0] === 'aaa');
+
+      expect(hasTargetMatch).toBe(true);
+    });
+  });
+
   describe('Regex Processing Edge Cases', () => {
     it('should handle patterns that match at position 0', () => {
       const content = 'test at beginning';

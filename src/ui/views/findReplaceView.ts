@@ -764,19 +764,10 @@ export class FindReplaceView extends ItemView {
         // rather than requiring exact position match (since positions shift after replacements)
 
         if ((searchOptions.useRegex || searchOptions.wholeWord) && regex) {
-            // Use regex matching - check if any match exists on the line
-            regex.lastIndex = 0; // Reset regex state
-
-            // Find all matches on the line
-            const matches: RegExpExecArray[] = [];
-            let match;
-            while ((match = regex.exec(lineText)) !== null) {
-                matches.push(match);
-                if (!regex.global) break; // Prevent infinite loop for non-global regex
-            }
-
-            // Check if any match has the same content as the original
-            return matches.some(m => m[0] === originalResult.matchText);
+            // Use matchAll to safely handle zero-length matches (e.g., a*, \d*, (foo)?)
+            // Unlike exec(), matchAll auto-advances past zero-length matches
+            regex.lastIndex = 0;
+            return Array.from(lineText.matchAll(regex)).some(m => m[0] === originalResult.matchText);
         } else {
             // Use simple string matching - check if the exact match text still exists
             const haystack = searchOptions.matchCase ? lineText : lineText.toLowerCase();
