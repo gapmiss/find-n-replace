@@ -19,7 +19,9 @@ export class ActionHandler {
     private getResultsCallback?: () => SearchResult[];
     private getSelectedIndicesCallback?: () => Set<number>;
     private getSessionFiltersCallback?: () => SessionFilters;
+    private getTotalResultsCallback?: () => { count: number; isLimited: boolean };
     private toggleExpandCollapseCallback?: () => void;
+    private suspendFileEventsCallback?: (suspend: boolean) => void;
 
     // Store keyboard event handlers for proper cleanup
     private replaceAllKeyHandler: (event: KeyboardEvent) => void;
@@ -94,11 +96,13 @@ export class ActionHandler {
     setStateCallbacks(
         getResultsCallback: () => SearchResult[],
         getSelectedIndicesCallback: () => Set<number>,
-        getSessionFiltersCallback: () => SessionFilters
+        getSessionFiltersCallback: () => SessionFilters,
+        getTotalResultsCallback: () => { count: number; isLimited: boolean }
     ): void {
         this.getResultsCallback = getResultsCallback;
         this.getSelectedIndicesCallback = getSelectedIndicesCallback;
         this.getSessionFiltersCallback = getSessionFiltersCallback;
+        this.getTotalResultsCallback = getTotalResultsCallback;
     }
 
     /**
@@ -109,6 +113,13 @@ export class ActionHandler {
      */
     setExpandCollapseCallback(callback: () => void): void {
         this.toggleExpandCollapseCallback = callback;
+    }
+
+    /**
+     * Sets callback to suspend/resume file modification events during bulk operations
+     */
+    setSuspendFileEventsCallback(callback: (suspend: boolean) => void): void {
+        this.suspendFileEventsCallback = callback;
     }
 
     /**
@@ -213,25 +224,28 @@ export class ActionHandler {
         const replaceText = this.elements.replaceInput.value;
         const searchOptions = this.getSearchOptions();
 
+        // Get selected indices from callback
+        if (!this.getSelectedIndicesCallback) {
+            this.logger.error('No selected indices callback set');
+            return;
+        }
+
+        const selectedIndices = this.getSelectedIndicesCallback();
+        if (selectedIndices.size === 0) {
+            this.logger.warn('No matches selected for replacement');
+            return;
+        }
+
+        // Confirm if replacing with empty string
+        if (!replaceText) {
+            const confirmed = await this.showReplaceConfirmation('Replace selected matches with empty content? This cannot be undone.');
+            if (!confirmed) return;
+        }
+
+        // Suspend file events during replacement to avoid redundant searches
+        this.suspendFileEventsCallback?.(true);
+
         try {
-            // Get selected indices from callback
-            if (!this.getSelectedIndicesCallback) {
-                this.logger.error('No selected indices callback set');
-                return;
-            }
-
-            const selectedIndices = this.getSelectedIndicesCallback();
-            if (selectedIndices.size === 0) {
-                this.logger.warn('No matches selected for replacement');
-                return;
-            }
-
-            // Confirm if replacing with empty string
-            if (!replaceText) {
-                const confirmed = await this.showReplaceConfirmation('Replace selected matches with empty content? This cannot be undone.');
-                if (!confirmed) return;
-            }
-
             this.logger.info(`Starting replace operation for ${selectedIndices.size} selected matches`);
 
             // Get current results from callback
@@ -263,6 +277,9 @@ export class ActionHandler {
 
         } catch (error) {
             this.logger.error('Failed to replace selected matches', error, true);
+        } finally {
+            // Always resume file events
+            this.suspendFileEventsCallback?.(false);
         }
     }
 
@@ -308,38 +325,53 @@ export class ActionHandler {
             return;
         }
 
-        try {
-            // Get session filters for unlimited search
-            if (!this.getSessionFiltersCallback) {
-                this.logger.error('No session filters callback set');
+        // Get session filters for search
+        if (!this.getSessionFiltersCallback) {
+            this.logger.error('No session filters callback set');
+            return;
+        }
+        const sessionFilters = this.getSessionFiltersCallback();
+
+        // Use existing search results count for immediate modal display
+        const displayedResults = this.getResultsCallback?.() ?? [];
+        const totalInfo = this.getTotalResultsCallback?.();
+
+        if (displayedResults.length === 0 && (!totalInfo || totalInfo.count === 0)) {
+            this.logger.warn('No matches found for replace all');
+            return;
+        }
+
+        // Show confirmation modal FIRST using existing counts (instant)
+        if (this.plugin.settings.confirmDestructiveActions) {
+            const matchCount = totalInfo?.count ?? displayedResults.length;
+            const uniqueFiles = new Set(displayedResults.map(r => r.file.path));
+            const estimatedFileCount = uniqueFiles.size;
+            const isEstimate = totalInfo?.isLimited ?? false;
+
+            const confirmResult = await this.showReplaceAllConfirmation(
+                matchCount,
+                estimatedFileCount,
+                replaceText,
+                isEstimate
+            );
+            if (!confirmResult) {
+                this.logger.debug('Replace all operation cancelled by user');
                 return;
             }
-            const sessionFilters = this.getSessionFiltersCallback();
+        }
 
-            // Run UNLIMITED search to get ALL matches (not just displayed results)
+        // Suspend file events during bulk replacement to avoid redundant searches
+        this.suspendFileEventsCallback?.(true);
+
+        try {
+            // Run unlimited search AFTER confirmation to get ALL matches
             this.logger.debug('Running unlimited search for Replace All');
             const allResults = await this.searchEngine.performSearch(query, searchOptions, sessionFilters);
             this.logger.debug(`Unlimited search found ${allResults.length} total matches`);
 
             if (allResults.length === 0) {
-                this.logger.warn('No matches found for replace all');
+                this.logger.warn('No matches found for replace all after confirmation');
                 return;
-            }
-
-            // Count unique files for confirmation message
-            const uniqueFiles = new Set(allResults.map(r => r.file.path));
-
-            // Show confirmation modal with REAL total count
-            if (this.plugin.settings.confirmDestructiveActions) {
-                const confirmResult = await this.showReplaceAllConfirmation(
-                    allResults.length,
-                    uniqueFiles.size,
-                    replaceText
-                );
-                if (!confirmResult) {
-                    this.logger.debug('Replace all operation cancelled by user');
-                    return;
-                }
             }
 
             this.logger.info(`Starting replace all operation: "${query}" → "${replaceText}" (${allResults.length} matches)`);
@@ -367,23 +399,28 @@ export class ActionHandler {
 
         } catch (error) {
             this.logger.error('Failed to replace all matches in vault', error, true);
+        } finally {
+            // Always resume file events
+            this.suspendFileEventsCallback?.(false);
         }
     }
 
     /**
-     * Shows confirmation modal for replace all operation with real counts
+     * Shows confirmation modal for replace all operation with counts
      */
     private async showReplaceAllConfirmation(
         matchCount: number,
         fileCount: number,
-        replaceText: string
+        replaceText: string,
+        isEstimate: boolean = false
     ): Promise<boolean> {
+        const countPrefix = isEstimate ? 'at least ' : '';
         const matchText = matchCount === 1 ? '1 match' : `${matchCount.toLocaleString()} matches`;
         const fileText = fileCount === 1 ? '1 file' : `${fileCount} files`;
 
         const message = replaceText === ''
-            ? `Delete ${matchText} across ${fileText}? This action cannot be undone.`
-            : `Replace ${matchText} across ${fileText}? This action cannot be undone.`;
+            ? `Delete ${countPrefix}${matchText} across ${fileText}? This action cannot be undone.`
+            : `Replace ${countPrefix}${matchText} across ${fileText}? This action cannot be undone.`;
 
         return this.showReplaceConfirmation(message);
     }

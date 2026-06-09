@@ -32,6 +32,9 @@ export class FindReplaceView extends ItemView {
     // State management
     private state: ViewState;
 
+    // Flag to suspend file events during bulk operations
+    private suspendFileEvents: boolean = false;
+
     // Plugin reference
     plugin: VaultFindReplacePlugin;
 
@@ -209,12 +212,18 @@ export class FindReplaceView extends ItemView {
         this.actionHandler.setStateCallbacks(
             () => this.state.results,
             () => this.selectionManager.getSelectedIndices(),
-            () => this.searchToolbar.getSessionFilters()
+            () => this.searchToolbar.getSessionFilters(),
+            () => ({ count: this.state.totalResults ?? 0, isLimited: this.state.isLimited ?? false })
         );
 
         // Set up expand/collapse callback for ActionHandler
         this.actionHandler.setExpandCollapseCallback(() => {
             this.uiRenderer.toggleExpandCollapseAll();
+        });
+
+        // Set up suspend file events callback for bulk operations
+        this.actionHandler.setSuspendFileEventsCallback((suspend: boolean) => {
+            this.suspendFileEvents = suspend;
         });
 
         // Set up search functionality using SearchController
@@ -797,6 +806,11 @@ export class FindReplaceView extends ItemView {
      * @param file - The file that was modified
      */
     async handleFileModified(file: TFile): Promise<void> {
+        // Skip during bulk operations (e.g., replace all in vault)
+        if (this.suspendFileEvents) {
+            return;
+        }
+
         // Skip if no query - nothing to search for
         const query = this.elements.searchInput.value.trim();
         if (!query) {
