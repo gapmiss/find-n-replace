@@ -1099,14 +1099,31 @@ export class FindReplaceView extends ItemView {
         this.elements.searchInput.value = '';
         this.elements.replaceInput.value = '';
 
-        // Reset toggle states
-        [this.elements.matchCaseCheckbox, this.elements.wholeWordCheckbox, this.elements.regexCheckbox]
-            .forEach(btn => {
-                if (btn) {
-                    btn.setAttribute('aria-pressed', 'false');
-                    btn.classList.remove('is-active');
-                }
-            });
+        // Dispatch input events to update clear icon visibility
+        this.elements.searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        this.elements.replaceInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Reset toggle states (including multiline)
+        [
+            this.elements.matchCaseCheckbox,
+            this.elements.wholeWordCheckbox,
+            this.elements.regexCheckbox,
+            this.elements.multilineCheckbox
+        ].forEach(btn => {
+            if (btn) {
+                btn.setAttribute('aria-pressed', 'false');
+                btn.classList.remove('is-active');
+            }
+        });
+
+        // Sync lastSearchOptions if "Remember Search Options" is enabled
+        if (this.plugin.settings.rememberSearchOptions) {
+            this.plugin.settings.lastSearchOptions.matchCase = false;
+            this.plugin.settings.lastSearchOptions.wholeWord = false;
+            this.plugin.settings.lastSearchOptions.useRegex = false;
+            this.plugin.settings.lastSearchOptions.multiline = false;
+            void this.plugin.saveSettings();
+        }
 
         // Clear results
         this.clearResults();
