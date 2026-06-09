@@ -7,7 +7,6 @@ export const CONTEXT_BEFORE_MATCH = 10;
 export const CONTEXT_AFTER_MATCH = 50;
 export const SEARCH_DEBOUNCE_DELAY = 300;
 export const FOCUS_DELAY = 100;
-export const MODAL_POLL_INTERVAL = 50;
 export const FILTER_UPDATE_DEBOUNCE_DELAY = 500;
 export const MAX_FILE_GROUP_STATES = 500;
 

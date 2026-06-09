@@ -2,7 +2,6 @@ import { App, PluginSettingTab, Setting, Notice, SettingDefinitionItem } from "o
 import VaultFindReplacePlugin from "../main";
 import { LogLevel } from "../types";
 import { ConfirmModal } from "../modals/confirmModal";
-import { MODAL_POLL_INTERVAL, sleep } from "../utils";
 
 export class VaultFindReplaceSettingTab extends PluginSettingTab {
     plugin: VaultFindReplacePlugin;
@@ -106,13 +105,9 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                                                 cancelText: "Cancel"
                                             }
                                         );
-                                        modal.open();
+                                        const confirmed = await modal.openAndConfirm();
 
-                                        while (modal.isOpen) {
-                                            await sleep(MODAL_POLL_INTERVAL);
-                                        }
-
-                                        if (modal.result) {
+                                        if (confirmed) {
                                             this.plugin.historyManager.clearAllHistory();
                                             await this.plugin.saveSettings();
                                             new Notice("Search and replace history cleared");
