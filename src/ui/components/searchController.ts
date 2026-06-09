@@ -43,6 +43,21 @@ export class SearchController {
     }
 
     /**
+     * Shows the search spinner and adaptive toolbar
+     */
+    private showSpinner(): void {
+        this.elements.adaptiveToolbar?.classList.remove('hidden');
+        this.elements.searchSpinner?.classList.remove('hidden');
+    }
+
+    /**
+     * Hides the search spinner
+     */
+    private hideSpinner(): void {
+        this.elements.searchSpinner?.classList.add('hidden');
+    }
+
+    /**
      * Gets the current searching state
      * @returns {boolean} True if a search is currently in progress, false otherwise
      */
@@ -204,6 +219,7 @@ export class SearchController {
 
         const timerName = `performSearch-${searchId}`;
         this.isSearching = true;
+        this.showSpinner();
 
         this.logger.debug(`[${searchId}] Search lock acquired, starting execution`);
         this.logger.time(timerName);
@@ -299,6 +315,7 @@ export class SearchController {
             // CRITICAL: Always reset the search state
             this.isSearching = false;
             this.currentSearchController = null;
+            this.hideSpinner();
             this.logger.debug(`[${searchId}] ===== SEARCH LOCK RELEASED =====`);
         }
     }

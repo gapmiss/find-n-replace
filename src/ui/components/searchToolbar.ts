@@ -46,6 +46,7 @@ export interface AdaptiveToolbarElements {
     adaptiveToolbar: HTMLElement;
     resultsCountEl: HTMLElement;
     selectedCountEl: HTMLElement;
+    searchSpinner: HTMLElement;
     ellipsisMenuBtn: HTMLButtonElement;
     toolbarBtn: HTMLButtonElement;
 }
@@ -471,6 +472,10 @@ export class SearchToolbar {
         // Results summary section
         const resultsSummary = adaptiveToolbar.createDiv('adaptive-results-summary');
 
+        // Search spinner (shown while searching)
+        const searchSpinner = resultsSummary.createSpan('search-spinner hidden');
+        setIcon(searchSpinner, 'loader-2');
+
         // Results count display
         const resultsCountEl = resultsSummary.createEl('span', {
             cls: 'adaptive-results-count',
@@ -520,6 +525,7 @@ export class SearchToolbar {
             adaptiveToolbar,
             resultsCountEl,
             selectedCountEl,
+            searchSpinner,
             ellipsisMenuBtn,
             toolbarBtn: expandCollapseBtn
         };

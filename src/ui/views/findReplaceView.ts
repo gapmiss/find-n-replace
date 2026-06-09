@@ -58,7 +58,8 @@ export class FindReplaceView extends ItemView {
             isCollapsed: false,
             selectedIndices: new Set(),
             results: [],
-            lineElements: []
+            lineElements: [],
+            isWordWrapEnabled: false
         };
 
         // Initialize components
@@ -157,7 +158,8 @@ export class FindReplaceView extends ItemView {
             includeInput: filterElements.includeInput,
             excludeInput: filterElements.excludeInput,
             adaptiveToolbar: adaptiveElements.adaptiveToolbar,
-            ellipsisMenuBtn: adaptiveElements.ellipsisMenuBtn
+            ellipsisMenuBtn: adaptiveElements.ellipsisMenuBtn,
+            searchSpinner: adaptiveElements.searchSpinner
         };
 
         // Initialize remaining components now that we have UI elements
@@ -1182,6 +1184,21 @@ export class FindReplaceView extends ItemView {
      */
     commandOpenHelp(): void {
         this.searchToolbar.openHelpModal();
+    }
+
+    /**
+     * Command: Toggle word-wrap on result snippets
+     */
+    commandToggleWordWrap(): void {
+        this.state.isWordWrapEnabled = !this.state.isWordWrapEnabled;
+
+        if (this.state.isWordWrapEnabled) {
+            this.elements.resultsContainer.classList.add('word-wrap-enabled');
+        } else {
+            this.elements.resultsContainer.classList.remove('word-wrap-enabled');
+        }
+
+        this.logger.debug('Word-wrap toggled:', this.state.isWordWrapEnabled);
     }
 
     /**

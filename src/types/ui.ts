@@ -25,6 +25,7 @@ export interface FindReplaceElements {
     // replaceAllVaultBtnBottom: HTMLButtonElement; // Adaptive toolbar duplicate
     adaptiveToolbar: HTMLElement; // Contextual results toolbar
     ellipsisMenuBtn: HTMLButtonElement; // Ellipsis menu trigger button (uses Obsidian Menu class)
+    searchSpinner: HTMLElement; // Spinner shown during active search
 }
 
 /**
@@ -37,6 +38,7 @@ export interface ViewState {
     lineElements: HTMLDivElement[]; // DOM elements for result lines
     totalResults?: number;          // Total results found (before limiting)
     isLimited?: boolean;            // Whether results are limited
+    isWordWrapEnabled?: boolean;    // Whether word-wrap is enabled on result snippets
 }
 
 /**

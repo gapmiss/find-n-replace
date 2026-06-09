@@ -183,6 +183,17 @@ export default class VaultFindReplacePlugin extends Plugin {
 			}
 		});
 
+		this.addCommand({
+			id: 'toggle-word-wrap',
+			name: 'Toggle word-wrap in results',
+			callback: () => {
+				const view = this.getActiveView();
+				if (view) {
+					view.commandToggleWordWrap();
+				}
+			}
+		});
+
 		// Register file modification events to update search results dynamically
 		this.registerFileEvents();
 	}

@@ -370,6 +370,14 @@
     border-radius: 6px;
 }
 
+/* Word-wrap enabled state for snippets */
+[data-type="find-replace-view"] .find-replace-results.word-wrap-enabled .line-result span.snippet {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow: visible;
+    text-overflow: clip;
+}
+
 /* Replace icon per line */
 [data-type="find-replace-view"] .line-result .clickable-icon {
     opacity: 0;
@@ -667,6 +675,30 @@
     width: 100%;
     padding-right: 20px; /* Make room for clear icon */
     box-sizing: border-box;
+}
+
+/* --- Search Spinner --- */
+[data-type="find-replace-view"] .search-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+    animation: fnr-spin 1s linear infinite;
+}
+
+[data-type="find-replace-view"] .search-spinner.hidden {
+    display: none;
+}
+
+@keyframes fnr-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* --- Inline Option Toggles (VSCode-style) --- */

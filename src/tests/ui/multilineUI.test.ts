@@ -95,7 +95,8 @@ describe('Multiline UI Interactions', () => {
             includeInput: mockCreateElement('input'),
             excludeInput: mockCreateElement('input'),
             adaptiveToolbar: mockCreateElement('div'),
-            ellipsisMenuBtn: mockCreateElement('button')
+            ellipsisMenuBtn: mockCreateElement('button'),
+            searchSpinner: mockCreateElement('span')
         };
 
         // Reset vault for each test
