@@ -15,11 +15,22 @@ export class UIRenderer {
     private logger: Logger;
     private sessionFileGroupStates: Record<string, boolean> = {}; // Session-only state (not persisted)
 
+    // Callback for file header Ctrl/Cmd+Click selection
+    private onToggleFileSelection?: (startIndex: number, count: number) => void;
+
     constructor(elements: FindReplaceElements, searchEngine: SearchEngine, plugin: VaultFindReplacePlugin) {
         this.elements = elements;
         this.searchEngine = searchEngine;
         this.plugin = plugin;
         this.logger = Logger.create(plugin, 'UIRenderer');
+    }
+
+    /**
+     * Sets the callback for toggling file selection via Ctrl/Cmd+Click on file header
+     * @param callback - Function to call with (startIndex, count) when file header is Ctrl/Cmd+clicked
+     */
+    setToggleFileSelectionCallback(callback: (startIndex: number, count: number) => void): void {
+        this.onToggleFileSelection = callback;
     }
 
     /**
@@ -107,8 +118,11 @@ export class UIRenderer {
                 fileDiv.addClass('collapsed');
             }
 
+            // Track the starting index for this file's results (for Ctrl/Cmd+Click selection)
+            const fileStartIndex = globalIndex;
+
             // Create file group header with sequential tabindex (header gets tabIndex, button gets tabIndex+1)
-            this.createFileGroupHeader(fileDiv, filePath, fileResults, tabIndex);
+            this.createFileGroupHeader(fileDiv, filePath, fileResults, tabIndex, fileStartIndex);
             tabIndex += 2; // Increment by 2 since header uses 2 tabindex values (header + button)
 
             // Create individual result lines with sequential tabindex (snippet gets tabIndex, button gets tabIndex+1)
@@ -136,19 +150,22 @@ export class UIRenderer {
      * @param fileDiv - Container element for the file group
      * @param filePath - Path of the file
      * @param fileResults - Results for this file
+     * @param tabIndex - Tab index for keyboard navigation
+     * @param fileStartIndex - Global index of first result in this file (for selection)
      */
     private createFileGroupHeader(
         fileDiv: HTMLElement,
         filePath: string,
         fileResults: SearchResult[],
-        tabIndex: number
+        tabIndex: number,
+        fileStartIndex: number
     ): void {
         const header = fileDiv.createDiv('file-group-header');
 
         // Make the entire header focusable and clickable for expand/collapse
         header.setAttribute('tabindex', tabIndex.toString());
         header.setAttribute('role', 'button');
-        header.setAttribute('aria-label', `Toggle ${filePath.replace('.md', '')} section`);
+        header.setAttribute('aria-label', `Toggle ${filePath.replace('.md', '')} section (Ctrl/Cmd+Click to select all)`);
 
         // File name (without .md extension) - no longer focusable itself
         header.createSpan({
@@ -173,13 +190,28 @@ export class UIRenderer {
         // Store file path for event handling
         replaceAllFileBtn.setAttribute('data-file-path', filePath);
 
-        // Handle clicking on header (but not the button) to toggle collapse/expand
+        // Handle clicking on header (but not the button) to toggle collapse/expand or select all
         header.addEventListener('click', (e: MouseEvent) => {
-            // Don't trigger expand/collapse if the replace button was clicked
+            // Don't trigger if the replace button was clicked
             if ((e.target as HTMLElement).closest('.clickable-icon')) {
                 return;
             }
 
+            // Ctrl/Cmd+Click: Toggle selection for all matches in this file
+            if (e.metaKey || e.ctrlKey) {
+                e.preventDefault();
+                if (this.onToggleFileSelection) {
+                    this.onToggleFileSelection(fileStartIndex, fileResults.length);
+                    this.logger.debug('File header Ctrl/Cmd+Click: toggling selection', {
+                        filePath,
+                        startIndex: fileStartIndex,
+                        count: fileResults.length
+                    });
+                }
+                return;
+            }
+
+            // Regular click: Toggle collapse/expand
             const group = header.closest('.file-group') as HTMLElement;
             if (group) {
                 const isCurrentlyCollapsed = group.classList.contains('collapsed');

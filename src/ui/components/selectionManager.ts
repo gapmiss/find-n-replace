@@ -111,6 +111,69 @@ export class SelectionManager {
     }
 
     /**
+     * Selects a range of results by index
+     * Adds all indices in the specified range to the selection.
+     *
+     * @param {number} startIndex - First index to select (inclusive)
+     * @param {number} count - Number of consecutive indices to select
+     *
+     * @remarks
+     * **Triggered By:**
+     * - Ctrl/Cmd+Click on file header to select all matches in that file
+     *
+     * **Behavior:**
+     * - Adds indices to existing selection (does not clear first)
+     * - Updates UI to show newly selected results
+     * - Updates selected count display in adaptive toolbar
+     */
+    selectRange(startIndex: number, count: number): void {
+        for (let i = startIndex; i < startIndex + count; i++) {
+            if (i < this.lineElements.length) {
+                this.selectedIndices.add(i);
+            }
+        }
+        this.updateSelectionUI();
+    }
+
+    /**
+     * Deselects a range of results by index
+     * Removes all indices in the specified range from the selection.
+     *
+     * @param {number} startIndex - First index to deselect (inclusive)
+     * @param {number} count - Number of consecutive indices to deselect
+     */
+    deselectRange(startIndex: number, count: number): void {
+        for (let i = startIndex; i < startIndex + count; i++) {
+            this.selectedIndices.delete(i);
+        }
+        this.updateSelectionUI();
+    }
+
+    /**
+     * Toggles selection for a range of results
+     * If all indices in range are selected, deselects them all; otherwise selects them all.
+     *
+     * @param {number} startIndex - First index in range (inclusive)
+     * @param {number} count - Number of consecutive indices in range
+     */
+    toggleRangeSelection(startIndex: number, count: number): void {
+        // Check if all in range are already selected
+        let allSelected = true;
+        for (let i = startIndex; i < startIndex + count && i < this.lineElements.length; i++) {
+            if (!this.selectedIndices.has(i)) {
+                allSelected = false;
+                break;
+            }
+        }
+
+        if (allSelected) {
+            this.deselectRange(startIndex, count);
+        } else {
+            this.selectRange(startIndex, count);
+        }
+    }
+
+    /**
      * Clears all selections
      * Removes all selected indices and updates UI to show no selections.
      *

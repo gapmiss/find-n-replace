@@ -165,6 +165,11 @@ export class FindReplaceView extends ItemView {
         this.uiRenderer = new UIRenderer(this.elements, this.searchEngine, this.plugin);
         this.selectionManager = new SelectionManager(this.elements, this.plugin);
 
+        // Wire up file header Ctrl/Cmd+Click to toggle selection for all matches in that file
+        this.uiRenderer.setToggleFileSelectionCallback((startIndex, count) => {
+            this.selectionManager.toggleRangeSelection(startIndex, count);
+        });
+
         // Now that we have selectionManager, provide it to SearchToolbar
         this.searchToolbar.setSelectionManager(this.selectionManager);
 
