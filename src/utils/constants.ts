@@ -15,9 +15,5 @@ export const MAX_FILE_GROUP_STATES = 500;
 export const DEFAULT_HIGHLIGHT_DURATION = 2000;
 export const DEFAULT_PERSISTENT_HIGHLIGHT = false;
 
-// Regex patterns for replacement text validation
-export const CAPTURE_GROUP_PATTERN = /\$(\d+)/g;
-export const LITERAL_DOLLAR_PATTERN = /\$(?![&'`$]|\d)/g;
-
 // File extensions
 export const MARKDOWN_EXTENSION = 'md';
