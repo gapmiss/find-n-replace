@@ -56,7 +56,7 @@ export class ReplacementEngine {
                     this.logger.error("Invalid target for single replacement - not a SearchResult", target);
                     break;
                 }
-                const res = target as SearchResult;
+                const res = target;
                 grouped.set(res.file, [res]);
 
                 // Find the index of this specific result

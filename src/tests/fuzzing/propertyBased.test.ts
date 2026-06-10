@@ -115,7 +115,7 @@ describe('Property-Based Testing (Fuzzing)', () => {
                     fc.unicodeString({ minLength: 1, maxLength: 20 }),
                     async (contentLines: string[], searchTerm: string) => {
                         // Create test file with random content
-                        const content = contentLines.join('\\n');
+                        const content = contentLines.join('\n');
                         mockApp.vault.addTestFile('fuzzing-test.md', content);
 
                         const results = await searchEngine.performSearch(searchTerm, {
@@ -129,7 +129,7 @@ describe('Property-Based Testing (Fuzzing)', () => {
 
                         // Verify each match position is accurate
                         testFileResults.forEach(result => {
-                            const lines = content.split('\\n');
+                            const lines = content.split('\n');
                             const lineContent = lines[result.line] || '';
 
                             // Extract text at reported position
@@ -263,7 +263,7 @@ describe('Property-Based Testing (Fuzzing)', () => {
                     async (lineNumber: number, content: string) => {
                         // Create a file with content at specific line
                         const lines = Array(lineNumber).fill('padding line').concat([content]);
-                        const testContent = lines.join('\\n');
+                        const testContent = lines.join('\n');
 
                         mockApp.vault.addTestFile('edge-case-test.md', testContent);
 
