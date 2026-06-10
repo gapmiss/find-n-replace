@@ -75,11 +75,6 @@ export class UIRenderer {
         this.elements.resultsContainer.empty();
         const lineElements: HTMLDivElement[] = [];
 
-        // Start with all file groups collapsed
-        this.elements.resultsContainer?.querySelectorAll(".file-group").forEach(group => {
-            group.classList.add("collapsed");
-        });
-
         // Group results by file path
         const resultsByFile: Record<string, SearchResult[]> = {};
         results.forEach(r => {
