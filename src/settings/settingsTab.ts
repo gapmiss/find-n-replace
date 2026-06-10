@@ -65,12 +65,12 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                 items: [
                     {
                         name: "Enable search history",
-                        desc: "Save search and replace patterns for quick access using arrow keys (↑↓).",
+                        desc: "Save search, replace, and file filter patterns for quick access using arrow keys (↑↓).",
                         control: { type: "toggle", key: "enableSearchHistory" }
                     },
                     {
                         name: "Maximum history entries",
-                        desc: "Maximum number of search and replace patterns to remember. Range: 10-200.",
+                        desc: "Maximum number of patterns to remember in each history. Range: 10-200.",
                         control: {
                             type: "text",
                             key: "maxHistorySize",
@@ -88,7 +88,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                         name: "Clear search history",
                         render: (setting: Setting) => {
                             const updateDesc = () => {
-                                setting.setDesc(`Clear all saved search and replace patterns. Current history size: ${this.plugin.settings.searchHistory.length} search, ${this.plugin.settings.replaceHistory.length} replace.`);
+                                setting.setDesc(`Clear all saved search, replace, and file filter patterns. Current history size: ${this.plugin.settings.searchHistory.length} search, ${this.plugin.settings.replaceHistory.length} replace, ${this.plugin.settings.includeHistory.length} include, ${this.plugin.settings.excludeHistory.length} exclude.`);
                             };
                             updateDesc();
                             setting.addButton((button) =>
@@ -98,7 +98,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                                     .onClick(async () => {
                                         const modal = new ConfirmModal(
                                             this.app,
-                                            "Are you sure you want to clear all search and replace history? This action cannot be undone.",
+                                            "Are you sure you want to clear all search, replace, and file filter history? This action cannot be undone.",
                                             {
                                                 confirmText: "Clear",
                                                 confirmClass: "mod-warning",
@@ -110,7 +110,7 @@ export class VaultFindReplaceSettingTab extends PluginSettingTab {
                                         if (confirmed) {
                                             this.plugin.historyManager.clearAllHistory();
                                             await this.plugin.saveSettings();
-                                            new Notice("Search and replace history cleared");
+                                            new Notice("Search, replace, and filter history cleared");
                                             updateDesc();
                                         }
                                     })

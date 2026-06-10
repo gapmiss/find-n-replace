@@ -66,6 +66,8 @@ export class SearchToolbar {
     // History navigators for inputs
     private searchHistoryNavigator: HistoryNavigator;
     private replaceHistoryNavigator: HistoryNavigator;
+    private includeHistoryNavigator: HistoryNavigator;
+    private excludeHistoryNavigator: HistoryNavigator;
 
     // Session-only filter state (not synced to settings)
     private sessionFilters = {
@@ -90,6 +92,8 @@ export class SearchToolbar {
         // Initialize history navigators
         this.searchHistoryNavigator = new HistoryNavigator(plugin);
         this.replaceHistoryNavigator = new HistoryNavigator(plugin);
+        this.includeHistoryNavigator = new HistoryNavigator(plugin);
+        this.excludeHistoryNavigator = new HistoryNavigator(plugin);
 
         // Initialize session filters from settings (one-time only)
         this.initializeSessionFilters();
@@ -364,9 +368,14 @@ export class SearchToolbar {
         const includeInput = includeInputContainer.createEl('input', {
             type: 'text',
             cls: 'filter-input',
-            placeholder: 'e.g. .md, Notes/, *.js',
+            placeholder: 'e.g. .md, Notes/, *.js (↑↓ for history)',
             attr: { 'tabindex': '9' }
         });
+
+        // Attach history navigator to include input
+        if (this.plugin.settings.enableSearchHistory) {
+            this.includeHistoryNavigator.attachTo(includeInput, () => this.plugin.historyManager.getIncludeHistory());
+        }
 
         // Add clear button for include input
         const includeClearBtn = includeInputContainer.createEl('button', {
@@ -388,9 +397,14 @@ export class SearchToolbar {
         const excludeInput = excludeInputContainer.createEl('input', {
             type: 'text',
             cls: 'filter-input',
-            placeholder: 'e.g. *.tmp, Archive/, *backup*',
+            placeholder: 'e.g. *.tmp, Archive/, *backup* (↑↓ for history)',
             attr: { 'tabindex': '10' }
         });
+
+        // Attach history navigator to exclude input
+        if (this.plugin.settings.enableSearchHistory) {
+            this.excludeHistoryNavigator.attachTo(excludeInput, () => this.plugin.historyManager.getExcludeHistory());
+        }
 
         // Add clear button for exclude input
         const excludeClearBtn = excludeInputContainer.createEl('button', {
@@ -608,16 +622,24 @@ export class SearchToolbar {
         includeInput.addEventListener('input', debouncedUpdate);
         excludeInput.addEventListener('input', debouncedUpdate);
 
-        // Enter key handlers for immediate search
+        // Enter key handlers for immediate search (also save filter pattern to history)
         includeInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 window.clearTimeout(updateTimeout); // Cancel debounced update
+                const value = includeInput.value.trim();
+                if (value && this.plugin.settings.enableSearchHistory) {
+                    this.plugin.historyManager.addInclude(value);
+                }
                 void updateFiltersAndSearch(); // Immediate update
             }
         });
         excludeInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 window.clearTimeout(updateTimeout); // Cancel debounced update
+                const value = excludeInput.value.trim();
+                if (value && this.plugin.settings.enableSearchHistory) {
+                    this.plugin.historyManager.addExclude(value);
+                }
                 void updateFiltersAndSearch(); // Immediate update
             }
         });

@@ -19,6 +19,8 @@ export class MockPlugin {
             ...DEFAULT_SETTINGS,
             searchHistory: [],
             replaceHistory: [],
+            includeHistory: [],
+            excludeHistory: [],
             fileGroupStates: {}
         };
         // Initialize history manager

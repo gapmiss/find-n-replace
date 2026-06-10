@@ -28,6 +28,8 @@ export interface VaultFindReplaceSettings {
     // History settings (implemented)
     searchHistory: string[]; // Recent search patterns (newest first)
     replaceHistory: string[]; // Recent replace patterns (newest first)
+    includeHistory: string[]; // Recent "files to include" patterns (newest first)
+    excludeHistory: string[]; // Recent "files to exclude" patterns (newest first)
     maxHistorySize: number; // Maximum number of history entries to keep (default: 50)
     enableSearchHistory: boolean; // Enable/disable history feature (default: true)
 
@@ -78,6 +80,8 @@ export const DEFAULT_SETTINGS: VaultFindReplaceSettings = {
     // History settings (implemented)
     searchHistory: [], // Start with empty history
     replaceHistory: [], // Start with empty history
+    includeHistory: [], // Start with empty history
+    excludeHistory: [], // Start with empty history
     maxHistorySize: 50, // Default to 50 entries
     enableSearchHistory: true, // Enable by default
 

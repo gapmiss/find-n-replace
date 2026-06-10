@@ -2,7 +2,14 @@ import { Logger } from '../utils';
 import VaultFindReplacePlugin from '../main';
 
 /**
- * Manages search and replace history with LRU caching
+ * Settings keys for the history arrays managed by HistoryManager
+ */
+type HistoryKey = 'searchHistory' | 'replaceHistory' | 'includeHistory' | 'excludeHistory';
+
+const ALL_HISTORY_KEYS: HistoryKey[] = ['searchHistory', 'replaceHistory', 'includeHistory', 'excludeHistory'];
+
+/**
+ * Manages search, replace, and file filter history with LRU caching
  * Provides persistent storage across sessions via plugin settings
  */
 export class HistoryManager {
@@ -29,74 +36,37 @@ export class HistoryManager {
     }
 
     /**
-     * Adds a search pattern to history
+     * Adds a pattern to the given history array
      * Implements LRU: moves existing entry to front, deduplicates consecutive entries
-     * @param pattern - The search pattern to add
+     * @param key - Which history array to add to
+     * @param pattern - The pattern to add
+     * @param trim - Whether to trim the pattern and skip blank values
+     *               (false preserves whitespace and allows empty strings, e.g. replace text)
      */
-    addSearch(pattern: string): void {
+    private addEntry(key: HistoryKey, pattern: string, trim: boolean): void {
         if (!this.isHistoryEnabled()) {
             this.logger.debug('History is disabled, skipping save');
             return;
         }
 
-        if (!pattern || pattern.trim() === '') {
-            this.logger.debug('Skipping empty search pattern');
-            return;
-        }
-
-        const trimmed = pattern.trim();
-        const history = this.plugin.settings.searchHistory;
-
-        // Don't add if identical to most recent entry (deduplication)
-        if (history.length > 0 && history[0] === trimmed) {
-            this.logger.debug('Skipping duplicate search pattern:', trimmed);
-            return;
-        }
-
-        // Remove existing occurrence (LRU: move to front)
-        const existingIndex = history.indexOf(trimmed);
-        if (existingIndex > 0) {
-            history.splice(existingIndex, 1);
-            this.logger.debug('Moved existing search pattern to front:', trimmed);
-        }
-
-        // Add to front
-        history.unshift(trimmed);
-
-        // Enforce max size
-        const maxSize = this.getMaxSize();
-        if (history.length > maxSize) {
-            const removed = history.splice(maxSize);
-            this.logger.debug(`Trimmed search history: removed ${removed.length} old entries`);
-        }
-
-        // Persist to settings
-        void this.plugin.saveSettings();
-        this.logger.debug('Added search to history:', trimmed, `(total: ${history.length})`);
-    }
-
-    /**
-     * Adds a replace pattern to history
-     * Implements LRU: moves existing entry to front, deduplicates consecutive entries
-     * @param pattern - The replace pattern to add
-     */
-    addReplace(pattern: string): void {
-        if (!this.isHistoryEnabled()) {
-            this.logger.debug('History is disabled, skipping save');
-            return;
-        }
-
-        // Allow empty strings for replace (common use case: delete matches)
         if (pattern === null || pattern === undefined) {
-            this.logger.debug('Skipping null/undefined replace pattern');
+            this.logger.debug(`Skipping null/undefined ${key} pattern`);
             return;
         }
 
-        const history = this.plugin.settings.replaceHistory;
+        if (trim) {
+            if (pattern.trim() === '') {
+                this.logger.debug(`Skipping empty ${key} pattern`);
+                return;
+            }
+            pattern = pattern.trim();
+        }
+
+        const history = this.plugin.settings[key];
 
         // Don't add if identical to most recent entry (deduplication)
         if (history.length > 0 && history[0] === pattern) {
-            this.logger.debug('Skipping duplicate replace pattern:', pattern);
+            this.logger.debug(`Skipping duplicate ${key} pattern:`, pattern);
             return;
         }
 
@@ -104,7 +74,7 @@ export class HistoryManager {
         const existingIndex = history.indexOf(pattern);
         if (existingIndex > 0) {
             history.splice(existingIndex, 1);
-            this.logger.debug('Moved existing replace pattern to front:', pattern);
+            this.logger.debug(`Moved existing ${key} pattern to front:`, pattern);
         }
 
         // Add to front
@@ -114,54 +84,137 @@ export class HistoryManager {
         const maxSize = this.getMaxSize();
         if (history.length > maxSize) {
             const removed = history.splice(maxSize);
-            this.logger.debug(`Trimmed replace history: removed ${removed.length} old entries`);
+            this.logger.debug(`Trimmed ${key}: removed ${removed.length} old entries`);
         }
 
         // Persist to settings
         void this.plugin.saveSettings();
-        this.logger.debug('Added replace to history:', pattern, `(total: ${history.length})`);
+        this.logger.debug(`Added ${key} entry:`, pattern, `(total: ${history.length})`);
+    }
+
+    /**
+     * Gets a copy of the given history array (newest first)
+     */
+    private getEntries(key: HistoryKey): string[] {
+        return [...this.plugin.settings[key]];
+    }
+
+    /**
+     * Clears the given history array
+     */
+    private clearEntries(key: HistoryKey): void {
+        this.plugin.settings[key] = [];
+        void this.plugin.saveSettings();
+        this.logger.info(`Cleared ${key}`);
+    }
+
+    /**
+     * Removes a specific entry from the given history array
+     */
+    private removeEntry(key: HistoryKey, pattern: string): void {
+        const history = this.plugin.settings[key];
+        const index = history.indexOf(pattern);
+        if (index !== -1) {
+            history.splice(index, 1);
+            void this.plugin.saveSettings();
+            this.logger.debug(`Removed ${key} entry:`, pattern);
+        }
+    }
+
+    /**
+     * Adds a search pattern to history
+     * @param pattern - The search pattern to add
+     */
+    addSearch(pattern: string): void {
+        this.addEntry('searchHistory', pattern, true);
+    }
+
+    /**
+     * Adds a replace pattern to history
+     * Empty strings are allowed (common use case: delete matches), whitespace is preserved
+     * @param pattern - The replace pattern to add
+     */
+    addReplace(pattern: string): void {
+        this.addEntry('replaceHistory', pattern, false);
+    }
+
+    /**
+     * Adds a "files to include" filter pattern to history
+     * @param pattern - The include pattern to add
+     */
+    addInclude(pattern: string): void {
+        this.addEntry('includeHistory', pattern, true);
+    }
+
+    /**
+     * Adds a "files to exclude" filter pattern to history
+     * @param pattern - The exclude pattern to add
+     */
+    addExclude(pattern: string): void {
+        this.addEntry('excludeHistory', pattern, true);
     }
 
     /**
      * Gets the search history (newest first)
-     * @returns Array of search patterns
      */
     getSearchHistory(): string[] {
-        return [...this.plugin.settings.searchHistory];
+        return this.getEntries('searchHistory');
     }
 
     /**
      * Gets the replace history (newest first)
-     * @returns Array of replace patterns
      */
     getReplaceHistory(): string[] {
-        return [...this.plugin.settings.replaceHistory];
+        return this.getEntries('replaceHistory');
+    }
+
+    /**
+     * Gets the "files to include" history (newest first)
+     */
+    getIncludeHistory(): string[] {
+        return this.getEntries('includeHistory');
+    }
+
+    /**
+     * Gets the "files to exclude" history (newest first)
+     */
+    getExcludeHistory(): string[] {
+        return this.getEntries('excludeHistory');
     }
 
     /**
      * Clears all search history
      */
     clearSearchHistory(): void {
-        this.plugin.settings.searchHistory = [];
-        void this.plugin.saveSettings();
-        this.logger.info('Cleared search history');
+        this.clearEntries('searchHistory');
     }
 
     /**
      * Clears all replace history
      */
     clearReplaceHistory(): void {
-        this.plugin.settings.replaceHistory = [];
-        void this.plugin.saveSettings();
-        this.logger.info('Cleared replace history');
+        this.clearEntries('replaceHistory');
     }
 
     /**
-     * Clears all history (search and replace)
+     * Clears all "files to include" history
+     */
+    clearIncludeHistory(): void {
+        this.clearEntries('includeHistory');
+    }
+
+    /**
+     * Clears all "files to exclude" history
+     */
+    clearExcludeHistory(): void {
+        this.clearEntries('excludeHistory');
+    }
+
+    /**
+     * Clears all history (search, replace, include, exclude)
      */
     clearAllHistory(): void {
-        this.clearSearchHistory();
-        this.clearReplaceHistory();
+        ALL_HISTORY_KEYS.forEach(key => this.clearEntries(key));
         this.logger.info('Cleared all history');
     }
 
@@ -171,13 +224,7 @@ export class HistoryManager {
      * @param pattern - The pattern to remove
      */
     removeSearchEntry(pattern: string): void {
-        const history = this.plugin.settings.searchHistory;
-        const index = history.indexOf(pattern);
-        if (index !== -1) {
-            history.splice(index, 1);
-            void this.plugin.saveSettings();
-            this.logger.debug('Removed search entry:', pattern);
-        }
+        this.removeEntry('searchHistory', pattern);
     }
 
     /**
@@ -186,13 +233,7 @@ export class HistoryManager {
      * @param pattern - The pattern to remove
      */
     removeReplaceEntry(pattern: string): void {
-        const history = this.plugin.settings.replaceHistory;
-        const index = history.indexOf(pattern);
-        if (index !== -1) {
-            history.splice(index, 1);
-            void this.plugin.saveSettings();
-            this.logger.debug('Removed replace entry:', pattern);
-        }
+        this.removeEntry('replaceHistory', pattern);
     }
 
     /**
@@ -202,19 +243,14 @@ export class HistoryManager {
     updateMaxSize(): void {
         const maxSize = this.getMaxSize();
 
-        // Trim search history if needed
-        if (this.plugin.settings.searchHistory.length > maxSize) {
-            const removed = this.plugin.settings.searchHistory.length - maxSize;
-            this.plugin.settings.searchHistory.splice(maxSize);
-            this.logger.info(`Trimmed search history to ${maxSize} entries (removed ${removed})`);
-        }
-
-        // Trim replace history if needed
-        if (this.plugin.settings.replaceHistory.length > maxSize) {
-            const removed = this.plugin.settings.replaceHistory.length - maxSize;
-            this.plugin.settings.replaceHistory.splice(maxSize);
-            this.logger.info(`Trimmed replace history to ${maxSize} entries (removed ${removed})`);
-        }
+        ALL_HISTORY_KEYS.forEach(key => {
+            const history = this.plugin.settings[key];
+            if (history.length > maxSize) {
+                const removed = history.length - maxSize;
+                history.splice(maxSize);
+                this.logger.info(`Trimmed ${key} to ${maxSize} entries (removed ${removed})`);
+            }
+        });
 
         void this.plugin.saveSettings();
     }
