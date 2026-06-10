@@ -218,7 +218,10 @@ export class SearchController {
         }
 
         const timerName = `performSearch-${searchId}`;
+        // Track that THIS invocation acquired the lock (for safe cleanup in finally)
+        let lockAcquired = false;
         this.isSearching = true;
+        lockAcquired = true;
         this.showSpinner();
 
         this.logger.debug(`[${searchId}] Search lock acquired, starting execution`);
@@ -312,11 +315,16 @@ export class SearchController {
                 this.logger.debug('Timer cleanup failed (expected in some cases)');
             }
         } finally {
-            // CRITICAL: Always reset the search state
-            this.isSearching = false;
-            this.currentSearchController = null;
-            this.hideSpinner();
-            this.logger.debug(`[${searchId}] ===== SEARCH LOCK RELEASED =====`);
+            // Only clean up state if THIS invocation owns it
+            // Prevents superseded search A from stomping on search B's state
+            if (this.currentSearchController === controller) {
+                this.currentSearchController = null;
+            }
+            if (lockAcquired) {
+                this.isSearching = false;
+                this.hideSpinner();
+                this.logger.debug(`[${searchId}] ===== SEARCH LOCK RELEASED =====`);
+            }
         }
     }
 
