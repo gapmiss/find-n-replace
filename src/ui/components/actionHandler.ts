@@ -1,3 +1,4 @@
+import { ItemView } from 'obsidian';
 import { Logger } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
 import { FindReplaceElements, SearchOptions, SearchResult, SessionFilters } from '../../types';
@@ -10,6 +11,7 @@ import { ConfirmModal } from '../../modals';
  */
 export class ActionHandler {
     private plugin: VaultFindReplacePlugin;
+    private view: ItemView;
     private logger: Logger;
     private elements: FindReplaceElements;
     private searchEngine: SearchEngine;
@@ -29,6 +31,7 @@ export class ActionHandler {
 
     constructor(
         plugin: VaultFindReplacePlugin,
+        view: ItemView,
         elements: FindReplaceElements,
         searchEngine: SearchEngine,
         replacementEngine: ReplacementEngine,
@@ -36,6 +39,7 @@ export class ActionHandler {
         renderResultsCallback: (preserveSelection?: boolean) => void
     ) {
         this.plugin = plugin;
+        this.view = view;
         this.logger = Logger.create(plugin, 'ActionHandler');
         this.elements = elements;
         this.searchEngine = searchEngine;
@@ -473,20 +477,24 @@ export class ActionHandler {
      * - Event listener persists until explicitly removed
      */
     setupKeyboardShortcuts(): void {
+        // Use Obsidian's registerDomEvent for automatic cleanup on view unload
+        // This also ensures the same document is used for both setup and teardown,
+        // preventing listener leaks when view moves between popout windows
+        const doc = this.elements.containerEl.ownerDocument;
+
         // Ctrl/Cmd + Enter: Replace all
-        activeDocument.addEventListener('keydown', this.replaceAllKeyHandler);
+        this.view.registerDomEvent(doc, 'keydown', this.replaceAllKeyHandler);
 
         // Alt + Enter: Replace selected
-        activeDocument.addEventListener('keydown', this.replaceSelectedKeyHandler);
+        this.view.registerDomEvent(doc, 'keydown', this.replaceSelectedKeyHandler);
     }
 
     /**
      * Cleans up event listeners
+     * Note: Keyboard shortcuts registered via view.registerDomEvent are automatically
+     * cleaned up when the view is unloaded, so no manual removal needed for those.
      */
     cleanup(): void {
-        // Remove global keyboard listeners using stored references
-        activeDocument.removeEventListener('keydown', this.replaceAllKeyHandler);
-        activeDocument.removeEventListener('keydown', this.replaceSelectedKeyHandler);
         this.logger.debug('ActionHandler cleanup completed');
     }
 }

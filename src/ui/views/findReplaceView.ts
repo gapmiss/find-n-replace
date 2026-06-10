@@ -192,6 +192,7 @@ export class FindReplaceView extends ItemView {
         // Initialize ActionHandler for event handling
         this.actionHandler = new ActionHandler(
             this.plugin,
+            this,  // Pass view for registerDomEvent (proper cleanup on popout windows)
             this.elements,
             this.searchEngine,
             this.replacementEngine,
