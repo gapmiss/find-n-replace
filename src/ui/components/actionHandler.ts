@@ -1,5 +1,5 @@
-import { ItemView } from 'obsidian';
-import { Logger } from '../../utils';
+import { ItemView, debounce } from 'obsidian';
+import { Logger, REPLACE_PREVIEW_DEBOUNCE_DELAY } from '../../utils';
 import VaultFindReplacePlugin from '../../main';
 import { FindReplaceElements, SearchOptions, SearchResult, SessionFilters } from '../../types';
 import { SearchEngine, ReplacementEngine } from '../../core';
@@ -129,11 +129,14 @@ export class ActionHandler {
     /**
      * Sets up replace input change handler for preview updates
      * Preserves selections when replace text changes to improve UX
+     * Debounced to prevent DOM rebuilds on every keystroke with large result sets
      */
     private setupReplaceInputHandler(): void {
-        this.elements.replaceInput.addEventListener('input', () => {
+        const debouncedRender = debounce(() => {
             this.renderResultsCallback(true); // Preserve selections for replace text changes
-        });
+        }, REPLACE_PREVIEW_DEBOUNCE_DELAY);
+
+        this.elements.replaceInput.addEventListener('input', debouncedRender);
     }
 
     /**
