@@ -51,6 +51,11 @@ export class ReplacementEngine {
         switch (mode) {
             case "one": {
                 // Replace a single specific match
+                // Validate target is a SearchResult before casting
+                if (!target || typeof target !== 'object' || !('file' in target) || !('line' in target) || !('matchText' in target)) {
+                    this.logger.error("Invalid target for single replacement - not a SearchResult", target);
+                    break;
+                }
                 const res = target as SearchResult;
                 grouped.set(res.file, [res]);
 
@@ -75,6 +80,11 @@ export class ReplacementEngine {
             case "selected": {
                 // Replace all user-selected matches
                 for (const idx of Array.from(selectedIndices)) {
+                    // Bounds check to prevent undefined access
+                    if (idx < 0 || idx >= results.length) {
+                        this.logger.warn(`Invalid selection index ${idx} (results length: ${results.length}), skipping`);
+                        continue;
+                    }
                     const res = results[idx];
                     if (!grouped.has(res.file)) grouped.set(res.file, []);
                     grouped.get(res.file)!.push(res);
