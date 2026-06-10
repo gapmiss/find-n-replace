@@ -598,6 +598,11 @@ export class FindReplaceView extends ItemView {
                 this.state.results.splice(index, 1);
             }
 
+            // Decrement totalResults to keep header count accurate
+            if (this.state.totalResults !== undefined) {
+                this.state.totalResults -= sortedIndices.length;
+            }
+
             // Update selection indices to account for removed results
             this.selectionManager.adjustSelectionForRemovedIndices(sortedIndices);
 
@@ -611,6 +616,11 @@ export class FindReplaceView extends ItemView {
 
             const resultsAfterRevalidation = this.state.results.length;
             const revalidationRemoved = resultsBeforeRevalidation - resultsAfterRevalidation;
+
+            // Also decrement totalResults for results removed during revalidation
+            if (this.state.totalResults !== undefined && revalidationRemoved > 0) {
+                this.state.totalResults -= revalidationRemoved;
+            }
 
             // Sanity check: warn if we removed significantly more results than expected
             if (revalidationRemoved > affectedResults.replacedResultIndices.length * 5) {
@@ -659,9 +669,6 @@ export class FindReplaceView extends ItemView {
             // Re-setup selection manager with new DOM elements and restore visual state
             this.state.lineElements = lineElements;
             this.selectionManager.setupSelection(lineElements, true); // Preserve existing selections
-
-            // Update search statistics
-            this.updateSearchStatistics();
 
             this.logger.debug('Incremental update completed successfully');
 
@@ -780,19 +787,6 @@ export class FindReplaceView extends ItemView {
     }
 
     /**
-     * Updates search statistics after incremental changes
-     */
-    private updateSearchStatistics(): void {
-        // Update result count display
-        const resultCount = this.state.results.length;
-        const fileCount = new Set(this.state.results.map(r => r.file.path)).size;
-
-        // Update any UI elements that display these counts
-        // This will be implemented when we modify the UI renderer
-        this.logger.debug('Updated search statistics', { resultCount, fileCount });
-    }
-
-    /**
      * Handles external file modifications - updates search results in-place
      * Called when a file with search results is modified outside the plugin
      * @param file - The file that was modified
@@ -897,8 +891,6 @@ export class FindReplaceView extends ItemView {
             this.state.lineElements = lineElements;
             this.selectionManager.setupSelection(lineElements, true); // Preserve existing selections
 
-            this.updateSearchStatistics();
-
         } catch (error) {
             this.logger.error(`Failed to update results for modified file ${file.path}`, error);
             // Don't fall back to full search - just log the error
@@ -955,8 +947,6 @@ export class FindReplaceView extends ItemView {
 
         this.state.lineElements = lineElements;
         this.selectionManager.setupSelection(lineElements, true);
-
-        this.updateSearchStatistics();
     }
 
     /**

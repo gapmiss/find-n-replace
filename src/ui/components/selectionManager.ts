@@ -294,6 +294,7 @@ export class SelectionManager {
      * - New selection: [1, 2, 3] (indices 3 and 5 shifted down)
      */
     adjustSelectionForRemovedIndices(removedIndices: number[]): void {
+        const oldSize = this.selectedIndices.size;
         const newSelection = new Set<number>();
 
         // For each selected index, calculate its new position after removals
@@ -315,10 +316,9 @@ export class SelectionManager {
         this.selectedIndices = newSelection;
         this.updateSelectionUI();
 
-        // Log the adjustment for debugging
         this.logger.debug('Selection adjusted for removed indices:', {
             removedIndices,
-            oldSelectionSize: this.selectedIndices.size + removedIndices.filter(idx => this.selectedIndices.has(idx)).length,
+            oldSelectionSize: oldSize,
             newSelectionSize: this.selectedIndices.size
         });
     }
