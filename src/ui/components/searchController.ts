@@ -267,7 +267,7 @@ export class SearchController {
 
             this.logger.debug(`[${searchId}] Starting SearchEngine.performSearch`);
             const sessionFilters = this.getSessionFiltersCallback();
-            const results = await this.searchEngine.performSearch(query, searchOptions, sessionFilters);
+            const results = await this.searchEngine.performSearch(query, searchOptions, sessionFilters, controller.signal);
             this.logger.debug(`[${searchId}] SearchEngine.performSearch completed: ${results.length} results`);
 
             // CRITICAL: Check if search was superseded after completion

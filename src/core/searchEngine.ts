@@ -205,9 +205,10 @@ export class SearchEngine {
      * @param query - The search query string
      * @param options - Search configuration options
      * @param sessionFilters - Optional session-only filters (overrides plugin settings)
+     * @param signal - Optional AbortSignal to cancel search early
      * @returns Promise resolving to array of search results
      */
-    async performSearch(query: string, options: SearchOptions, sessionFilters?: SessionFilters): Promise<SearchResult[]> {
+    async performSearch(query: string, options: SearchOptions, sessionFilters?: SessionFilters, signal?: AbortSignal): Promise<SearchResult[]> {
         const trimmedQuery = query.trim();
         this.logger.debug('performSearch called:', { query: trimmedQuery, options });
 
@@ -251,6 +252,12 @@ export class SearchEngine {
 
         // Process files in batches to maintain responsive UI
         for (let batchStart = 0; batchStart < files.length; batchStart += BATCH_SIZE) {
+            // Check if search was cancelled before processing next batch
+            if (signal?.aborted) {
+                this.logger.debug('Search aborted by signal, stopping early');
+                break;
+            }
+
             const batch = files.slice(batchStart, batchStart + BATCH_SIZE);
 
             // Process all files in current batch concurrently
