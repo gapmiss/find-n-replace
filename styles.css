@@ -12,7 +12,7 @@
 /* --- Find-n-Replace Help Modal Styling (Globally Scoped - Modals) --- */
 /* Note: Width is set via TypeScript when modal opens by adding .find-replace-help-modal-container class */
 .modal.find-replace-help-modal-container {
-    --dialog-width: 720px;
+    --dialog-width: 75vw;
     width: var(--dialog-width);
 }
 
@@ -218,6 +218,7 @@
     border: 1px solid var(--color-base-35);
     box-shadow: 0 1px 0 1px var(--color-base-50);
     margin-inline: .25em;
+    padding: var(--size-2-3);
 }
 
 /* --- View-Specific Styles (Scoped to prevent conflicts) --- */
