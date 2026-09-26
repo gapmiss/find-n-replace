@@ -9,13 +9,7 @@
     padding: var(--size-4-2);
 }
 
-/* --- Find-n-Replace Help Modal Styling (Globally Scoped - Modals) --- */
-/* Note: Width is set via TypeScript when modal opens by adding .find-replace-help-modal-container class */
-.modal.find-replace-help-modal-container {
-    --dialog-width: 75vw;
-    width: var(--dialog-width);
-}
-
+/* --- Find-n-Replace Help Modal Styling --- */
 .find-replace-help-modal .help-subtitle {
     margin-bottom: var(--size-4-2);
 }
@@ -32,19 +26,6 @@
     margin-bottom: var(--size-4-4);
     color: var(--text-muted);
     line-height: 1.5;
-}
-
-.find-replace-help-modal .help-category {
-    margin-bottom: var(--size-4-4);
-}
-
-.find-replace-help-modal .help-category h3 {
-    color: var(--text-normal);
-    font-size: var(--font-ui-medium);
-    font-weight: var(--font-weight-medium);
-    margin-bottom: var(--size-4-2);
-    border-bottom: 1px solid var(--background-modifier-border);
-    padding-bottom: var(--size-2-1);
 }
 
 .find-replace-help-modal .help-commands-table {
@@ -69,8 +50,21 @@
     vertical-align: top;
 }
 
-.find-replace-help-modal .help-commands-table tr:hover {
+.find-replace-help-modal .help-commands-table tbody tr:hover {
     background-color: var(--background-modifier-hover);
+}
+
+/* Category heading rows inside the commands table */
+.find-replace-help-modal .help-commands-table .help-category-row th {
+    background-color: transparent;
+    color: var(--text-faint);
+    font-size: var(--font-ui-medium);
+    font-weight: var(--font-semibold);
+    padding: var(--size-4-4) var(--size-2-3) var(--size-2-2);
+}
+
+.find-replace-help-modal .help-commands-table tbody tr.help-category-row:hover {
+    background-color: transparent;
 }
 
 .find-replace-help-modal .hotkey-set {
@@ -87,14 +81,6 @@
 .find-replace-help-modal .hotkey-not-set {
     color: var(--text-muted);
     font-style: italic;
-    font-size: var(--font-ui-smaller);
-}
-
-.find-replace-help-modal .hotkey-recommended {
-    color: var(--text-muted);
-    padding: var(--size-2-1) var(--size-2-2);
-    border-radius: var(--radius-s);
-    font-family: var(--font-monospace);
     font-size: var(--font-ui-smaller);
 }
 
@@ -139,6 +125,10 @@
     color: var(--text-muted);
     font-size: var(--font-ui-small);
     font-style: italic;
+}
+
+.find-replace-help-modal .help-note p + p {
+    margin-top: var(--size-2-2);
 }
 
 .find-replace-help-modal .help-buttons {

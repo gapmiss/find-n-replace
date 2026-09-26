@@ -1,53 +1,41 @@
 # Contributing to Find-n-Replace
 
-Thank you for your interest in contributing to Find-n-Replace!
+Thanks for helping out. Bug reports, fixes, and ideas are all welcome.
 
-## Getting Started
+## Before you start
 
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/find-n-replace.git`
-3. Install dependencies: `npm install`
-4. Create a feature branch: `git checkout -b feature/your-feature-name`
+For anything bigger than a small fix, please [open an issue](https://github.com/gapmiss/find-n-replace/issues) first so we can agree on the approach before you spend time on it.
 
-## Development
+## Setup
+
+1. Fork the repository and clone your fork.
+2. Run `npm install`.
+3. Create a branch: `git checkout -b fix/short-description`.
+4. Run `npm run dev` to rebuild on every change. To try the plugin in Obsidian, symlink or copy `main.js`, `manifest.json`, and `styles.css` into a test vault's `.obsidian/plugins/find-n-replace/` folder.
+
+## Checks
+
+All three must pass before you open a pull request:
 
 ```bash
-# Development build with watching
-npm run dev
-
-# Production build
-npm run build
-
-# Run tests
-npm test
-
-# Watch mode testing
-npm run test:watch
-
-# Coverage reports
-npm run test:coverage
+npm run lint     # ESLint, including eslint-plugin-obsidianmd
+npm run build    # type-check and production build
+npx vitest run   # full test suite
 ```
 
-## Code Standards
+See [TESTING.md](TESTING.md) for how the tests are organized and how to write new ones.
 
-- Follow existing TypeScript conventions and code style
-- Use strict typing - avoid `any`
-- Include error handling for all async operations
-- Add logging for debugging where appropriate
+## Code guidelines
 
-## Testing
+- Follow the style of the surrounding code.
+- Use strict types. Avoid `any` outside tests.
+- Catch and report errors in async code so a failure shows the user a notice instead of breaking the view silently.
+- Use Obsidian's APIs and CSS variables, and follow the [Obsidian plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines). In particular: no regex lookbehind (unsupported on older iOS), no `innerHTML`, and sentence case in UI text.
+- Add a regression test when you fix a bug.
+- Try your change in a large vault if it touches search or replacement.
 
-- **Run the test suite before submitting:** `npm test` (all tests must pass)
-- **Add tests for new features:** Follow existing patterns in `src/tests/unit/`
-- Test with large vaults to ensure performance
+## Pull requests
 
-## Pull Request Process
-
-1. Ensure all tests pass
-2. Update documentation for any API changes
-3. Keep commits focused and well-described
-4. Submit a pull request with a clear description of changes
-
-## Questions
-
-Open an issue for questions or discussion about potential contributions.
+- Keep each pull request to one change.
+- Explain what changed and why, and how you tested it.
+- Update the README or `docs/USER_GUIDE.md` if you change anything a user would notice.
