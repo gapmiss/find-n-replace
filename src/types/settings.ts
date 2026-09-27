@@ -45,12 +45,6 @@ export interface VaultFindReplaceSettings {
         multiline: boolean;
     };
 
-    // TODO: Implement these features (see ROADMAP.md)
-    highlightDuration: number; // in ms
-    persistentHighlight: boolean;
-    showLineNumbers: boolean;
-    showFileExtensions: boolean;
-
     // Legacy settings for migration (will be removed after migration)
     excludePatterns?: string[];
     fileExtensions?: string[];
@@ -96,10 +90,4 @@ export const DEFAULT_SETTINGS: VaultFindReplaceSettings = {
         useRegex: false,
         multiline: false
     },
-
-    // TODO: Implement these features (see ROADMAP.md)
-    highlightDuration: 2000,
-    persistentHighlight: false,
-    showLineNumbers: true,
-    showFileExtensions: false,
 };

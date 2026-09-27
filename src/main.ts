@@ -350,9 +350,14 @@ export default class VaultFindReplacePlugin extends Plugin {
 
 	async loadSettings() {
 		try {
-			const loadedData = (await this.loadData()) as Partial<VaultFindReplaceSettings> | null;
+			const loadedData = (await this.loadData()) as Record<string, unknown> | null;
+			const data = { ...(loadedData ?? {}) };
+			// Drop settings from older versions that were never implemented
+			for (const key of ['highlightDuration', 'persistentHighlight', 'showLineNumbers', 'showFileExtensions']) {
+				delete data[key];
+			}
 			// Deep clone DEFAULT_SETTINGS to avoid mutating module-level defaults
-			this.settings = Object.assign(structuredClone(DEFAULT_SETTINGS), loadedData ?? {});
+			this.settings = Object.assign(structuredClone(DEFAULT_SETTINGS), data as Partial<VaultFindReplaceSettings>);
 		} catch (error) {
 			// Logger not initialized yet during loadSettings, use console as fallback
 			console.error('find-n-replace: Failed to load settings, using defaults:', error);

@@ -179,7 +179,6 @@ export class SelectionManager {
      *
      * @remarks
      * **Triggered By:**
-     * - Escape key (when selections exist)
      * - New search query
      * - Clear All button
      * - Programmatic clearing

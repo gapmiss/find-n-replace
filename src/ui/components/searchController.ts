@@ -172,7 +172,7 @@ export class SearchController {
      * @remarks
      * **Search Serialization:** Cancels any in-progress search before starting new one
      * **Empty Query Handling:** Clears results when query is empty
-     * **Error Handling:** Shows user notifications for timeouts and failures
+     * **Error Handling:** Shows user notifications for failures
      * **Result Limiting:** Enforces max results setting with user notification
      * **State Management:** Updates isSearching flag and result state
      *
@@ -303,9 +303,6 @@ export class SearchController {
             if (error instanceof Error && error.name === 'AbortError') {
                 this.logger.warn(`[${searchId}] Search was CANCELLED (AbortError)`);
                 this.logger.error('Search cancelled. Starting new search...', undefined, true);
-            } else if (error instanceof Error && error.message.includes('timeout')) {
-                this.logger.error(`[${searchId}] Search TIMEOUT`, error);
-                this.logger.error('Search timed out. Try simplifying your search pattern or using filters to narrow the scope.', undefined, true);
             } else {
                 this.logger.error(`[${searchId}] Search operation FAILED`, error, true);
             }

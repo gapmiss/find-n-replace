@@ -421,13 +421,15 @@ export class ActionHandler {
         replaceText: string,
         isEstimate: boolean = false
     ): Promise<boolean> {
-        const countPrefix = isEstimate ? 'at least ' : '';
+        // The match count is exact. When results are limited, the file count only
+        // covers the displayed matches, so it is a lower bound.
+        const filePrefix = isEstimate ? 'at least ' : '';
         const matchText = matchCount === 1 ? '1 match' : `${matchCount.toLocaleString()} matches`;
-        const fileText = fileCount === 1 ? '1 file' : `${fileCount} files`;
+        const fileText = fileCount === 1 ? '1 file' : `${fileCount.toLocaleString()} files`;
 
         const message = replaceText === ''
-            ? `Delete ${countPrefix}${matchText} across ${fileText}? This action cannot be undone.`
-            : `Replace ${countPrefix}${matchText} across ${fileText}? This action cannot be undone.`;
+            ? `Delete ${matchText} across ${filePrefix}${fileText}? This action cannot be undone.`
+            : `Replace ${matchText} across ${filePrefix}${fileText}? This action cannot be undone.`;
 
         return this.showReplaceConfirmation(message);
     }

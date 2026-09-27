@@ -30,8 +30,5 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis'
-  },
-  esbuild: {
-    target: 'node14'
   }
 });
