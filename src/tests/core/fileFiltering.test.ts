@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SearchEngine } from '../../core/searchEngine';
+import { SearchToolbar } from '../../ui/components/searchToolbar';
 import { createMockApp, createMockPlugin } from '../mocks';
 import { SearchOptions } from '../../types/search';
 
@@ -156,6 +157,20 @@ describe('File Filtering System', () => {
       // Should not find results in excluded pattern files
       expect(filePaths).not.toContain('temp_file.tmp');
       expect(filePaths).not.toContain('backup_notes.bak');
+    });
+
+    it('should exclude files by bare extension in the exclude filter', async () => {
+      mockPlugin.settings.defaultExcludePatterns = ['.tmp'];
+      const toolbar = new SearchToolbar(mockPlugin, async () => {}, async () => {}, async () => {});
+      const sessionFilters = toolbar.getSessionFilters();
+
+      // .tmp is not a default text extension, so include it explicitly
+      sessionFilters.fileExtensions = ['tmp', 'bak'];
+      const results = await searchEngine.performSearch('FINDME', searchOptions, sessionFilters);
+      const paths = results.map(r => r.file.path);
+
+      expect(paths).toContain('backup_notes.bak');
+      expect(paths).not.toContain('temp_file.tmp');
     });
 
     it('should handle wildcard patterns correctly', async () => {

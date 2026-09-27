@@ -1,4 +1,10 @@
 import { describe, it, expect } from 'vitest';
+import { TFile } from 'obsidian';
+import { SearchEngine } from '../../core/searchEngine';
+import { ReplacementEngine } from '../../core/replacementEngine';
+import { SearchToolbar } from '../../ui/components/searchToolbar';
+import { createMockApp, createMockPlugin } from '../mocks';
+import { SearchOptions } from '../../types';
 
 /**
  * Regression tests specifically designed to prevent the second match replacement bug
@@ -6,6 +12,61 @@ import { describe, it, expect } from 'vitest';
  */
 
 describe('Bug Regression Tests', () => {
+  describe('Replace all in this file past the result limit (issue #2)', () => {
+    const options: SearchOptions = { matchCase: false, wholeWord: false, useRegex: false };
+
+    function setup() {
+      const app: any = createMockApp();
+      const plugin: any = createMockPlugin(app);
+      const searchEngine = new SearchEngine(app, plugin);
+      const replacementEngine = new ReplacementEngine(app, plugin, searchEngine);
+      const lines = Array.from({ length: 20 }, (_, i) => `line ${i} LIMITME`);
+      const file = app.addTestFile('limit.md', lines.join('\n')) as TFile;
+      return { app, searchEngine, replacementEngine, file };
+    }
+
+    it('misses matches when given only the limited results', async () => {
+      const { app, searchEngine, replacementEngine, file } = setup();
+      const limited = (await searchEngine.performSearch('LIMITME', options)).slice(0, 5);
+
+      await replacementEngine.dispatchReplace('file', limited, new Set(), 'DONE', options, file);
+
+      // Documents why the view must not pass state.results when limited
+      expect(app.vault.getContent('limit.md')).toContain('LIMITME');
+    });
+
+    it('replaces every match when the file is searched again without the limit', async () => {
+      const { app, searchEngine, replacementEngine, file } = setup();
+
+      // Mirrors findReplaceView.replaceAllInFile() when state.isLimited is true
+      const fileResults = await searchEngine.searchSingleFile(file, 'LIMITME', options);
+      expect(fileResults.length).toBe(20);
+      await replacementEngine.dispatchReplace('file', fileResults, new Set(), 'DONE', options, file);
+
+      const content = app.vault.getContent('limit.md');
+      expect(content).not.toContain('LIMITME');
+      expect(content.match(/DONE/g)?.length).toBe(20);
+    });
+  });
+
+  describe('Bare extensions in files to exclude', () => {
+    it('excludes .tmp files when the exclude filter is ".tmp"', async () => {
+      const app: any = createMockApp();
+      const plugin: any = createMockPlugin(app);
+      plugin.settings.defaultIncludePatterns = ['.tmp, .md'];
+      plugin.settings.defaultExcludePatterns = ['.tmp'];
+      const toolbar = new SearchToolbar(plugin, async () => {}, async () => {}, async () => {});
+      const filters = toolbar.getSessionFilters();
+
+      expect(filters.excludePatterns).toContain('*.tmp');
+
+      const searchEngine = new SearchEngine(app, plugin);
+      const results = await searchEngine.performSearch('FINDME', { matchCase: false, wholeWord: false, useRegex: false }, filters);
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.some(r => r.file.path.endsWith('.tmp'))).toBe(false);
+    });
+  });
+
   describe('Second Match Replacement Bug Prevention', () => {
     it('should correctly identify and replace the second match on the same line', () => {
       // This is the exact bug scenario that was reported and fixed

@@ -668,7 +668,7 @@ export class SearchToolbar {
      *
      * @remarks
      * **Pattern Parsing:**
-     * - `.md` → fileExtensions array (dot removed)
+     * - `.md` → fileExtensions array (dot removed); in exclude, the glob `*.md`
      * - `Notes/` → searchInFolders or excludeFolders (trailing slash removed)
      * - `*.js` → includePatterns or excludePatterns (contains wildcards)
      * - `test-capture.md` → includePatterns or excludePatterns (filename with extension)
@@ -696,7 +696,11 @@ export class SearchToolbar {
         // Parse exclude patterns
         if (this.sessionFilters.exclude) {
             const patterns = this.parseFilterPatterns(this.sessionFilters.exclude);
-            sessionFilters.excludePatterns = patterns.globs;
+            // Exclude has no extension list, so `.tmp` becomes the glob `*.tmp`
+            sessionFilters.excludePatterns = [
+                ...patterns.globs,
+                ...patterns.extensions.map(ext => `*.${ext}`)
+            ];
             sessionFilters.excludeFolders = patterns.folders;
         } else {
             sessionFilters.excludePatterns = [];

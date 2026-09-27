@@ -67,7 +67,7 @@ There are four ways to replace, from narrowest to widest.
 |--------|-------|------------------|
 | Replace this match | Button on a result row | That one match |
 | Replace selected | **⋯** menu, or Alt+Enter | The matches you selected |
-| Replace all in this file | Button on a file header | Every match in that file that appears in the list |
+| Replace all in this file | Button on a file header | Every match in that file, including ones hidden by the result limit |
 | Replace all in vault | **⋯** menu, or Ctrl/Cmd+Enter | Every match in the vault, including ones hidden by the result limit |
 
 Replacing in a whole file or the whole vault asks for confirmation first. You can turn this off with **Confirm destructive actions**. Replacing a single match or your selection with an empty replace box always asks first, since it deletes text.
@@ -97,8 +97,9 @@ The limit exists so a very broad search (a single letter, say) doesn't freeze Ob
 
 What the limit affects:
 
-- **Replace all in vault** ignores it. After you confirm, it searches again with no limit and replaces every match. The confirmation dialog shows the total match count, but its file count only covers the files in the list.
-- **Replace selected**, **Select all results**, and **Replace all in this file** only see the matches in the list. If a file was cut off partway through, matches past the cutoff aren't replaced.
+- **Replace all in vault** ignores it. After you confirm, it searches again with no limit and replaces every match. The confirmation dialog shows the total match count. Its file count only covers the files in the list, so it says "at least".
+- **Replace all in this file** ignores it too. If the file was cut off partway through, it searches that file again and replaces every match.
+- **Replace selected** and **Select all results** only see the matches in the list.
 
 To see more matches, raise **Maximum results** in settings (large values make the list slower), or narrow the search with a more specific query or file filters.
 
@@ -123,7 +124,6 @@ Details that trip people up:
 - **Extensions need the dot.** `md` without a dot is read as a folder named "md".
 - **`*` matches across folders.** `Notes/*.md` matches `Notes/a.md` and `Notes/sub/b.md`. `**` behaves the same as `*`.
 - **Wildcard matching ignores case.** Folder matching does not.
-- **In "files to exclude", use a wildcard for extensions.** Write `*.tmp`, not `.tmp`. A bare extension in the exclude box currently has no effect.
 
 ### How include patterns combine
 
@@ -278,6 +278,6 @@ The 15 commands in the command palette can all take hotkeys. **Help** in the **�
 
 **A replacement didn't do what the preview showed.**
 - If the file changed after the search, search again before replacing.
-- Remember that the result limit applies to **Replace selected** and **Replace all in this file**.
+- Remember that the result limit applies to **Replace selected**.
 
 **Reporting a bug.** Set **Console logging level** to Debug, open the developer console (Ctrl+Shift+I on Windows and Linux, Cmd+Option+I on macOS), reproduce the problem, and include the console output, your Obsidian and plugin versions, and the steps in a [GitHub issue](https://github.com/gapmiss/find-n-replace/issues).

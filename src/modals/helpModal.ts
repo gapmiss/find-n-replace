@@ -439,7 +439,7 @@ export class HelpModal extends Modal {
 
         const excludeItems: [string, string][] = [
             ['Archive/, Templates/', 'Skip the Archive and Templates folders'],
-            ['*.tmp, *.bak', 'Skip temporary and backup files. Use a wildcard here, since a bare .tmp has no effect when excluding.'],
+            ['.tmp, .bak', 'Skip temporary and backup files'],
             ['*backup*, *draft*', 'Skip paths containing "backup" or "draft"'],
             ['*Daily/*', 'Skip folders whose name ends in Daily, at any depth']
         ];
@@ -473,7 +473,7 @@ export class HelpModal extends Modal {
             ['With focus in the view, ', { keys: ['Alt', 'Enter'] }, ' replaces the selected matches.'],
             ['Press ', { keys: ['↑'] }, ' or ', { keys: ['↓'] }, ' in any text box to browse its history. Press ', { keys: ['Enter'] }, ' to save an entry.'],
             ['With regex on, use ', { code: '$1' }, ' for capture groups and ', { code: '$&' }, ' for the whole match.'],
-            ['The list shows up to "Maximum results" matches (1,000 by default). "Replace all in vault" still replaces every match, but "Replace selected" and the per-file button only act on matches in the list.'],
+            ['The list shows up to "Maximum results" matches (1,000 by default). "Replace all in vault" and the per-file button still replace every match, but "Replace selected" only acts on matches in the list.'],
             ['Filters set with the filter button ', { icon: 'filter' }, ' last until you close the view. Set defaults in settings to start with the same filters every time.'],
             ['Replacements cannot be undone from the plugin. Keep a backup or use git before large replacements.']
         ];

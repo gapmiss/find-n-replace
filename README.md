@@ -47,8 +47,8 @@ By default the results list shows the first 1,000 matches. When a search finds m
 
 - The limit counts individual matches, not files. The file count is the number of files among the matches shown.
 - The limit only affects what's displayed. It keeps Obsidian responsive when a search matches hundreds of thousands of times.
-- **Replace all in vault** is not limited. After you confirm, it searches again without the limit and replaces every match, including ones you couldn't see.
-- **Replace selected**, **Select all results**, and the per-file **Replace all in this file** button only act on the matches shown in the list. In a file that was cut off by the limit, matches past the cutoff are not replaced.
+- **Replace all in vault** and the per-file **Replace all in this file** button are not limited. They search again without the limit and replace every match, including ones you couldn't see.
+- **Replace selected** and **Select all results** only act on the matches shown in the list, since you can only select what you can see.
 - To see more, raise **Maximum results** in the plugin settings, or narrow the search with a more specific query or with file filters.
 
 ## Examples

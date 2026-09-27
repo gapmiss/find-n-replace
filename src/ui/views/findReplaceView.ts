@@ -499,6 +499,25 @@ export class FindReplaceView extends ItemView {
             }
 
             const searchOptions = this.searchController.getSearchOptions();
+
+            // A limited result list may hold only some of this file's matches.
+            // Search the whole file again so every match is replaced (issue #2).
+            if (this.state.isLimited) {
+                const query = this.elements.searchInput.value.trim();
+                const fileResults = await this.searchEngine.searchSingleFile(file, query, searchOptions);
+                await this.replacementEngine.dispatchReplace(
+                    'file',
+                    fileResults,
+                    new Set<number>(),
+                    replaceText,
+                    searchOptions,
+                    file
+                );
+                // Incremental update assumes the list holds every match, so refresh fully
+                await this.performSearch();
+                return;
+            }
+
             const replacementResult = await this.replacementEngine.dispatchReplace(
                 'file',
                 this.state.results,
